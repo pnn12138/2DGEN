@@ -1,0 +1,21 @@
+# Logging & checkpoint defaults.
+logging:
+  out_dir: outputs
+  logger: tensorboard
+  project: jdft2d
+  tags: ["alignn", "baseline"]
+  save_source: true
+
+checkpoint:
+  monitor: val/mae
+  mode: min
+  save_top_k: 3
+  filename: epoch{epoch:03d}-valMAE{val/mae:.3f}
+  every_n_epochs: 1
+
+tracker:
+  enable_wandb: false
+  wandb:
+    entity: null
+    project: jdft2d
+    tags: ["alignn"]
