@@ -11,3 +11,7 @@ wheels/
 
 # Dataset cache
 data/
+
+# Training outputs / checkpoints
+outputs/
+lightning_logs/
