@@ -28,7 +28,7 @@ class DenoiserConfig:
 
 class C2DBDenoiser(nn.Module):
     """
-    Thin wrapper separating model and loss, mirroring JiT's structure but sized for 3x24x3.
+    Thin wrapper separating model and loss, mirroring JiT's structure but sized for 3x24x24.
 
     - model: predicts clean x0 given noisy z and timestep t.
     - loss: velocity-prediction loss (v-space) computed via VelocityPredictionLoss.
@@ -127,7 +127,7 @@ class C2DBDenoiser(nn.Module):
         cfg_interval: Optional[Tuple[float, float]] = None,
     ) -> torch.Tensor:
         """
-        ODE-style sampler supporting Euler/Heun, adapted to 3x24x3 grids.
+        ODE-style sampler supporting Euler/Heun, adapted to 3x24x24 grids.
 
         Args:
             labels: optional (B,) tensor. If None, falls back to zeros when num_classes is not set.

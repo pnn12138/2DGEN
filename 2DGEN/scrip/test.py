@@ -1,8 +1,8 @@
 """
 Quick smoke test for C2DBJiT + C2DBDenoiser using velocity loss.
 
-Runs a tiny forward/backward on random 3x24x3 tensors to validate shapes and loss plumbing.
-Execute with project env: `uv run python 2DGEN/test.py`
+Runs a tiny forward/backward on random 3x24x24 tensors to validate shapes and loss plumbing.
+Execute with project env: `uv run python 2DGEN/scrip/test.py`
 """
 
 import sys
@@ -11,8 +11,10 @@ from pathlib import Path
 import torch
 
 # Ensure the 2DGEN package directory is importable even though the folder starts with a digit.
-PROJECT_DIR = Path(__file__).resolve().parent
+PROJECT_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_DIR))
+
+from data.torus import DEFAULT_TORUS_FREQS, torus_feature_dim  # noqa: E402
 
 
 def main() -> None:
@@ -21,7 +23,8 @@ def main() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     model = C2DBDenoiser().to(device)
 
-    x0 = torch.randn(4, 3, 24, 3, device=device)
+    width = torus_feature_dim(DEFAULT_TORUS_FREQS)
+    x0 = torch.randn(4, 3, 24, width, device=device)
     loss, x_pred, t = model(x0)
 
     loss.backward()  # ensure grads flow

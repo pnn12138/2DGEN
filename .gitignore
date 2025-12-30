@@ -9,9 +9,17 @@ wheels/
 # Virtual environments
 .venv
 
-# Dataset cache
-data/
+# Dataset cache (ignore general data dirs, but keep code under 2DGEN/data)
+/data/
+**/data/
+!2DGEN/data/
+!2DGEN/data/**
+2DGEN/data/**/*.pyc
+2DGEN/data/**/__pycache__/
 
 # Training outputs / checkpoints
 outputs/
 lightning_logs/
+
+# Local model artifacts / third-party repos
+model/

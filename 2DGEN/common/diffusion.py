@@ -44,51 +44,6 @@ def drop_labels(labels: torch.Tensor, drop_prob: float, num_classes: int) -> tor
     return torch.where(drop, torch.full_like(labels, num_classes), labels)
 
 
-class CleanPredictionLoss(nn.Module):
-    """
-    Computes L2 loss between predicted x_0 and clean target, using JiT-style noisy inputs.
-
-    Expected model signature: model(z, t_flat, labels=None) -> x_pred with same shape as z.
-    """
-
-    def __init__(self, cfg: CleanPredictionConfig) -> None:
-        super().__init__()
-        self.cfg = cfg
-
-    def forward(
-        self,
-        model: nn.Module,
-        x0: torch.Tensor,
-        labels: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        """
-        Args:
-            model: network predicting clean sample x_0 from noisy input.
-            x0: clean target, shape (B, C, H, W) e.g., (B, 3, 24, 3).
-            labels: optional class labels for conditional training.
-        Returns:
-            loss: scalar tensor.
-            x_pred: predicted clean sample.
-            t: sampled timesteps (B,).
-        """
-        device = x0.device
-        bsz = x0.size(0)
-
-        t = logit_normal_sample(bsz, device, self.cfg.P_mean, self.cfg.P_std)
-        t_expand = expand_t(t, x0.ndim)
-
-        noise = torch.randn_like(x0) * self.cfg.noise_scale
-        z = t_expand * x0 + (1.0 - t_expand) * noise
-
-        labels_in = labels
-        if labels is not None and self.cfg.num_classes is not None:
-            labels_in = drop_labels(labels, self.cfg.label_drop_prob, self.cfg.num_classes)
-
-        x_pred = model(z, t, labels_in)
-        loss = (x_pred - x0) ** 2
-        loss = loss.mean(dim=(1, 2, 3)).mean()
-
-        return loss, x_pred, t
 
 
 class VelocityPredictionLoss(nn.Module):
@@ -132,4 +87,4 @@ class VelocityPredictionLoss(nn.Module):
         return loss, x_pred, t
 
 
-__all__ = ["CleanPredictionConfig", "CleanPredictionLoss", "VelocityPredictionLoss"]
+__all__ = ["CleanPredictionConfig", "VelocityPredictionLoss"]

@@ -46,9 +46,9 @@ class RectPatchEmbed(nn.Module):
 # ---------- ViT ----------
 @dataclass
 class ViTConfig:
-    """Config for rectangular 3x24x3 inputs (channels, height, width)."""
+    """Config for rectangular 3x24x24 inputs (channels, height, width)."""
 
-    img_size: Tuple[int, int] = (24, 3)
+    img_size: Tuple[int, int] = (24, 24)
     patch_size: Tuple[int, int] = (3, 3)
     in_chans: int = 3
     embed_dim: int = 128
@@ -96,7 +96,7 @@ class ViTBlock(nn.Module):
 
 class C2DBVisionTransformer(nn.Module):
     """
-    小型 ViT，适配 3x24x3 网格，默认返回全局池化特征或可选线性头输出。
+    小型 ViT，适配 3x24x24 网格，默认返回全局池化特征或可选线性头输出。
     """
 
     def __init__(self, cfg: ViTConfig = ViTConfig()) -> None:
@@ -130,10 +130,10 @@ class C2DBVisionTransformer(nn.Module):
 # ---------- JiT diffusion ----------
 @dataclass
 class JiTC2DBConfig:
-    """Config tuned for 3x24x3 tensors (channels, H, W) matching SCDM/C2DB grids."""
+    """Config tuned for torus-encoded C2DB tensors (channels, H, W)."""
 
-    img_size: Tuple[int, int] = (24, 3)
-    patch_size: Tuple[int, int] = (3, 3)  # 8 patches for 24x3
+    img_size: Tuple[int, int] = (24, 24)
+    patch_size: Tuple[int, int] = (3, 3)  # 8x8 patches for 24x24
     in_chans: int = 3
     embed_dim: int = 256
     depth: int = 8
@@ -204,7 +204,7 @@ class FinalLayer(nn.Module):
 
 class C2DBJiT(nn.Module):
     """
-    小型 JiT 风格扩散模型，适配 3x24x3 输入；包含时间/可选标签调制，输出与输入同形状。
+    小型 JiT 风格扩散模型，适配 3x24x24 输入；包含时间/可选标签调制，输出与输入同形状。
     """
 
     def __init__(self, cfg: JiTC2DBConfig = JiTC2DBConfig()) -> None:
@@ -252,11 +252,11 @@ class C2DBJiT(nn.Module):
     def forward(self, x: torch.Tensor, timesteps: torch.Tensor, labels: Optional[torch.Tensor] = None) -> torch.Tensor:
         """
         Args:
-            x: (B, 3, 24, 3) noisy input.
+            x: (B, 3, 24, 24) noisy input.
             timesteps: (B,) diffusion steps.
             labels: Optional (B,) class labels for conditional runs.
         Returns:
-            Predicted noise with shape (B, 3, 24, 3).
+            Predicted noise with shape (B, 3, 24, 24).
         """
         t_emb = sinusoidal_timestep_embedding(timesteps, self.cfg.time_embed_dim)
         cond = self.time_mlp(t_emb)
