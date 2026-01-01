@@ -1,0 +1,27 @@
+# CGCNN architecture and optimization defaults for Jdft2d.
+model:
+  name: cgcnn
+  atom_fea_len: 64
+  h_fea_len: 128
+  n_conv: 4
+  cutoff: 8.0
+  num_gaussians: 50
+  pooling: mean
+  dropout: 0.1
+  activation: softplus
+  batch_norm: true
+  optimizer:
+    name: AdamW
+    lr: 3e-4
+    weight_decay: 1e-5
+    betas: [0.9, 0.999]
+  scheduler:
+    name: cosine_with_warmup
+    warmup_epochs: 5
+    max_epochs: ${trainer.max_epochs}
+    min_lr: 1.0e-5
+  official_baseline:
+    reference: https://github.com/txie-93/cgcnn
+    notes: |
+      Settings follow the published CGCNN regression hyper-parameters as a starting
+      point for the Jdft2d exfoliation-energy benchmark.

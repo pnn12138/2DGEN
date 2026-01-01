@@ -1,0 +1,11 @@
+# Training callbacks (early stopping, summaries, etc.).
+callbacks:
+  early_stopping:
+    monitor: val/mae
+    mode: min
+    min_delta: 0.0
+    patience: 20
+  checkpoint:
+    config: ${logging.checkpoint}
+  model_summary:
+    max_depth: 2
