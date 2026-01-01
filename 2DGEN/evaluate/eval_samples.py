@@ -8,6 +8,16 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 
+def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--pbc-mask must have three comma-separated values, e.g. 1,1,0")
+    mask = tuple(int(p) for p in parts)
+    if any(p not in (0, 1) for p in mask):
+        raise ValueError("--pbc-mask values must be 0 or 1")
+    return mask  # type: ignore[return-value]
+
+
 def _load_npz_stats(npz_path: Path) -> Optional[Tuple[float, float]]:
     data = np.load(npz_path)
     lattice = data["lattice"] if "lattice" in data else None
@@ -33,9 +43,12 @@ def _summary_stats(values: List[float]) -> Dict[str, Any]:
     }
 
 
-def _min_dist_and_shifts(frac: np.ndarray, lattice: np.ndarray) -> Tuple[float, np.ndarray, np.ndarray]:
+def _min_dist_and_shifts(
+    frac: np.ndarray, lattice: np.ndarray, pbc_mask: Tuple[int, int, int]
+) -> Tuple[float, np.ndarray, np.ndarray]:
     df = frac[:, None, :] - frac[None, :, :]
-    shifts = np.round(df)
+    pbc = np.asarray(pbc_mask, dtype=float).reshape((1, 1, 3))
+    shifts = np.round(df) * pbc
     df_mic = df - shifts
     dr = df_mic @ lattice
     dist = np.linalg.norm(dr, axis=-1)
@@ -92,6 +105,7 @@ def _eval_samples(
     min_dist_cut: float,
     bond_cut: float,
     dup_eps: float,
+    pbc_mask: Tuple[int, int, int],
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, Any]]:
     z = samples["z"]
     frac = samples["frac"]
@@ -147,7 +161,7 @@ def _eval_samples(
             cond = float(eigvals.max() / max(eigvals.min(), 1e-12))
 
         if n_atoms > 0:
-            min_dist, dist, shifts = _min_dist_and_shifts(frac_i, lattice_i)
+            min_dist, dist, shifts = _min_dist_and_shifts(frac_i, lattice_i, pbc_mask=pbc_mask)
             min_dists.append(min_dist)
             if min_dist < min_dist_cut:
                 reasons.append("collision")
@@ -192,14 +206,17 @@ def _eval_samples(
         cross_vacuum = False
         edges: List[Tuple[int, int]] = []
         if n_atoms > 1:
+            dist_3d, shifts_3d = None, None
+            if pbc_mask[c_idx] == 0:
+                _, dist_3d, shifts_3d = _min_dist_and_shifts(frac_i, lattice_i, pbc_mask=(1, 1, 1))
             for a in range(n_atoms):
                 for b in range(a + 1, n_atoms):
                     if dist[a, b] < bond_cut:
-                        n_c = shifts[a, b, c_idx]
+                        edges.append((a, b))
+                    if dist_3d is not None and dist_3d[a, b] < bond_cut:
+                        n_c = shifts_3d[a, b, c_idx]
                         if n_c != 0:
                             cross_vacuum = True
-                        else:
-                            edges.append((a, b))
         gcc_ratio = _gcc_ratio(n_atoms, edges)
 
         anisotropy = float(c_len / max(np.mean([l for j, l in enumerate(lengths) if j != c_idx]), 1e-8))
@@ -275,7 +292,7 @@ def _eval_samples(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate token-based samples (Tier-0/1).")
-    parser.add_argument("--samples", type=Path, required=True, help="Path to samples.npz")
+    parser.add_argument("--samples", type=Path, default=None, help="Path to samples.npz")
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument("--stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
     parser.add_argument("--min-dist", type=float, default=1.5)
@@ -283,11 +300,36 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dup-eps", type=float, default=1e-3)
     parser.add_argument("--v-min", type=float, default=None)
     parser.add_argument("--v-max", type=float, default=None)
+    parser.add_argument(
+        "--pbc-mask",
+        type=str,
+        default="1,1,0",
+        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
+    )
+    parser.add_argument(
+        "--self-check",
+        action="store_true",
+        help="Run a small internal sanity check and exit.",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    pbc_mask = _parse_pbc_mask(args.pbc_mask)
+    if args.self_check:
+        lattice = np.eye(3, dtype=float)
+        frac = np.array([[0.1, 0.1, 0.1], [0.9, 0.1, 0.9]], dtype=float)
+        d_3d, _, shifts_3d = _min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 1))
+        d_slab, _, shifts_slab = _min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 0))
+        assert abs(d_3d - (0.2**2 + 0.0**2 + 0.2**2) ** 0.5) < 1e-6, d_3d
+        assert abs(d_slab - (0.2**2 + 0.0**2 + 0.8**2) ** 0.5) < 1e-6, d_slab
+        assert np.all(shifts_slab[..., 2] == 0.0)
+        print("self-check passed")
+        return
+
+    if args.samples is None:
+        raise ValueError("--samples is required unless --self-check is set.")
     samples = np.load(args.samples)
     out_dir = args.out_dir
     if out_dir is None:
@@ -308,6 +350,7 @@ def main() -> None:
         min_dist_cut=args.min_dist,
         bond_cut=args.bond_cut,
         dup_eps=args.dup_eps,
+        pbc_mask=pbc_mask,
     )
 
     with (out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:

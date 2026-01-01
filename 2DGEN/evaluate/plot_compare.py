@@ -8,9 +8,20 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def _min_dist(frac: np.ndarray, lattice: np.ndarray) -> float:
+def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--pbc-mask must have three comma-separated values, e.g. 1,1,0")
+    mask = tuple(int(p) for p in parts)
+    if any(p not in (0, 1) for p in mask):
+        raise ValueError("--pbc-mask values must be 0 or 1")
+    return mask  # type: ignore[return-value]
+
+
+def _min_dist(frac: np.ndarray, lattice: np.ndarray, pbc_mask: Tuple[int, int, int]) -> float:
     df = frac[:, None, :] - frac[None, :, :]
-    df_mic = df - np.round(df)
+    pbc = np.asarray(pbc_mask, dtype=float).reshape((1, 1, 3))
+    df_mic = df - np.round(df) * pbc
     dr = df_mic @ lattice
     dist = np.linalg.norm(dr, axis=-1)
     np.fill_diagonal(dist, np.inf)
@@ -29,7 +40,7 @@ def _thickness_vacuum(frac: np.ndarray, c_len: float) -> Tuple[float, float]:
     return float(thickness), float(vacuum)
 
 
-def _collect_metrics(samples: Dict[str, np.ndarray]) -> Dict[str, List[float]]:
+def _collect_metrics(samples: Dict[str, np.ndarray], pbc_mask: Tuple[int, int, int]) -> Dict[str, List[float]]:
     z = samples["z"]
     frac_key = "frac" if "frac" in samples else "f"
     frac = samples[frac_key]
@@ -66,7 +77,7 @@ def _collect_metrics(samples: Dict[str, np.ndarray]) -> Dict[str, List[float]]:
         metrics["anisotropy"].append(float(c_len / max(np.mean(ab), 1e-8)))
 
         if frac_i.shape[0] > 0:
-            metrics["min_dist"].append(_min_dist(frac_i, lattice_i))
+            metrics["min_dist"].append(_min_dist(frac_i, lattice_i, pbc_mask=pbc_mask))
             t, v = _thickness_vacuum(frac_i[:, c_idx], c_len)
         else:
             metrics["min_dist"].append(float("nan"))
@@ -101,6 +112,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples", type=Path, required=True, help="Path to samples.npz")
     parser.add_argument("--dataset", type=Path, required=True, help="Path to dataset token npz")
     parser.add_argument("--out", type=Path, default=None, help="Output image path")
+    parser.add_argument(
+        "--pbc-mask",
+        type=str,
+        default="1,1,0",
+        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
+    )
     return parser.parse_args()
 
 
@@ -108,9 +125,10 @@ def main() -> None:
     args = parse_args()
     samples = np.load(args.samples)
     dataset = np.load(args.dataset)
+    pbc_mask = _parse_pbc_mask(args.pbc_mask)
 
-    sample_metrics = _collect_metrics(samples)
-    data_metrics = _collect_metrics(dataset)
+    sample_metrics = _collect_metrics(samples, pbc_mask=pbc_mask)
+    data_metrics = _collect_metrics(dataset, pbc_mask=pbc_mask)
 
     metrics = ["min_dist", "volume", "cond", "anisotropy", "thickness", "vacuum"]
     titles = {

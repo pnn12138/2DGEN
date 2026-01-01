@@ -291,9 +291,6 @@ class C2DBTokenNPZDataset(Dataset):
         self.b_hat = torch.from_numpy(data["b_hat"]).float() if "b_hat" in data else None
         self.n = torch.from_numpy(data["n"]).float() if "n" in data else None
         self.lattice_param = torch.from_numpy(data["lattice_param"]).float() if "lattice_param" in data else None
-        self.nbr_idx = torch.from_numpy(data["nbr_idx"]).long() if "nbr_idx" in data else None
-        self.nbr_dist = torch.from_numpy(data["nbr_dist"]).float() if "nbr_dist" in data else None
-        self.nbr_mask = torch.from_numpy(data["nbr_mask"]).float() if "nbr_mask" in data else None
         self.counts_vector = (
             torch.from_numpy(data["counts_vector"]).long() if "counts_vector" in data else None
         )
@@ -319,6 +316,7 @@ class C2DBTokenNPZDataset(Dataset):
             "lattice_param",
             "counts_vector",
             "order_idx",
+            # Deprecated neighbor caches (kept in `known` so legacy npz loads cleanly).
             "nbr_idx",
             "nbr_dist",
             "nbr_mask",
@@ -372,12 +370,6 @@ class C2DBTokenNPZDataset(Dataset):
             sample["n"] = self.n[idx]
         if self.lattice_param is not None:
             sample["lattice_param"] = self.lattice_param[idx]
-        if self.nbr_idx is not None:
-            sample["nbr_idx"] = self.nbr_idx[idx]
-        if self.nbr_dist is not None:
-            sample["nbr_dist"] = self.nbr_dist[idx]
-        if self.nbr_mask is not None:
-            sample["nbr_mask"] = self.nbr_mask[idx]
         if self.counts_vector is not None:
             sample["counts_vector"] = self.counts_vector[idx]
         if self.order_idx is not None:

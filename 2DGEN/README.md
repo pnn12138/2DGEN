@@ -8,7 +8,7 @@
 
 ## 当前对齐状态
 - A++ v3 预处理字段已写入 npz（`uv_angle` 等）。
-- 邻居图支持 slab 2D PBC（默认 `--pbc-mask 1,1,0`），可选缓存 `nbr_*` 并在训练中复用。
+- 邻居图支持 slab 2D PBC（默认 `--pbc-mask 1,1,0`），训练/采样均在线构图。
 
 ## 数据预处理（Token 默认）
 1. 准备原始 CSV：`data/C2DB/c2db_summary.csv`（已包含 CIF 文本）。
@@ -17,16 +17,13 @@
   uv run python 2DGEN/data/prepare_c2db_tokens.py \
     --csv data/C2DB/c2db_summary.csv \
     --out data/C2DB/ache/c2db_tokens_2d_based.npz \
-    --max-atoms 24 --g-scale 100 \
-    --cache-neighbors --neighbor-k 16
+    --max-atoms 24 --g-scale 100
   ```
   - `--max-atoms`：最多保留的原子数（超出则跳过该行）。
   - `--g-scale`：Gram6 缩放（训练中会乘回去恢复晶胞）。
   - `--niggli-reduce`：对晶胞做 Niggli 规约（可选，较慢）。
   - `--preprocess-v3/--no-preprocess-v3`：写入 A++ v3 预处理字段（默认启用）。
-  - `--cache-neighbors`：在 npz 内缓存 slab kNN 邻居图（`nbr_*` 字段）。
-  - `--neighbor-k`：缓存邻居图的 k（默认 16）。
-3. 训练复用缓存邻居图（推荐 slab 场景）：
+3. 训练（不使用预计算邻居图；邻居基于扩散状态在线构建）：
   ```bash
   uv run python 2DGEN/scrip/train_tokens.py \
     --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
@@ -35,7 +32,6 @@
     --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
     --g-scale 100 --k-neighbors 32 \
     --cell-rep cholesky6 --pbc-mask 1,1,0 \
-    --use-precomputed-neighbors \
     --use-condition
   ```
   - `--g-scale` 应与 npz 内 `g_scale` 一致（脚本会提示不一致告警）。
@@ -70,7 +66,6 @@ uv run python 2DGEN/scrip/train_tokens.py \
 - `--use-condition`：启用条件扩散（默认仅 `counts_vector`，即化学式计数；如需额外条件再用 `--cond-fields` 指定）。
 - `--cond-fields`：自定义条件字段列表（例如 `counts_vector,lattice_param,t,xrd`）。当前默认不启用 XRD，仅预留接口。
 - `--cond-normalize-fields`：需要做 z-score 的条件字段（默认 `lattice_param,t`）。
-- `--use-precomputed-neighbors`：使用 npz 缓存的邻居图（`nbr_*`）替代在线 kNN。
 - `--pbc-mask`：控制 MIC 的 PBC 维度，默认 `1,1,0`（仅面内周期，z 非周期）；3D 晶体可设 `1,1,1`。
 
 采样与导出：

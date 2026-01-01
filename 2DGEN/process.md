@@ -6,8 +6,8 @@
 
 ## 0) 总览
 - 主路线：token 扩散（`Z/F/g`）+ 条件扩散（`counts_vector` 可选 `lattice_param/t`）。
-- A++ v3 预处理：生成 slab canonical 表示与可选 slab 邻居图。
-- 邻居策略：默认 2D PBC（`pbc_mask=1,1,0`）在线 kNN；可选复用预计算 `nbr_*` 索引，距离/edge_attr 仍在线重算。
+- A++ v3 预处理：生成 slab canonical 表示。
+- 邻居策略：默认 2D PBC（`pbc_mask=1,1,0`）在线 kNN。
 
 ## 0.1) 端到端流程（实现逻辑）
 1. **数据准备**：从 C2DB CSV/CIF 解析结构，生成 token 缓存 npz（`data/prepare_c2db_tokens.py`）。
@@ -22,9 +22,8 @@
 以上环节均以 `Z/F/g` token 表示为主，`lattice_param/t` 当前主要用于条件或缓存字段，不是主扩散变量。
 ## 当前进度摘要（同步更新）
 - 已统一 PBC 为 slab 2D（`pbc_mask=1,1,0`），避免 z 方向假邻居。
-- 已支持预计算 slab 邻居图缓存（`nbr_*`），训练可复用索引并在线重算距离。
 - 条件扩散默认仅化学式（`counts_vector`），通过 `--cond-fields` 预留扩展（如 XRD）。
-- 采样评估完成并产出 Tier‑0/1 与图表，但评估仍基于 3D PBC（需对齐）。
+- 评估已支持 `--pbc-mask`，可与训练/采样的 slab 2D PBC 对齐。
 
 ---
 
@@ -48,7 +47,6 @@
 ### 1.3 缓存字段
 - 训练主输入：`z, f, gram6, atom_mask`。
 - A++ v3 额外字段：`z_canon, uvz, uv_angle, u, v, z_norm, t, a_hat, b_hat, n, lattice_param, counts_vector, order_idx`。
-- 可选邻居图（slab kNN）：`nbr_idx, nbr_dist, nbr_mask`。
 
 ---
 
@@ -60,7 +58,7 @@
 
 ### 2.2 邻居与注意力
 - 默认在线 kNN（`frac_mic_dist`）：使用 `pbc_mask=1,1,0` 仅面内周期，z 非周期。
-- 可选预计算邻居图：训练时仅复用 `nbr_idx/nbr_mask`，距离每步重算，避免静态图带来的扩散不一致。
+ 
 
 ### 2.3 扩散目标
 - `F`/`g`：v‑pred 回归（连续扩散）。
@@ -157,5 +155,4 @@
 
 ## 6) 注意事项与默认值
 - slab 推荐 `pbc_mask=1,1,0`。
-- `nbr_*` 缓存仅提供 edge_index，距离在线重算是必须步骤。
 - `t` 的几何影响：通过 slab 邻居图与 z_norm 参与距离体现，条件向量也包含 `t`。

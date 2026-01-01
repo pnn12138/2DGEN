@@ -76,11 +76,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--bucket-batches", action="store_true", help="Bucket batches by atom count to reduce padding.")
     parser.add_argument("--bucket-shuffle", action="store_true", help="Shuffle within/among buckets.")
     parser.add_argument("--use-condition", action="store_true", help="Condition on counts/lattice parameters.")
-    parser.add_argument(
-        "--use-precomputed-neighbors",
-        action="store_true",
-        help="Use cached neighbor graph from npz (nbr_idx/nbr_dist/nbr_mask) when available.",
-    )
     parser.add_argument("--cond-drop-prob", type=float, default=0.1, help="Condition dropout prob for CFG-style training.")
     parser.add_argument(
         "--cond-fields",
@@ -402,7 +397,6 @@ def train_one_epoch(
     max_atoms: int,
     num_elements: int,
     cond_stats: dict | None = None,
-    use_precomputed_neighbors: bool = False,
     cond_fields: Optional[list[str]] = None,
     metrics_log_path: Optional[Path] = None,
 ) -> tuple[int, float]:
@@ -428,16 +422,7 @@ def train_one_epoch(
 
         lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
         optimizer.zero_grad(set_to_none=True)
-        nbr_idx = None
-        nbr_mask = None
-        nbr_dist = None
-        if use_precomputed_neighbors and "nbr_idx" in batch:
-            nbr_idx = batch["nbr_idx"].to(device, non_blocking=True)
-            nbr_mask = batch.get("nbr_mask")
-            if nbr_mask is not None:
-                nbr_mask = nbr_mask.to(device, non_blocking=True)
-
-        loss, _, _, _, metrics = model(z, frac, atom_mask, gram6, cond, nbr_idx, nbr_mask, nbr_dist)
+        loss, _, _, _, metrics = model(z, frac, atom_mask, gram6, cond)
         loss.backward()
         if clip_grad > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
@@ -740,7 +725,6 @@ def main() -> None:
             max_atoms=cond_max_atoms,
             num_elements=118,
             cond_stats=cond_stats,
-            use_precomputed_neighbors=args.use_precomputed_neighbors,
             cond_fields=cond_fields,
             metrics_log_path=metrics_log_path,
         )

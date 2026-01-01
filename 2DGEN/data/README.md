@@ -20,7 +20,6 @@
   - `uv_angle`：`(cos 2πu, sin 2πu, cos 2πv, sin 2πv)` 的 torus 嵌入
   - `u`, `v`, `z_norm`：单独存储便于检索
   - `t`、`a_hat`、`b_hat`、`n`、`lattice_param`、`counts_vector`、`order_idx`
-  - `nbr_idx`/`nbr_dist`/`nbr_mask`：可选缓存的 slab kNN 邻居图（需 `--cache-neighbors`）
 - 同时写入 `preprocess_version=A++_v3` 与 `eps_area/eps_inv/round_prec/z_norm_clip` 供复现。
 
 ## Token 缓存读取
