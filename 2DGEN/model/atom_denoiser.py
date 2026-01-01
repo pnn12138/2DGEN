@@ -11,6 +11,7 @@ from common.crystal import (
     cholesky6_to_gram6,
     clip_lattice,
     gram6_to_lattice,
+    lattice_to_gram6,
     niggli_reduce_lattice,
     reduce_lattice_simple,
 )
@@ -29,6 +30,7 @@ class AtomDenoiserConfig:
     cond_max: float = 1e3
     reduce_lattice: bool = False
     niggli_reduce: bool = False
+    project_each_step: bool = False
 
 
 class AtomDenoiser(nn.Module):
@@ -44,8 +46,12 @@ class AtomDenoiser(nn.Module):
         frac: torch.Tensor,
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
-        return self.loss_fn(self.model, z, frac, atom_mask, gram6)
+        cond: Optional[torch.Tensor] = None,
+        nbr_idx: Optional[torch.Tensor] = None,
+        nbr_mask: Optional[torch.Tensor] = None,
+        dist_nbr: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
+        return self.loss_fn(self.model, z, frac, atom_mask, gram6, cond, nbr_idx, nbr_mask, dist_nbr)
 
     def _predict_velocity(
         self,
@@ -54,10 +60,26 @@ class AtomDenoiser(nn.Module):
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
         t: torch.Tensor,
+        cond: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
+        nbr_idx: Optional[torch.Tensor] = None,
+        nbr_mask: Optional[torch.Tensor] = None,
+        dist_nbr: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        pred_v_f, pred_v_g, logits_z = self.model(z, frac, gram6, atom_mask, t, step=step, cache_every=cache_every)
+        pred_v_f, pred_v_g, logits_z = self.model(
+            z,
+            frac,
+            gram6,
+            atom_mask,
+            t,
+            cond,
+            step=step,
+            cache_every=cache_every,
+            nbr_idx=nbr_idx,
+            nbr_mask=nbr_mask,
+            dist_nbr=dist_nbr,
+        )
         return pred_v_f, pred_v_g, logits_z
 
     @torch.no_grad()
@@ -69,16 +91,32 @@ class AtomDenoiser(nn.Module):
         gram6: torch.Tensor,
         t: torch.Tensor,
         t_next: torch.Tensor,
+        cond: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         pred_v_f, pred_v_g, logits_z = self._predict_velocity(
-            z, frac, atom_mask, gram6, t, step=step, cache_every=cache_every
+            z, frac, atom_mask, gram6, t, cond, step=step, cache_every=cache_every
         )
         delta = expand_t(t_next - t, frac.ndim)
         frac = frac + delta * pred_v_f
         gram6 = gram6 + expand_t(t_next - t, gram6.ndim) * pred_v_g
         return frac, gram6, logits_z
+
+    def _project_step(
+        self, frac: torch.Tensor, cell: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        frac = frac - torch.floor(frac)
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            if self.cfg.model.chol_log_min is not None or self.cfg.model.chol_log_max is not None:
+                cell = cell.clone()
+                cell[:, :3] = torch.clamp(
+                    cell[:, :3], min=self.cfg.model.chol_log_min, max=self.cfg.model.chol_log_max
+                )
+            return frac, cell
+        lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
+        cell = lattice_to_gram6(lattice) / self.cfg.model.g_scale
+        return frac, cell
 
     @torch.no_grad()
     def _heun_step(
@@ -89,17 +127,18 @@ class AtomDenoiser(nn.Module):
         gram6: torch.Tensor,
         t: torch.Tensor,
         t_next: torch.Tensor,
+        cond: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         pred_v_f, pred_v_g, logits_z = self._predict_velocity(
-            z, frac, atom_mask, gram6, t, step=step, cache_every=cache_every
+            z, frac, atom_mask, gram6, t, cond, step=step, cache_every=cache_every
         )
         delta = expand_t(t_next - t, frac.ndim)
         frac_euler = frac + delta * pred_v_f
         gram_euler = gram6 + expand_t(t_next - t, gram6.ndim) * pred_v_g
         pred_v_f_next, pred_v_g_next, _ = self._predict_velocity(
-            z, frac_euler, atom_mask, gram_euler, t_next, step=step, cache_every=cache_every
+            z, frac_euler, atom_mask, gram_euler, t_next, cond, step=step, cache_every=cache_every
         )
         pred_v_f = 0.5 * (pred_v_f + pred_v_f_next)
         pred_v_g = 0.5 * (pred_v_g + pred_v_g_next)
@@ -119,6 +158,7 @@ class AtomDenoiser(nn.Module):
         z_temperature: float = 1.0,
         z_top_k: int = 10,
         z_top_p: float = 0.9,
+        cond: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         method = method or self.cfg.sampling_method
         steps = steps if steps is not None else self.cfg.num_sampling_steps
@@ -183,14 +223,33 @@ class AtomDenoiser(nn.Module):
             t_next = t_schedule[i + 1].expand(batch_size)
             if method == "euler":
                 frac, cell, logits_z = self._euler_step(
-                    z, frac, atom_mask, cell, t, t_next, step=i, cache_every=self.cfg.neighbor_update_steps
+                    z,
+                    frac,
+                    atom_mask,
+                    cell,
+                    t,
+                    t_next,
+                    cond,
+                    step=i,
+                    cache_every=self.cfg.neighbor_update_steps,
                 )
             elif method == "heun":
                 frac, cell, logits_z = self._heun_step(
-                    z, frac, atom_mask, cell, t, t_next, step=i, cache_every=self.cfg.neighbor_update_steps
+                    z,
+                    frac,
+                    atom_mask,
+                    cell,
+                    t,
+                    t_next,
+                    cond,
+                    step=i,
+                    cache_every=self.cfg.neighbor_update_steps,
                 )
             else:
                 raise ValueError(f"Unknown sampling method: {method}")
+
+            if self.cfg.project_each_step:
+                frac, cell = self._project_step(frac, cell)
 
             p_mask = mask_schedule(
                 t_next, self.cfg.diffusion.p_mask_min, self.cfg.diffusion.p_mask_max, self.cfg.diffusion.mode
@@ -223,7 +282,6 @@ class AtomDenoiser(nn.Module):
     @torch.no_grad()
     def gram6_to_lattice(self, gram6: torch.Tensor) -> torch.Tensor:
         lattice = gram6_to_lattice(gram6 * self.cfg.model.g_scale)
-        lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
         if self.cfg.reduce_lattice:
             lattice = reduce_lattice_simple(lattice)
         if self.cfg.niggli_reduce:

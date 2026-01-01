@@ -7,9 +7,10 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 
+import math
 import numpy as np
 import torch
-from torch import optim
+from torch import nn, optim
 from torch.utils.data import DataLoader, Sampler
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
@@ -22,11 +23,37 @@ from model.atom_transformer import AtomTransformerConfig  # noqa: E402
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
+    parser.add_argument(
+        "--model-size",
+        type=str,
+        default="base",
+        choices=["tiny", "base", "large", "xl"],
+        help="Model size preset controlling Transformer width/depth (overridable by explicit --*-dim/--depth flags).",
+    )
+    parser.add_argument("--embed-dim", type=int, default=None, help="Transformer embedding dim (override preset).")
+    parser.add_argument("--depth", type=int, default=None, help="Transformer depth (override preset).")
+    parser.add_argument("--num-heads", type=int, default=None, help="Attention heads (override preset).")
+    parser.add_argument("--mlp-ratio", type=float, default=None, help="MLP expansion ratio (override preset).")
+    parser.add_argument("--dropout", type=float, default=None, help="Dropout (override preset).")
+    parser.add_argument("--time-embed-dim", type=int, default=None, help="Timestep embedding dim (override preset).")
+    parser.add_argument("--z-embed-dim", type=int, default=None, help="Element token embedding dim (override preset).")
+    parser.add_argument("--f-embed-dim", type=int, default=None, help="Frac token embedding dim (override preset).")
+    parser.add_argument("--rbf-dim", type=int, default=None, help="RBF distance embedding dim (override preset).")
+    parser.add_argument("--pair-mlp-hidden", type=int, default=None, help="Pair MLP hidden dim (override preset).")
     parser.add_argument("--csv", type=Path, default=None)
     parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
     parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-4)
+    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw"])
+    parser.add_argument("--weight-decay", type=float, default=1e-2)
+    parser.add_argument("--betas", type=str, default="0.9,0.95")
+    parser.add_argument("--warmup-steps", type=int, default=0)
+    parser.add_argument("--min-lr", type=float, default=1e-6)
+    parser.add_argument("--lr-schedule", type=str, default="cosine", choices=["cosine", "constant"])
+    parser.add_argument("--clip-grad", type=float, default=0.0)
+    parser.add_argument("--ema", action="store_true")
+    parser.add_argument("--ema-decay", type=float, default=0.9999)
     parser.add_argument("--num-workers", type=int, default=4)
     parser.add_argument("--log-interval", type=int, default=50)
     parser.add_argument("--save-dir", type=Path, default=Path("outputs/checkpoints"))
@@ -48,7 +75,62 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction on-the-fly (CSV).")
     parser.add_argument("--bucket-batches", action="store_true", help="Bucket batches by atom count to reduce padding.")
     parser.add_argument("--bucket-shuffle", action="store_true", help="Shuffle within/among buckets.")
+    parser.add_argument("--use-condition", action="store_true", help="Condition on counts/lattice parameters.")
+    parser.add_argument(
+        "--use-precomputed-neighbors",
+        action="store_true",
+        help="Use cached neighbor graph from npz (nbr_idx/nbr_dist/nbr_mask) when available.",
+    )
+    parser.add_argument("--cond-drop-prob", type=float, default=0.1, help="Condition dropout prob for CFG-style training.")
+    parser.add_argument(
+        "--cond-fields",
+        type=str,
+        default=None,
+        help="Comma-separated condition fields (e.g. counts_vector,lattice_param,t,xrd).",
+    )
+    parser.add_argument(
+        "--cond-normalize-fields",
+        type=str,
+        default="",
+        help="Comma-separated condition fields to z-score normalize.",
+    )
+    parser.add_argument(
+        "--pbc-mask",
+        type=str,
+        default="1,1,0",
+        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
+    )
     return parser.parse_args()
+
+
+def _parse_pbc_mask(value: str) -> tuple[int, int, int]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--pbc-mask must have three comma-separated values, e.g. 1,1,0")
+    mask = tuple(int(p) for p in parts)
+    if any(p not in (0, 1) for p in mask):
+        raise ValueError("--pbc-mask values must be 0 or 1")
+    return mask  # type: ignore[return-value]
+
+
+def _parse_cond_fields(value: Optional[str]) -> list[str]:
+    if not value:
+        return []
+    return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _parse_betas(value: str) -> tuple[float, float]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 2:
+        raise ValueError("--betas must have two comma-separated values, e.g. 0.9,0.95")
+    return float(parts[0]), float(parts[1])
+
+
+def _resolve_cond_fields(args: argparse.Namespace) -> list[str]:
+    fields = _parse_cond_fields(args.cond_fields)
+    if fields:
+        return fields
+    return ["counts_vector"]
 
 
 class BucketBatchSampler(Sampler[list[int]]):
@@ -105,6 +187,73 @@ def prepare_dataloader(dataset: C2DBAtomDataset | C2DBTokenNPZDataset, batch_siz
     )
 
 
+def _build_param_groups(model: nn.Module, weight_decay: float) -> list[dict]:
+    decay = []
+    no_decay = []
+    for name, param in model.named_parameters():
+        if not param.requires_grad:
+            continue
+        if param.ndim <= 1 or name.endswith(".bias") or "norm" in name.lower():
+            no_decay.append(param)
+        else:
+            decay.append(param)
+    return [
+        {"params": decay, "weight_decay": weight_decay},
+        {"params": no_decay, "weight_decay": 0.0},
+    ]
+
+
+def _compute_lr(
+    step: int,
+    total_steps: int,
+    warmup_steps: int,
+    base_lr: float,
+    min_lr: float,
+    schedule: str,
+) -> float:
+    if total_steps <= 0:
+        return base_lr
+    if warmup_steps > 0 and step < warmup_steps:
+        return base_lr * float(step + 1) / float(max(1, warmup_steps))
+    if schedule == "constant" or total_steps <= warmup_steps:
+        return base_lr
+    progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
+    progress = min(max(progress, 0.0), 1.0)
+    cosine = 0.5 * (1.0 + math.cos(math.pi * progress))
+    return min_lr + (base_lr - min_lr) * cosine
+
+
+def _adjust_lr(
+    optimizer: optim.Optimizer,
+    step: int,
+    total_steps: int,
+    warmup_steps: int,
+    base_lr: float,
+    min_lr: float,
+    schedule: str,
+) -> float:
+    lr = _compute_lr(step, total_steps, warmup_steps, base_lr, min_lr, schedule)
+    for group in optimizer.param_groups:
+        group["lr"] = lr
+    return lr
+
+
+class EMA:
+    def __init__(self, model: nn.Module, decay: float) -> None:
+        self.decay = decay
+        self.shadow = {name: p.detach().clone() for name, p in model.named_parameters() if p.requires_grad}
+
+    @torch.no_grad()
+    def update(self, model: nn.Module) -> None:
+        for name, param in model.named_parameters():
+            if name not in self.shadow:
+                continue
+            self.shadow[name].mul_(self.decay).add_(param.detach(), alpha=1.0 - self.decay)
+
+    def state_dict(self) -> dict[str, torch.Tensor]:
+        return {name: tensor.detach().cpu() for name, tensor in self.shadow.items()}
+
+
 def _gram6_to_scube(gram6: torch.Tensor, g_scale: float) -> torch.Tensor:
     g11, g22, g33, g12, g13, g23 = [gram6[:, i] for i in range(6)]
     G = torch.stack(
@@ -116,7 +265,14 @@ def _gram6_to_scube(gram6: torch.Tensor, g_scale: float) -> torch.Tensor:
         dim=-2,
     )
     det_g = torch.linalg.det(G).clamp_min(1e-12)
-    return det_g.pow(1.0 / 6.0) * (g_scale ** 0.5)
+    # NOTE:
+    # - Dataset stores `gram6 = lattice_to_gram6(lattice) / g_scale`, so the Gram matrix here is
+    #   `G_scaled = G_phys / g_scale`.
+    # - When `cell_rep == cholesky6`, the model operates on the Cholesky parameters of `G_scaled`,
+    #   and the physical lattice is recovered later by multiplying by `sqrt(g_scale)`.
+    # Therefore, statistics used to set `chol_log_min/max` and `cell_init_scale` must be computed
+    # in this *internal* (scaled) length unit, i.e. without multiplying by `sqrt(g_scale)`.
+    return det_g.pow(1.0 / 6.0)
 
 
 def _estimate_scube_stats(
@@ -140,6 +296,93 @@ def _estimate_scube_stats(
     return s10, s50, s90, log_std
 
 
+def _counts_from_z(z: torch.Tensor, atom_mask: torch.Tensor, num_elements: int) -> torch.Tensor:
+    bsz, n = z.shape
+    counts = torch.zeros(bsz, num_elements, device=z.device, dtype=torch.float32)
+    valid = atom_mask > 0.5
+    z_valid = z[valid].long()
+    batch_idx = torch.arange(bsz, device=z.device).unsqueeze(1).expand_as(valid)[valid]
+    elem_idx = z_valid - 1
+    keep = (elem_idx >= 0) & (elem_idx < num_elements)
+    if keep.any():
+        counts.index_put_(
+            (batch_idx[keep], elem_idx[keep]),
+            torch.ones_like(elem_idx[keep], dtype=counts.dtype),
+            accumulate=True,
+        )
+    return counts
+
+
+def _build_condition(
+    batch: dict,
+    max_atoms: int,
+    num_elements: int,
+    cond_stats: dict | None = None,
+    cond_fields: Optional[list[str]] = None,
+) -> torch.Tensor:
+    fields = cond_fields or []
+    parts = []
+    for field in fields:
+        if field in ("counts", "counts_vector"):
+            if "counts_vector" in batch:
+                counts = batch["counts_vector"].float()
+            else:
+                counts = _counts_from_z(batch["atomic_numbers"], batch["atom_mask"], num_elements)
+            counts = counts / max(1, max_atoms)
+            parts.append(counts)
+            continue
+        if field not in batch:
+            raise ValueError(f"{field} not found in batch but requested by --cond-fields.")
+        value = batch[field].float()
+        if value.ndim == 1:
+            value = value.unsqueeze(-1)
+        if cond_stats is not None and f"{field}_mean" in cond_stats and f"{field}_std" in cond_stats:
+            mean = cond_stats[f"{field}_mean"].to(value.device, value.dtype)
+            std = cond_stats[f"{field}_std"].to(value.device, value.dtype)
+            value = (value - mean) / std
+        parts.append(value)
+    if not parts:
+        raise ValueError("Condition fields resolved to empty list.")
+    return torch.cat(parts, dim=-1)
+
+
+def _infer_cond_dim(sample: dict, cond_fields: list[str], num_elements: int) -> int:
+    cond_dim = 0
+    for field in cond_fields:
+        if field in ("counts", "counts_vector"):
+            cond_dim += num_elements
+            continue
+        if field not in sample:
+            raise ValueError(f"{field} not found but requested by --cond-fields.")
+        value = sample[field]
+        cond_dim += int(value.numel())
+    return cond_dim
+
+
+def _compute_cond_stats(
+    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    cond_fields: list[str],
+    normalize_fields: list[str],
+) -> dict:
+    stats: dict[str, torch.Tensor] = {}
+    if not isinstance(dataset, C2DBTokenNPZDataset):
+        return stats
+    for field in normalize_fields:
+        if field in ("counts", "counts_vector"):
+            continue
+        if field not in cond_fields:
+            continue
+        value = getattr(dataset, field, None)
+        if value is None:
+            continue
+        value = value.float()
+        mean = value.mean(dim=0)
+        std = value.std(dim=0, unbiased=False).clamp_min(1e-6)
+        stats[f"{field}_mean"] = mean
+        stats[f"{field}_std"] = std
+    return stats
+
+
 def train_one_epoch(
     model: AtomDenoiser,
     loader: DataLoader,
@@ -148,31 +391,100 @@ def train_one_epoch(
     log_interval: int,
     global_step: int,
     max_steps: int | None,
+    total_steps: int,
+    warmup_steps: int,
+    base_lr: float,
+    min_lr: float,
+    schedule: str,
+    clip_grad: float,
+    ema: EMA | None,
+    use_condition: bool,
+    max_atoms: int,
+    num_elements: int,
+    cond_stats: dict | None = None,
+    use_precomputed_neighbors: bool = False,
+    cond_fields: Optional[list[str]] = None,
+    metrics_log_path: Optional[Path] = None,
 ) -> tuple[int, float]:
     model.train()
     total_loss = 0.0
-    total_steps = 0
+    step_count = 0
     for batch in loader:
+        if max_steps is not None and global_step >= max_steps:
+            break
         z = batch["atomic_numbers"].to(device, non_blocking=True)
         frac = batch["frac_coords"].to(device, non_blocking=True)
         atom_mask = batch["atom_mask"].to(device, non_blocking=True)
         gram6 = batch["gram6"].to(device, non_blocking=True)
+        cond = None
+        if use_condition:
+            cond = _build_condition(
+                batch,
+                max_atoms=max_atoms,
+                num_elements=num_elements,
+                cond_stats=cond_stats,
+                cond_fields=cond_fields,
+            ).to(device, non_blocking=True)
 
+        lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
         optimizer.zero_grad(set_to_none=True)
-        loss, _, _, _ = model(z, frac, atom_mask, gram6)
+        nbr_idx = None
+        nbr_mask = None
+        nbr_dist = None
+        if use_precomputed_neighbors and "nbr_idx" in batch:
+            nbr_idx = batch["nbr_idx"].to(device, non_blocking=True)
+            nbr_mask = batch.get("nbr_mask")
+            if nbr_mask is not None:
+                nbr_mask = nbr_mask.to(device, non_blocking=True)
+
+        loss, _, _, _, metrics = model(z, frac, atom_mask, gram6, cond, nbr_idx, nbr_mask, nbr_dist)
         loss.backward()
+        if clip_grad > 0:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
         optimizer.step()
+        if ema is not None:
+            ema.update(model)
 
         if global_step % log_interval == 0:
-            print(f"[step {global_step}] loss={loss.item():.4f}")
+            msg = (
+                f"[step {global_step}] loss={loss.item():.4f} "
+                f"loss_f={metrics['loss_f'].item():.4f} "
+                f"loss_g={metrics['loss_g'].item():.4f} "
+                f"loss_z={metrics['loss_z'].item():.4f} "
+                f"lr={lr:.6e}"
+            )
+            if "s_f" in metrics:
+                msg += (
+                    f" s_f={metrics['s_f'].item():.3f}"
+                    f" s_g={metrics['s_g'].item():.3f}"
+                    f" s_z={metrics['s_z'].item():.3f}"
+                )
+            print(msg)
+            if metrics_log_path is not None:
+                payload = {
+                    "step": global_step,
+                    "loss": float(loss.item()),
+                    "loss_f": float(metrics["loss_f"].item()),
+                    "loss_g": float(metrics["loss_g"].item()),
+                    "loss_z": float(metrics["loss_z"].item()),
+                    "lr": float(lr),
+                }
+                if "s_f" in metrics:
+                    payload.update(
+                        {
+                            "s_f": float(metrics["s_f"].item()),
+                            "s_g": float(metrics["s_g"].item()),
+                            "s_z": float(metrics["s_z"].item()),
+                        }
+                    )
+                with metrics_log_path.open("a", encoding="utf-8") as f:
+                    f.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
         global_step += 1
         total_loss += loss.item()
-        total_steps += 1
-        if max_steps is not None and global_step >= max_steps:
-            break
+        step_count += 1
 
-    mean_loss = total_loss / max(total_steps, 1)
+    mean_loss = total_loss / max(step_count, 1)
     return global_step, mean_loss
 
 
@@ -191,8 +503,101 @@ def _serialize_args(args: argparse.Namespace) -> dict:
     return payload
 
 
+def _serialize_cond_stats(cond_stats: dict | None) -> dict:
+    if not cond_stats:
+        return {}
+    payload: dict[str, list | float] = {}
+    for key, value in cond_stats.items():
+        if isinstance(value, torch.Tensor):
+            payload[key] = value.detach().cpu().tolist()
+        else:
+            payload[key] = float(value)
+    return payload
+
+
+def _model_preset(size: str) -> dict:
+    presets = {
+        "tiny": {
+            "embed_dim": 192,
+            "depth": 6,
+            "num_heads": 6,
+            "mlp_ratio": 4.0,
+            "dropout": 0.0,
+            "time_embed_dim": 192,
+            "z_embed_dim": 96,
+            "f_embed_dim": 96,
+            "rbf_dim": 24,
+            "pair_mlp_hidden": 96,
+        },
+        "base": {
+            "embed_dim": 256,
+            "depth": 8,
+            "num_heads": 8,
+            "mlp_ratio": 4.0,
+            "dropout": 0.0,
+            "time_embed_dim": 256,
+            "z_embed_dim": 128,
+            "f_embed_dim": 128,
+            "rbf_dim": 32,
+            "pair_mlp_hidden": 128,
+        },
+        "large": {
+            "embed_dim": 384,
+            "depth": 12,
+            "num_heads": 12,
+            "mlp_ratio": 4.0,
+            "dropout": 0.0,
+            "time_embed_dim": 384,
+            "z_embed_dim": 192,
+            "f_embed_dim": 192,
+            "rbf_dim": 48,
+            "pair_mlp_hidden": 192,
+        },
+        "xl": {
+            "embed_dim": 512,
+            "depth": 16,
+            "num_heads": 16,
+            "mlp_ratio": 4.0,
+            "dropout": 0.0,
+            "time_embed_dim": 512,
+            "z_embed_dim": 256,
+            "f_embed_dim": 256,
+            "rbf_dim": 64,
+            "pair_mlp_hidden": 256,
+        },
+    }
+    if size not in presets:
+        raise ValueError(f"Unknown model size preset: {size}")
+    return presets[size].copy()
+
+
+def _resolve_model_hparams(args: argparse.Namespace) -> dict:
+    hparams = _model_preset(args.model_size)
+    overrides = {
+        "embed_dim": args.embed_dim,
+        "depth": args.depth,
+        "num_heads": args.num_heads,
+        "mlp_ratio": args.mlp_ratio,
+        "dropout": args.dropout,
+        "time_embed_dim": args.time_embed_dim,
+        "z_embed_dim": args.z_embed_dim,
+        "f_embed_dim": args.f_embed_dim,
+        "rbf_dim": args.rbf_dim,
+        "pair_mlp_hidden": args.pair_mlp_hidden,
+    }
+    for key, value in overrides.items():
+        if value is not None:
+            hparams[key] = value
+    if hparams["embed_dim"] % hparams["num_heads"] != 0:
+        raise ValueError(
+            f"embed_dim ({hparams['embed_dim']}) must be divisible by num_heads ({hparams['num_heads']})."
+        )
+    return hparams
+
+
 def main() -> None:
     args = parse_args()
+    pbc_mask = _parse_pbc_mask(args.pbc_mask)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
@@ -211,6 +616,17 @@ def main() -> None:
         )
         g_scale = args.g_scale
 
+    use_condition = args.use_condition
+    cond_max_atoms = int(getattr(dataset, "max_atoms", args.max_atoms))
+    cond_dim = 0
+    cond_stats = {}
+    cond_fields = _resolve_cond_fields(args)
+    normalize_fields = _parse_cond_fields(args.cond_normalize_fields)
+    if use_condition:
+        sample = dataset[0]
+        cond_dim = _infer_cond_dim(sample, cond_fields, num_elements=118)
+        cond_stats = _compute_cond_stats(dataset, cond_fields, normalize_fields)
+
     if args.cell_rep == "cholesky6":
         s10, s50, s90, log_std = _estimate_scube_stats(dataset, g_scale)
         if args.cell_init == "iso" and args.cell_init_scale is None:
@@ -224,13 +640,26 @@ def main() -> None:
 
     loader = prepare_dataloader(dataset, args.batch_size, args.num_workers, args.bucket_batches, args.bucket_shuffle)
 
+    model_hparams = _resolve_model_hparams(args)
     model_cfg = AtomTransformerConfig(
+        embed_dim=model_hparams["embed_dim"],
+        depth=model_hparams["depth"],
+        num_heads=model_hparams["num_heads"],
+        mlp_ratio=model_hparams["mlp_ratio"],
+        dropout=model_hparams["dropout"],
+        time_embed_dim=model_hparams["time_embed_dim"],
+        z_embed_dim=model_hparams["z_embed_dim"],
+        f_embed_dim=model_hparams["f_embed_dim"],
+        rbf_dim=model_hparams["rbf_dim"],
+        pair_mlp_hidden=model_hparams["pair_mlp_hidden"],
         num_elements=118,
         k_neighbors=args.k_neighbors,
         g_scale=g_scale,
         cell_rep=args.cell_rep,
         chol_log_min=args.chol_log_min,
         chol_log_max=args.chol_log_max,
+        cond_dim=cond_dim,
+        pbc_mask=pbc_mask,
     )
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     denoiser_cfg.diffusion.mode = args.mode
@@ -240,9 +669,16 @@ def main() -> None:
     denoiser_cfg.diffusion.cell_init = args.cell_init
     denoiser_cfg.diffusion.cell_init_scale = args.cell_init_scale
     denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
+    if use_condition:
+        denoiser_cfg.diffusion.cond_drop_prob = args.cond_drop_prob
     denoiser_cfg.diffusion.use_uncertainty_weighting = not args.no_uncertainty_weighting
     model = AtomDenoiser(denoiser_cfg).to(device)
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+    n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(f"Trainable parameters: {n_params / 1e6:.3f}M (model_size={args.model_size})")
+    betas = _parse_betas(args.betas)
+    param_groups = _build_param_groups(model, args.weight_decay)
+    optimizer = optim.AdamW(param_groups, lr=args.lr, betas=betas)
+    ema = EMA(model, args.ema_decay) if args.ema else None
 
     run_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = args.save_dir / run_stamp
@@ -252,12 +688,37 @@ def main() -> None:
         "args": _serialize_args(args),
         "model_config": asdict(model_cfg),
         "diffusion_config": asdict(denoiser_cfg.diffusion),
+        "optimizer_config": {
+            "name": args.optimizer,
+            "lr": args.lr,
+            "weight_decay": args.weight_decay,
+            "betas": betas,
+            "warmup_steps": args.warmup_steps,
+            "min_lr": args.min_lr,
+            "lr_schedule": args.lr_schedule,
+            "clip_grad": args.clip_grad,
+            "ema": args.ema,
+            "ema_decay": args.ema_decay,
+        },
+        "cond_config": {
+            "use_condition": use_condition,
+            "cond_dim": cond_dim,
+            "max_atoms": cond_max_atoms,
+            "num_elements": 118,
+            "cond_fields": cond_fields,
+            "cond_normalize_fields": normalize_fields,
+            "cond_stats": _serialize_cond_stats(cond_stats),
+        },
     }
     with (run_dir / "config.json").open("w", encoding="utf-8") as f:
         json.dump(config_payload, f, indent=2, ensure_ascii=True)
+    metrics_log_path = run_dir / "train_metrics.jsonl"
+    if metrics_log_path.exists():
+        metrics_log_path.unlink()
 
     global_step = 0
     best_loss = float("inf")
+    total_steps = args.max_steps if args.max_steps is not None else args.epochs * len(loader)
     for epoch in range(args.epochs):
         print(f"Epoch {epoch + 1}/{args.epochs}")
         global_step, epoch_loss = train_one_epoch(
@@ -268,17 +729,42 @@ def main() -> None:
             log_interval=args.log_interval,
             global_step=global_step,
             max_steps=args.max_steps,
+            total_steps=total_steps,
+            warmup_steps=args.warmup_steps,
+            base_lr=args.lr,
+            min_lr=args.min_lr,
+            schedule=args.lr_schedule,
+            clip_grad=args.clip_grad,
+            ema=ema,
+            use_condition=use_condition,
+            max_atoms=cond_max_atoms,
+            num_elements=118,
+            cond_stats=cond_stats,
+            use_precomputed_neighbors=args.use_precomputed_neighbors,
+            cond_fields=cond_fields,
+            metrics_log_path=metrics_log_path,
         )
         print(f"[epoch {epoch + 1}] mean loss={epoch_loss:.4f}")
 
         ckpt_payload = {
             "model_state_dict": model.state_dict(),
             "optimizer_state_dict": optimizer.state_dict(),
+            "ema_state_dict": ema.state_dict() if ema is not None else None,
             "epoch": epoch,
             "global_step": global_step,
             "mean_loss": epoch_loss,
             "config": model_cfg,
             "diffusion_config": denoiser_cfg.diffusion,
+            "optimizer_config": config_payload["optimizer_config"],
+            "cond_config": {
+                "use_condition": use_condition,
+                "cond_dim": cond_dim,
+                "max_atoms": cond_max_atoms,
+                "num_elements": 118,
+                "cond_fields": cond_fields,
+                "cond_normalize_fields": normalize_fields,
+                "cond_stats": _serialize_cond_stats(cond_stats),
+            },
         }
 
         last_path = run_dir / "atomdenoiser_last.pt"

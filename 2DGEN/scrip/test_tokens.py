@@ -27,7 +27,7 @@ def main() -> None:
     atom_mask[:, :n] = 1.0
     gram6 = torch.randn(bsz, 6, device=device)
 
-    loss, pred_v_f, pred_v_g, logits_z = model(z, frac, atom_mask, gram6)
+    loss, pred_v_f, pred_v_g, logits_z, _ = model(z, frac, atom_mask, gram6)
     loss.backward()
     print(f"loss: {loss.item():.4f}")
     print(f"pred_v_f: {tuple(pred_v_f.shape)} pred_v_g: {tuple(pred_v_g.shape)} logits_z: {tuple(logits_z.shape)}")

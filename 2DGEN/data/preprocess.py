@@ -203,6 +203,15 @@ def preprocess_cartesian(
     u_sorted = u[order_idx]
     v_sorted = v[order_idx]
     z_norm_sorted = z_norm[order_idx]
+    uv_angle = np.stack(
+        [
+            np.cos(2.0 * np.pi * u_sorted),
+            np.sin(2.0 * np.pi * u_sorted),
+            np.cos(2.0 * np.pi * v_sorted),
+            np.sin(2.0 * np.pi * v_sorted),
+        ],
+        axis=-1,
+    ).astype(np.float32)
 
     counts = np.zeros((cfg.max_atomic_number,), dtype=np.int64)
     for z_val in z_sorted:
@@ -214,6 +223,7 @@ def preprocess_cartesian(
         "u": u_sorted.astype(np.float32),
         "v": v_sorted.astype(np.float32),
         "z_norm": z_norm_sorted.astype(np.float32),
+        "uv_angle": uv_angle,
         "t": np.array(t, dtype=np.float32),
         "a_hat": a_hat.astype(np.float32),
         "b_hat": b_hat.astype(np.float32),

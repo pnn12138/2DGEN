@@ -5,9 +5,11 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache/
 
 # Virtual environments
 .venv
+.uv_cache/
 
 # Dataset cache (ignore general data dirs, but keep code under 2DGEN/data)
 /data/
@@ -21,5 +23,18 @@ wheels/
 outputs/
 lightning_logs/
 
-# Local model artifacts / third-party repos
-model/
+# Model checkpoints / tensors (do not commit)
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npz
+*.bin
+
+# Vendored/third-party large repos
+model/mattergen/
+
+# OS/editor noise
+.DS_Store
+.idea/
+.vscode/

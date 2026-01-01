@@ -1,304 +1,395 @@
-# 2D Crystal Transformer Diffusion — Preprocessing Spec（A++ v3）
+# 2D-Material Canonical Representation for Transformer Diffusion Models (Scheme A+++ v3.2 Refined)
 
-> 面向二维材料（slab）的“可复现、可单测、可缓存”预处理细化文档（基于你当前 A++ 规划，重点细化预处理部分）。
-
----
-
-## 优化规划（先预处理）
-### 阶段目标
-1) **预处理模块更迭（当前优先级）**  
-   - 把预处理流程固化为“输入/输出”的可单测函数链  
-   - 统一 gauge 处理与 canonical 排序，确保缓存可复用  
-   - 完成缓存格式与版本号（`A++_v3`）的定义  
-2) **模型输入一致性**  
-   - 训练与采样阶段的流形投影一致化（uv_angle、SPD、z_norm）  
-   - 与缓存字段对齐，避免在线重复计算  
-3) **评估与可视化**  
-   - 增加几何一致性与 gauge 不变性回归测试  
-   - 形成固定的对比图与统计输出（保存在 `test_fig/`）
-
-### 预处理模块更迭交付物
-- `prepare_*` 流程拆解为可复用函数（含单测入口）  
-- 缓存字段与哈希规则落地  
-- 关键超参集中管理（eps、round_prec、z_norm_clip）  
-
-## 0. 预处理要达成什么
-### 0.1 四个硬目标
-1) **几何一致性**：编码得到的 `(u,v,z_norm,lattice_param)` 必须能无歧义重建 `r_ij`。  
-2) **去 gauge**：vacuum / slab flip / (a,b)基矢 / 面内平移 / z 平移。  
-3) **确定性**：同一输入结构 → 同一 tokens、同一排序（允许极小数值容差）。  
-4) **可缓存**：预处理一次，训练反复读取，不再做 reduction / 投影 / 求逆。
-
-### 0.2 每个样本最终输出（建议最小集合）
-- `Z: int[N]`  
-- `u,v: float[N]`（**在 (â,b̂) 基底下的分数坐标**，已 wrap 到 `[0,1)`）  
-- `z_norm: float[N]`  
-- `t: float`（厚度，Å）  
-- `(a_hat,b_hat,n): float[3]`（规约后的面内基矢 + 单位法向）  
-- `lattice_param: float[3]`（3 DoF；建议 log-area + shape 两参）  
-- `counts_vector`（单位晶胞元素计数向量；`N = Σ counts`）  
-- `order_idx`（canonical 排序索引映射）  
-- （可选）`neighbor_graph`（edge_index + edge_attr）
+> 面向：**基于 Transformer 的扩散/Flow-Matching 晶体（2D slab）生成**  
+> 目标：在 **2D-PBC（仅 XY）** 与 **z 非周期 + 真空 gauge** 的物理约束下，构建**稳定、可对齐、可逆**（round-trip）的 token 表示，并在训练/采样阶段持续强化“二维材料”的统计与几何先验。
 
 ---
 
-## 1. 从 CIF 取“化学式/计数”与原子列表：最稳做法
-### 1.1 “化学式是否从 CIF 取更好？”
-更稳的不是 CIF 里的字符串字段，而是：  
-**直接从 CIF 的原子位点（最终展开后的原子列表）统计 counts**。
+## Changelog（相对 v3.1 的关键增强点）
 
-原因：
-- `_chemical_formula_sum` 可能是 reduced formula（只给比例）或忽略 occupancy  
-- `atom_site`（或结构对象中的 sites）才与你真正生成的晶胞一致
-
-### 1.2 推荐输入优先级
-1) **直接已有原子列表**：`cell + pos_cart + atomic_numbers`（最佳，最少坑）  
-2) **CIF**：用 pymatgen/ase 解析成结构对象后再导出原子列表（注意 occupancy 与对称展开）
-
-### 1.3 occupancy / disorder 的策略（强烈建议先过滤）
-如果你现在目标是“结构几何生成”，建议：
-- **过滤掉 occupancy≠1 或无序混占**的结构  
-否则任务会升级成“位点占位概率生成 + 几何生成”，难度陡增。
+1. **邻居构图策略强化 2D 先验**：引入 `kNN(d_xy)` 主图 + `kNN(d_3d)` 辅图（或补边）机制，避免 3D kNN 在多层/起伏 slab 中过度选择跨层边。  
+2. **PBC wrap 信息显式编码**：将 MIC 搜索得到的整数平移 `(m,n)`（或等价的 wrap flag / shift class）做成 edge embedding，减少周期边界伪影。  
+3. **排序与规约稳定性“CI 单测化”**：新增“微噪声扰动不翻转/少翻转”单测、near-degenerate cell 的 fallback/日志统计机制。  
+4. **厚度/真空建模更工程化**：明确 `t` 的 4 种策略（S0–S3）的训练/采样接口与推荐默认（S1/S2）。  
+5. **生成期 2D 合法域投影更严格**：明确每步投影与投影频率，避免 train/test 域不一致。
 
 ---
 
-## 2. 预处理主流水线（逐步、可单测）
-下面每一步尽量写成“输入/输出”，便于你拆函数与写单测。
+## 0. 目标与基本假设
+
+### 0.1 目标
+- 输入条件：化学式/元素计数（composition），可选空间群/点群/层群等（后续扩展）。
+- 输出：一个 2D slab 的 **canonical tokens**（原子序列 + 2D 晶格参数 + 厚度/真空参数）。
+- 核心约束：
+  - **仅 XY 做 PBC**（2D torus），**z 不做 wrap**。
+  - `u,v` 必须严格定义为 canonical 的 `(â,b̂)` 基底下分数坐标。
+  - 真空不学习：`c_len = t + v0`，其中 `v0` 固定或由数据统计给定。
+
+### 0.2 基本假设（推荐先从“干净子集”开始）
+- 数据是单层或少层 slab，且真空足够大，不存在 slab 与其周期像在 z 方向的相互穿越。
+- CIF/结构中存在面外法向可辨识（或者 slab 明确以 z 为法向，否则需先做自动旋转对齐）。
+- 若数据中存在极端 buckling/多层堆叠，请先在数据侧统计 thickness 分布并分桶训练。
 
 ---
 
-### Step 0：统一 dtype / 单位
-**输入**：`cell(3×3, Å), pos_cart(N×3, Å), Z(N)`  
-**输出**：float64 的 `cell/pos` + int64 的 `Z`  
-> 预处理建议 float64，训练再转 float32。
+## 1. Representation（模型接口定义）
+
+### 1.1 Model-facing（要扩散/要输入模型的字段）
+每个样本包含：
+
+**(A) per-structure**
+- `lattice_param`：2D 晶格的 SPD 参数化（推荐 log-Cholesky / 2D metric）
+  - 例如：`(log_area, p1, p2)` 其中  
+    `L = [[exp(p1), 0], [p2, exp(-p1)]]`，`G = exp(log_area) * L^T L`
+- `t`：slab 厚度（可作为条件或预测头，默认不扩散）
+- `v0`：真空厚度 gauge（常量，不扩散；导出时 `c_len = t + v0`）
+- `composition`：元素计数/配比（条件输入）
+
+**(B) per-atom（长度 N，带 mask）**
+- `Z`：原子序数（离散，通常不扩散；也可用类别扩散/采样后纠错）
+- `uv_angle`：`[cos(2πu), sin(2πu), cos(2πv), sin(2πv)]`
+- `z_norm`：z 轴归一化坐标（连续，扩散变量之一）
+- 可选：`is_surface`/`layer_id`（若你能可靠得到；否则不建议硬加）
+
+### 1.2 Reconstruction-only（训练可存储，但默认不扩散）
+- `a_hat, b_hat`：canonical 面内基矢（由 `lattice_param` 可重建）
+- `n`：slab 法向（通常固定为 z 轴；若做全姿态生成则需扩散/条件化）
+- `u,v`（真实分数坐标，仅用于 debug 与 round-trip）
+- `z`（Å），`z_shift`（gauge 修正量）
 
 ---
 
-### Step 1：确定 slab 法向 `n`
-#### 1.1 默认法向
-- `n_raw = a × b`
-- `n = n_raw / ||n_raw||`
+## 2. Canonicalization Pipeline（3D slab → canonical 2D tokens）
 
-#### 1.2 PCA fallback（只在必要时用）
-触发条件（建议满足任一就 fallback）：
-- `||a×b|| < eps_area`（如 `1e-6`）→ 面内退化  
-- 或者你检测到 plane/lattice 明显不一致（少见，但可加）
+> 目标：给定任意等价的 slab 描述（平移/基底选择/轻微噪声），输出稳定一致的 tokens。
 
-PCA 做法：
-- `X = pos - mean(pos)`
-- SVD/PCA 得到最小方差方向 `n_pca`
-- 方向统一：让 `sign(n_pca·(a×b))>0`，否则 `n_pca ← -n_pca`
+### Step 0 — dtype/单位
+- Å 为长度单位；内部 float32/float64 统一。
+- 所有阈值 eps 在配置里集中管理（建议默认 `eps_len=1e-6 Å`, `eps_angle=1e-6`）。
 
-**关键约束**：一旦用了 PCA 的 `n`，后面 **必须把 a,b 投影到该平面** 再做 reduction（否则 plane / lattice / uv 不共面）。
+### Step 1 — slab 法向 `n`
+推荐默认：
+- 若数据天然沿 z 为面外方向，则 `n = (0,0,1)`。
+- 否则：用 PCA / 最小方差轴 / 2D plane fit 获取 `n`，并旋转对齐到 z。
+- **near-degenerate**（几乎 3D 均匀）样本直接标记/丢弃或单独训练。
 
----
+### Step 2 — 投影到平面内/外
+- 将 3D 晶格向量 `a,b,c` 投影到 `(I - nn^T)` 得 `a⊥, b⊥, c⊥`
+- slab 的面内基矢候选一般来自 `a⊥, b⊥`（若它们线性相关则 fallback）。
 
-### Step 2：投影到平面内/外
-对每个原子 `r_i`：
-- `z_i = r_i · n`
-- `r_parallel_i = r_i − z_i * n`
+### Step 3 — 投影面内基矢（推荐默认做）
+- 只保留面内分量，避免原 CIF 的微倾斜导致 `u,v` 不纯。
 
-输出：`z(N)`, `r_parallel(N×3)`
+### Step 4 — 2D reduction 去面内基矢 gauge（输出 â,b̂）
+目标：在 GL(2,Z) 等价类里选唯一代表（尽量稳定）。
+- V0（稳健优先）：枚举小范围 unimodular 变换 `U ∈ GL(2,Z)`（比如 |m|,|n|≤2）
+- V1（快）：Minkowski reduction / “短矢优先 + 夹角范围 + 右手系”  
+- tie-break（必须 deterministic）：
+  1) `||â|| ≤ ||b̂||`
+  2) `angle(â,b̂) ∈ [60°,120°]`（或等效约束）
+  3) det>0（右手系）
+  4) 若仍多解：按 `(||â||, ||b̂||, angle, a_x, a_y, b_x, b_y)` 字典序
 
----
+> **工程增强（v3.2）**：  
+> 对 near-degenerate cell（如近正方/近六方）添加“稳定性监控”：
+> - 记录 reduction 选择的候选数量、tie-break 触发频率  
+> - 若某一类结构 tie-break 频繁，优先在数据侧清洗/规约晶格输入
 
-### Step 3：把 a,b 投影到 slab 平面（建议默认做）
-- `a_in = a − (a·n)n`
-- `b_in = b − (b·n)n`
+### Step 5 — 计算 `u,v`（严格定义）
+- `u,v` 必须是 **在 (â,b̂) 基底下** 的分数坐标  
+  `r_parallel = x*â + y*b̂` → `(u,v) = (x,y) mod 1`
+- 绝对不要用原 CIF 的 fractional 直接当作 `u,v`（除非 CIF 已在同一 gauge 下）
 
-> 这一步能显著降低数值不一致风险，建议无论是否 PCA 都做。
+### Step 6 — 去面内整体平移 gauge（torus circular mean shift）
+- 在 torus 上计算 circular mean：  
+  `μ_u = atan2(mean(sin 2πu), mean(cos 2πu)) / (2π)`，同理 `μ_v`
+- 做平移：`u ← (u - μ_u) mod 1`，`v ← (v - μ_v) mod 1`
+- 目的：使整体平移不成为学习目标，提升序列对齐稳定性
 
----
+### Step 7 — 去 z 平移 gauge + slab flip gauge
+- z 平移：令 `z_min = 0` 或令 `mean(z)=0`（二选一，保持一致）
+- slab flip：若 `z` 的分布更靠近上表面（或按某规则），做 `z ← t - z`，保证统一朝向
+- **建议**：flip 规则要只依赖 slab 内部信息，避免引入外部标注依赖
 
-### Step 4：2D reduction 得到 `(â,b̂)`（去面内基矢 gauge）
-工程上建议：**先 V0（枚举）跑通；再 V1（Minkowski）提质量/提速**。
+### Step 8 — 厚度 `t` 与 `z_norm`
+- `t = percentile(z, 95%) - percentile(z, 5%)`（或基于原子半径修正的 robust thickness）
+- `z_norm = z / t`（或 `(z - z_center)/t`，视你的 z gauge 决定）
+- clip：`z_norm ∈ [0,1]` 或 `[-0.5,0.5]`（与 Step7 保持一致）
+- 导出时：`c_len = t + v0`，`z = z_norm * t`（再加回 z_shift）
 
-#### 4.1 V0：有限 unimodular 枚举（简单可靠）
-枚举 2×2 整数矩阵 `U=[[p,q],[r,s]]`，满足 `det(U)=±1`（范围可取 `{-1,0,1}` 或更小集合），对每个候选：
-- `[a', b'] = [a_in, b_in] @ U`
-- 评分函数（越小越好）：
-  - 惩罚长基矢：`|a'| + |b'|`
-  - 惩罚接近共线：`|cos γ'|`（γ'=夹角）
-  - 约束：`|a'| ≤ |b'|` 且 `γ' ∈ [60°,120°]`
-取最优 `(â,b̂)=(a',b')`
+### Step 9 — 面内 lattice 参数化 `lattice_param`
+- 由 `(â,b̂)` 得 2×2 基矩阵 `A2 = [â, b̂]`
+- `G = A2^T A2`，对 `G` 做 log-Cholesky 变换得到可扩散/可回归的参数
+- 采样时保证 `G` SPD（log 参数天然满足）
 
-#### 4.2 V1：2D Minkowski reduction（更“唯一”）
-如果你希望 MIC 用 `round` 简化更安全，建议上 Minkowski。  
-（但即使上了，也建议保留 9-candidates MIC 做兜底单测。）
+### Step 10 — torus angle embedding（uv_angle）
+- `uv_angle = [cos(2πu), sin(2πu), cos(2πv), sin(2πv)]`
+- 采样期必须投影回单位圆（见 §4.2）
 
-#### 4.3 orientation 固定（避免额外等价）
-- `vol = det([â, b̂, n])`
-- 若 `vol < 0`：令 `b̂ ← -b̂`（或交换+修正），统一右手系
+### Step 11 — canonical 排序（序列对齐必需）
+默认 key（建议保持与 v3.1 一致，便于兼容）：
+- `(Z, z_norm, u, v)`，并对 `z_norm,u,v` 做 rounding（如 1e-5）以提高稳定性
+- **v3.2 增强：排序稳定性单测（必做）**
+  - 对输入原子坐标添加 1e-8~1e-7 Å 噪声，排序不应大规模翻转  
+  - 若翻转集中在高对称族：考虑更强 tie-break（例如局部环境 hash）或对称等价类聚合（第二阶段）
 
----
-
-### Step 5：计算 `u,v`（**必须是 (â,b̂) 基下分数坐标**）
-构造 `A = [â  b̂]` 为 3×2（列向量），对每个原子解最小二乘：
-- `x = argmin ||A x − r_parallel_i||²`
-- 闭式：`x = (AᵀA)^{-1} Aᵀ r_parallel_i`
-- `u_i=x0, v_i=x1`
-
-wrap：
-- `u_i ← u_i − floor(u_i)`
-- `v_i ← v_i − floor(v_i)`
-
-数值建议：
-- 对 `AᵀA` 加 `eps*I`（如 `1e-12`）防奇异  
-- condition number 太大时用 `lstsq/SVD` 回退
-
-> 这一步是 A++ 的“核心修复点”：确保你后续 `Δr_parallel = Δu*â + Δv*b̂` 一定成立。
-
----
-
-### Step 6：去面内整体平移 gauge（torus circular mean shift）
-计算 circular mean：
-- `ū = atan2(mean(sin 2πu), mean(cos 2πu)) / (2π)`
-- `v̄ = atan2(mean(sin 2πv), mean(cos 2πv)) / (2π)`
-
-shift：
-- `u ← (u − ū) mod 1`
-- `v ← (v − v̄) mod 1`
-
-> 对 Transformer（序列）非常关键：减少同一结构多表示、减少排序抖动。
+### Step 12 — composition condition（化学式计数）
+- 从 CIF/结构直接统计 `Z` 计数 → `(element_i, count_i)`
+- 输入模型可用：多热向量、embedding + count、或按元素排序的稀疏字典
 
 ---
 
-### Step 7：去 z 平移 + slab 翻转 gauge
-z 平移：
-- `z ← z − mean(z)`
+## 3. 2D PBC（XY only）与邻居几何重建
 
-slab 翻转（canonical sign）：
-- `m1 = Σ Z_i z_i`
-- 若 `m1 < 0`：`z ← −z` 且 `n ← −n`
+### 3.1 PBC 定义（必须写死）
+- 周期性仅在 `u,v` 上：`u,v ∈ [0,1)` 的 torus
+- `z` 不做 wrap（非周期）
+- 任何距离、邻居、边特征都必须遵守此定义
 
-tie-break（近对称时）：
-- 用 `m3 = Σ Z_i z_i^3` 决定符号
+### 3.2 MIC（默认稳健：9-candidates）
+对 `Δu = u_j - u_i`、`Δv = v_j - v_i`：
+- 枚举 `(m,n) ∈ {(-1,0,1)}^2`  
+  `du = Δu + m`，`dv = Δv + n`  
+  选择使 `||du*â + dv*b̂||` 最小的 `(m,n)`
+- 返回：`du, dv, m, n`（v3.2 强烈建议保留 `m,n`）
 
----
+### 3.3 3D 相对向量 `r_ij`
+- `r_parallel = du*â + dv*b̂`
+- `dz = (z_j - z_i)`（不 wrap）
+- `r_ij = r_parallel + dz * n`（n 通常为 z 轴）
+- 由此得到：
+  - `d_xy = ||r_parallel||`
+  - `d_3d = sqrt(d_xy^2 + dz^2)`
 
-### Step 8：厚度 `t` 与 `z_norm`
-厚度（鲁棒）：
-- `t = q99(z) − q01(z)`（Å）
+### 3.4 Edge features（建议）
+最小可用：
+- `rbf(d_3d)`（或多尺度 rbf）
+- `d_xy`、`|dz|`（显式拆分，强化 2D 信息）
+- `dir = r_ij / (d_3d + eps)`（可选）
 
-归一化：
-- `z_norm = z / (t + eps)`
+### 3.5 邻居构图策略（v3.2：强化二维先验的关键）
+> **核心思想**：让模型“先看到面内键合网络”，再补充必要的面外/跨层几何。
 
-clip（建议）：
-- `z_norm ∈ [-1.5, 1.5]`（或按你数据统计调整）
+**推荐默认：双图/补边策略（二选一）**
 
----
+**方案 A：双图（two-graph）**
+- 主图 `E_inplane`：`k_in` 近邻基于 `d_xy`（在每个节点 i 上取最小的 k_in）
+- 辅图 `E_3d`：`k_3d` 近邻基于 `d_3d`（小 k_3d，避免跨层主导）
+- 模型中：
+  - 要么把两类边拼接，并给一个 `edge_type` embedding（inplane / 3d）
+  - 要么分两次 message passing / attention bias 叠加
 
-### Step 9：lattice_param（3 DoF，扩散友好）
-构造 2D metric：
-- `G2D = [[â·â, â·b̂],[â·b̂, b̂·b̂]]`
+**方案 B：补边（inplane kNN + 规则补充）**
+- 先做 `kNN(d_xy)` 得主边集
+- 再补充满足 `d_3d < r_cut_3d` 且 `|dz| < dz_cut` 的少量边（或每点补充 top-k）
+- 优点：实现更简单；缺点：边类型不如双图清晰
 
-面积：
-- `area = sqrt(det(G2D))`
-- `log_area = log(area)`
+**为什么这能强化 2D？**
+- 2D 材料的主要化学键与局域环境在面内；3D kNN 在多层/强起伏 slab 中会偏向跨层近距，导致模型学到“堆叠几何”而不是“层内拓扑”。
 
-shape：
-- `G_shape = G2D / area`
+### 3.6 PBC wrap embedding（v3.2：减少边界伪影）
+- 从 MIC 得到 `(m,n)`  
+  - `(0,0)`：不跨边界  
+  - 非零：跨了 u/v 方向边界
+- 生成 edge feature：
+  - `wrap_flag = 1[m!=0 or n!=0]`
+  - `shift_id`：把 9 种 `(m,n)` 映射到 0..8 的类别 id，用 embedding
+  - 或者直接把 `(m,n)` 作为小整数输入（再 MLP）
 
-推荐 **log-Cholesky**（最稳）：
-- `L = chol(G_shape)`（下三角）
-- `p1 = log(L11)`
-- `p2 = L21`（可选 tanh 压缩）
-
-输出：
-- `lattice_param = (log_area, p1, p2)`
-
----
-
-### Step 10：uv_angle（torus embedding）
-- `uv_angle = (cos 2πu, sin 2πu, cos 2πv, sin 2πv)` ∈ ℝ⁴
-
----
-
-### Step 11：canonical 排序（保证序列对齐）
-排序前必须完成 Step 6（面内平移 gauge），否则排序对平移高度敏感。
-
-推荐排序键（带容差离散化降低浮点抖动）：
-- `z_key = round(z_norm, 1e-6)`
-- `u_key = round(u, 1e-6)`
-- `v_key = round(v, 1e-6)`
-- key = `(Z, z_key, u_key, v_key, original_index)`
-
-输出 `order_idx`，并重排所有 per-atom 张量。
+**直觉**：在 torus 上，跨边界边与非跨边界边几何等价，但在序列与有限邻域里容易产生“边界处结构断裂”。显式编码 wrap 可显著缓解。
 
 ---
 
-### Step 12：condition（单位晶胞元素计数向量）
-从 `Z` 统计 counts：
-- `counts[element] = count(Z==element)`
-- `N = sum(counts)`（可显式存）
+## 4. Diffusion State & Sampling-time Manifold Projection
 
-> 这就是“从 CIF 得到的化学式（单位晶胞计数）”：最稳、无歧义。
+### 4.1 扩散变量（默认）
+- `z_norm`：连续扩散变量
+- `uv_angle`：连续扩散变量（在单位圆上）
+- `lattice_param`：连续扩散变量（SPD via log 参数）
+- `Z`：默认不扩散（条件由 composition + 采样后 assignment/纠错）；也可用离散扩散但工程复杂度更高
 
----
+### 4.2 采样阶段必须同步的投影（否则 train/test 域不一致）
+每一步（或每 1–5 步）做：
 
-## 3. 邻居图（可缓存/可在线）
-### 3.1 MIC（默认稳健：9-candidates）
-对 `(i,j)`：
-- `du0 = u_j − u_i`, `dv0 = v_j − v_i`
-- 枚举 `(m,n)∈{-1,0,1}²`：
-  - `du = du0 − m`, `dv = dv0 − n`
-  - `Δr_parallel = du*â + dv*b̂`
-取 `||Δr_parallel||` 最小者作为 MIC。
+1) **uv_angle → unit circle**
+- 对每个 `(cos_u, sin_u)`：  
+  `r = sqrt(cos_u^2 + sin_u^2)`，归一化为 `/ max(r, eps)`
+- v 同理
 
-> 若你未来严格保证 Minkowski reduction 并单测证明 `round` 永不失败，再把 MIC 简化为 `du0-round(du0)` 才安全。
+2) **lattice_param → SPD**
+- 若用 log-Cholesky：天然 SPD；只需防止数值溢出（clip p1/p2/log_area）
 
-### 3.2 3D 相对向量
-- `Δz = (z_norm_j − z_norm_i) * t`
-- `r_ij = Δr_parallel + Δz * n`
-- `d_ij = ||r_ij||`
+3) **z_norm clip**
+- `z_norm ∈ [0,1]`（或 [-0.5,0.5]），与 canonicalization 保持一致
 
----
-
-## 4. 采样阶段必须同步的“流形投影”（非常重要）
-不做这一步，训练/采样域会不一致，采样很容易崩。
-
-每一步（或每几步）强制：
-1) **uv_angle 单位圆投影**：对每对 `(cos,sin)` 做归一化  
-2) **SPD 保证**：如果用 log-Cholesky 参数化，天然 SPD；否则需投影到 SPD  
-3) **z_norm clip**：保持在训练分布范围
+4) **可选：最小距离软约束投影**
+- 若发现采样早期出现大量近距离冲突，可在投影后做一次轻量 repulsion step（不建议过强，以免破坏扩散轨迹）
 
 ---
 
-## 5. 缓存与哈希（确保可复现）
-### 5.1 建议缓存内容
-- `Z, uv_angle, z_norm, lattice_param, t`
-- `(a_hat,b_hat,n)`
-- `order_idx`
-- `counts_vector`
-- （可选）`neighbor_graph`
+## 5. 厚度 `t` 与真空 `v0` 的建模策略（工程化建议）
 
-### 5.2 样本哈希建议包含
-- 原始 CIF 内容（或 cell+pos+Z bytes）
-- 预处理版本号（如 `A++_v3`）
-- 关键超参（eps、round 精度、reduction 版本）
+### S0：固定厚度（最简单）
+- `t` 取数据均值/分桶均值
+- 适用于：单一材料家族/厚度变化很小的数据集
 
----
+### S1：`t` 作为条件输入（推荐默认）
+- 模型输入：`t`（可由外部给定、或从 composition/类别先验预测）
+- 扩散只生成 `z_norm`，导出时 `z = z_norm * t`
+- 优点：稳定；缺点：需要 t 的来源
 
-## 6. 单测清单（预处理必须先过）
-### 6.1 几何一致性（最关键）
-- 六方/斜晶（γ=60°）下：`||Δr_parallel||` 与 brute-force 镜像搜索一致  
-- `9-candidates MIC` 与 `round MIC` 对比：一旦存在反例，默认用 9-candidates
+### S2：预测头 `t_head`（推荐）
+- 网络输出一个 `t_pred`（回归），训练用 `L_t = |t_pred - t_gt|`
+- 采样时用 `t_pred` 作为重建尺度
+- 优点：端到端；缺点：t 学不好会放大 z 误差（需配合数据分桶/正则）
 
-### 6.2 gauge 不变性
-- 面内平移：整体平移 `αâ+βb̂` 后 tokens 不变  
-- slab 翻转：z→−z，canonical 后 tokens 不变  
-- vacuum：改变 c（加真空）tokens 不变（t 不变，c 仅用于重建）
+### S3：扩散 t（最难）
+- 把 t 纳入扩散变量
+- 仅在你有足够数据、且 thickness 分布复杂时再考虑
 
-### 6.3 排序稳定性
-- pos 加 1e-8~1e-7 Å 噪声：排序变化应极少（同元素内允许小范围交换）
+**真空 `v0`**
+- 强烈建议常量（不扩散）
+- 可取数据集统计 95% 分位的 “空隙高度” 或固定工程值（如 15–25 Å）
 
 ---
 
-## 7. 推荐的默认超参（先跑通用）
-- `eps_area = 1e-6`
-- `eps_inv = 1e-12`
-- `round_prec = 1e-6`
-- `z_norm_clip = 1.5`
-- `vacuum_v0 = 15 Å`
-- `neighbor_k = 16`
-- `MIC = 9-candidates`（默认）
+## 6. Training：损失与“二维先验强化”
+
+### 6.1 基础扩散损失（示例）
+- `L_uv`：对 `uv_angle` 的噪声预测损失（或 v-pred）
+- `L_z`：对 `z_norm` 的噪声预测损失
+- `L_lat`：对 `lattice_param` 的噪声预测损失
+- `L_comp`（可选）：composition-consistency（若你同时预测 Z 分配）
+
+### 6.2 2D 强化项（轻量但有效）
+1) **最小原子间距排斥（soft repulsion）**
+- 仅对 `d_3d < d_min` 的对罚项：`L_rep = Σ ReLU(d_min - d_3d)^2`
+- d_min 可取元素半径启发式或统一值（如 1.0–1.2 Å）并分元素调整
+
+2) **z 分布正则（anti-collapse）**
+- 避免所有原子坍缩在同一 z：  
+  例如约束 `Var(z_norm)` 在合理范围内（按族统计），或匹配训练集分布（KL/EMD）
+
+3) **厚度一致性（若用 S2）**
+- `L_t`：厚度回归损失  
+- 并对 `z_norm` 的尺度不确定性做权重（例如让网络输出 `σ_t` 做不确定度加权）
+
+---
+
+## 7. Postprocess：tokens → CIF/结构（round-trip）
+
+1) 由 `lattice_param` 重建 `â,b̂`
+2) 由 `uv_angle` 反算 `u,v`（`atan2` / 2π，再 mod 1）
+3) 由 `z_norm` 与 `t` 得 `z`
+4) 构造 3D cell：
+   - `a = [â,0]`，`b = [b̂,0]`
+   - `c = [0,0,t+v0]`
+5) 组装 fractional：
+   - `frac = (u,v, z/(t+v0))`（注意 z gauge）
+6) 写 CIF 前做一次合法性检查：
+   - d_min 检查
+   - 体积分布/面内角度检查（对 `G`）
+   - thickness 合理性检查
+
+---
+
+## 8. 必做单测 / CI Checklist（v3.2：把稳定性钉死）
+
+### 8.1 Canonicalization 不变性（必须）
+- **平移不变**：对结构整体平移（u,v,z），输出 tokens 不变
+- **面内基底等价不变**：对 `A2` 施加 `U∈GL(2,Z)`，输出 tokens 不变
+- **slab flip 一致**：对 z 轴翻转，canonical 输出相同（或符号一致）
+
+### 8.2 Round-trip（必须）
+- `structure → tokens → structure'`  
+  - `d_xy` 与 `d_3d` 统计一致  
+  - composition 一致  
+  - 若允许重排序，需满足原子集合一致（assignment 后）
+
+### 8.3 MIC 一致性（必须）
+- 9-candidates MIC 与 brute-force（更大枚举）在随机抽样上输出一致（误差 < eps）
+
+### 8.4 排序稳定性（强烈建议）
+- 添加微噪声 `1e-8~1e-7 Å`：
+  - 排序翻转比例应很低（例如 < 0.5% 原子对）
+  - 若高：记录族/结构类型，作为数据清洗或 tie-break 强化依据
+
+### 8.5 near-degenerate 监控（强烈建议）
+- 记录 reduction 候选数、tie-break 触发次数、PCA fallback 触发率
+- 这些统计在训练前输出直方图，用于决定是否需要分桶或剔除
+
+---
+
+## 9. 训练与采样的推荐默认配置（可直接落地）
+
+- Canonicalization：
+  - reduction：V0（小范围 GL(2,Z) 枚举）作为默认；V1 作为加速可选
+  - z gauge：`z_min=0`，`z_norm ∈ [0,1]`
+  - 排序 key：`(Z, z_norm, u, v)` + rounding(1e-5)
+
+- 图构建：
+  - `k_in = 12`（按 d_xy）
+  - `k_3d = 4`（按 d_3d）或补边策略
+  - edge features：`rbf(d_3d) + d_xy + |dz| + wrap_shift_embed`
+
+- 厚度策略：
+  - 默认 S2（t_head）+ 失败回退到 S1（外部 t 先验/分桶均值）
+
+- 采样投影：
+  - 每步做 `uv_angle` 归一 + `z_norm` clip
+  - 每 2–5 步做 lattice 参数 clip（防爆）
+
+---
+
+## 10. 可扩展方向（后续迭代，不影响 v3.2 落地）
+- 引入 layer group / symmetry tokens（但要注意与 canonicalization 的交互）
+- 多层 slab 的 layer-aware 编码（需要可靠 layer decomposition）
+- 离散 Z 的生成（类别扩散/MaskGIT/自回归纠错）与 composition 对齐
+
+---
+
+## Appendix A：邻居构图伪代码（便于实现）
+
+```python
+# inputs: u,v,z_norm, lattice_param -> a_hat,b_hat, thickness t, normal n
+# outputs: edge_index, edge_attr
+
+# 1) MIC for all candidate pairs (i,j) in a candidate pool
+#    candidate pool can be radius prefilter based on approximate metric
+du, dv, m, n = mic_9_candidates(u, v, a_hat, b_hat)
+
+r_par = du[...,None]*a_hat + dv[...,None]*b_hat
+d_xy  = norm(r_par)
+dz    = (z[j] - z[i])
+d_3d  = sqrt(d_xy**2 + dz**2)
+
+# 2) build edges
+E_inplane = knn_by_distance(d_xy, k=k_in)
+E_3d      = knn_by_distance(d_3d, k=k_3d)
+
+edge_index = concat(E_inplane, E_3d)
+edge_type  = [0]*len(E_inplane) + [1]*len(E_3d)
+
+# 3) edge features
+edge_attr = [
+  rbf(d_3d),
+  d_xy,
+  abs(dz),
+  embed_shift_id(m,n),
+  embed_edge_type(edge_type),
+]
+```
+
+---
+
+## Appendix B：常见坑与规避
+
+- **不要把原 CIF 的 fractional 当 u,v**：除非你能证明 CIF 的 cell 与你 canonical 的 (â,b̂) 完全一致。
+- **不要让 z 做 PBC**：否则 slab 会自连接，训练出“假跨层键”。
+- **采样不投影 = 训练白做**：uv_angle 会偏离单位圆、lattice 会离开 SPD，导致生成崩坏且难 debug。
+- **排序不稳定会让 Transformer 学噪声**：先跑单测再训练，省大量时间。
+
+---
+
+**版本**：v3.2 (Refined)  
+**生成时间**：2025-12-31

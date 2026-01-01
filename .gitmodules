@@ -1,0 +1,7 @@
+[submodule "model/VIT/JiT"]
+	path = model/VIT/JiT
+	url = https://github.com/LTH14/JiT.git
+
+[submodule "model/SCDM"]
+	path = model/SCDM
+	url = https://github.com/PhysiLearn/SCDM

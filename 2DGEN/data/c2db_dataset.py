@@ -182,34 +182,6 @@ class C2DBDataset(Dataset):
         return {k: torch.stack([b[k] for b in batch], dim=0) for k in keys}
 
 
-class C2DBGridNPZDataset(Dataset):
-    """
-    Lightweight dataset that reads preprocessed grids from a npz file.
-    The npz is expected to contain:
-      - x: float32 array of shape (N, 3, max_atoms, frac_dim)
-      - material_id: optional list/array of identifiers
-      - torus_freqs: optional array of torus frequencies used during preprocessing
-    """
-
-    def __init__(self, npz_path: Path | str) -> None:
-        super().__init__()
-        data = np.load(npz_path)
-        self.x = torch.from_numpy(data["x"]).float()
-        self.material_ids = data["material_id"].tolist() if "material_id" in data else None
-        self.torus_freqs = tuple(int(f) for f in data["torus_freqs"].tolist()) if "torus_freqs" in data else None
-        self.lattice_scale = float(data["lattice_scale"]) if "lattice_scale" in data else 10.0
-        self.angle_scale = float(data["angle_scale"]) if "angle_scale" in data else 180.0
-
-    def __len__(self) -> int:
-        return self.x.shape[0]
-
-    def __getitem__(self, idx: int):
-        sample = self.x[idx]
-        if self.material_ids is None:
-            return sample
-        return sample, self.material_ids[idx]
-
-
 class C2DBAtomDataset(Dataset):
     """
     Dataset for token-based diffusion: returns padded Z/F/mask plus scaled Gram-6 g.
@@ -278,11 +250,13 @@ class C2DBAtomDataset(Dataset):
                 pass
         lattice = sample["lattice_matrix"].float()
         g = _lattice_to_gram6(lattice) / self.g_scale
+        counts_vector = _counts_vector(sample["atomic_numbers"], sample["atom_mask"])
         return {
             "atomic_numbers": sample["atomic_numbers"].long(),
             "frac_coords": sample["frac_coords"].float(),
             "atom_mask": sample["atom_mask"].float(),
             "gram6": g.float(),
+            "counts_vector": counts_vector,
         }
 
     @staticmethod
@@ -308,6 +282,7 @@ class C2DBTokenNPZDataset(Dataset):
         self.g_scale = float(data["g_scale"]) if "g_scale" in data else 1.0
         self.z_canon = torch.from_numpy(data["z_canon"]).long() if "z_canon" in data else None
         self.uvz = torch.from_numpy(data["uvz"]).float() if "uvz" in data else None
+        self.uv_angle = torch.from_numpy(data["uv_angle"]).float() if "uv_angle" in data else None
         self.u = torch.from_numpy(data["u"]).float() if "u" in data else None
         self.v = torch.from_numpy(data["v"]).float() if "v" in data else None
         self.z_norm = torch.from_numpy(data["z_norm"]).float() if "z_norm" in data else None
@@ -316,10 +291,54 @@ class C2DBTokenNPZDataset(Dataset):
         self.b_hat = torch.from_numpy(data["b_hat"]).float() if "b_hat" in data else None
         self.n = torch.from_numpy(data["n"]).float() if "n" in data else None
         self.lattice_param = torch.from_numpy(data["lattice_param"]).float() if "lattice_param" in data else None
+        self.nbr_idx = torch.from_numpy(data["nbr_idx"]).long() if "nbr_idx" in data else None
+        self.nbr_dist = torch.from_numpy(data["nbr_dist"]).float() if "nbr_dist" in data else None
+        self.nbr_mask = torch.from_numpy(data["nbr_mask"]).float() if "nbr_mask" in data else None
         self.counts_vector = (
             torch.from_numpy(data["counts_vector"]).long() if "counts_vector" in data else None
         )
         self.order_idx = torch.from_numpy(data["order_idx"]).long() if "order_idx" in data else None
+        known = {
+            "z",
+            "f",
+            "atom_mask",
+            "gram6",
+            "material_id",
+            "max_atoms",
+            "g_scale",
+            "z_canon",
+            "uvz",
+            "uv_angle",
+            "u",
+            "v",
+            "z_norm",
+            "t",
+            "a_hat",
+            "b_hat",
+            "n",
+            "lattice_param",
+            "counts_vector",
+            "order_idx",
+            "nbr_idx",
+            "nbr_dist",
+            "nbr_mask",
+            "preprocess_v3",
+            "preprocess_version",
+            "eps_area",
+            "eps_inv",
+            "round_prec",
+            "z_norm_clip",
+            "neighbor_k",
+            "cond_lattice_mean",
+            "cond_lattice_std",
+            "cond_t_mean",
+            "cond_t_std",
+        }
+        self.extra: Dict[str, torch.Tensor] = {}
+        for key in data.files:
+            if key in known:
+                continue
+            self.extra[key] = torch.from_numpy(data[key])
 
     def __len__(self) -> int:
         return self.z.shape[0]
@@ -335,6 +354,8 @@ class C2DBTokenNPZDataset(Dataset):
             sample["atomic_numbers_canon"] = self.z_canon[idx]
         if self.uvz is not None:
             sample["uvz"] = self.uvz[idx]
+        if self.uv_angle is not None:
+            sample["uv_angle"] = self.uv_angle[idx]
         if self.u is not None:
             sample["u"] = self.u[idx]
         if self.v is not None:
@@ -351,10 +372,19 @@ class C2DBTokenNPZDataset(Dataset):
             sample["n"] = self.n[idx]
         if self.lattice_param is not None:
             sample["lattice_param"] = self.lattice_param[idx]
+        if self.nbr_idx is not None:
+            sample["nbr_idx"] = self.nbr_idx[idx]
+        if self.nbr_dist is not None:
+            sample["nbr_dist"] = self.nbr_dist[idx]
+        if self.nbr_mask is not None:
+            sample["nbr_mask"] = self.nbr_mask[idx]
         if self.counts_vector is not None:
             sample["counts_vector"] = self.counts_vector[idx]
         if self.order_idx is not None:
             sample["order_idx"] = self.order_idx[idx]
+        if self.extra:
+            for key, value in self.extra.items():
+                sample[key] = value[idx]
         return sample
 
     @staticmethod
@@ -370,3 +400,16 @@ def _lattice_to_gram6(lattice: torch.Tensor) -> torch.Tensor:
         [gram[0, 0], gram[1, 1], gram[2, 2], gram[0, 1], gram[0, 2], gram[1, 2]],
         dim=0,
     )
+
+
+def _counts_vector(
+    atomic_numbers: torch.Tensor, atom_mask: torch.Tensor, max_atomic_number: int = 118
+) -> torch.Tensor:
+    counts = torch.zeros(max_atomic_number, dtype=torch.long, device=atomic_numbers.device)
+    valid = atom_mask > 0.5
+    z = atomic_numbers[valid].long()
+    keep = (z > 0) & (z <= max_atomic_number)
+    if keep.any():
+        z = z[keep] - 1
+        counts.index_put_((z,), torch.ones_like(z, dtype=counts.dtype), accumulate=True)
+    return counts

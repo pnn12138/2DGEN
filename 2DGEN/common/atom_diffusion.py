@@ -28,6 +28,7 @@ class AtomDiffusionConfig:
     cell_init: str = "gaussian"  # gaussian | iso
     cell_init_scale: Optional[float] = None
     cell_init_noise: Optional[float] = None
+    cond_drop_prob: float = 0.0
 
 
 def logit_normal_sample(batch_size: int, device: torch.device, P_mean: float, P_std: float) -> torch.Tensor:
@@ -62,7 +63,11 @@ class AtomVelocityLoss(nn.Module):
         frac: torch.Tensor,
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        cond: Optional[torch.Tensor] = None,
+        nbr_idx: Optional[torch.Tensor] = None,
+        nbr_mask: Optional[torch.Tensor] = None,
+        dist_nbr: Optional[torch.Tensor] = None,
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         device = frac.device
         bsz = frac.shape[0]
 
@@ -100,7 +105,23 @@ class AtomVelocityLoss(nn.Module):
         z_masked = z.clone()
         z_masked[masked_pos] = self.mask_token_id
 
-        pred_v_f, pred_v_g, logits_z = model(z_masked, frac_t, cell_t, atom_mask, t)
+        cond_in = cond
+        if cond is not None and self.cfg.cond_drop_prob > 0.0:
+            drop = torch.rand(bsz, device=device) < self.cfg.cond_drop_prob
+            if drop.any():
+                cond_in = cond.clone()
+                cond_in[drop] = 0.0
+        pred_v_f, pred_v_g, logits_z = model(
+            z_masked,
+            frac_t,
+            cell_t,
+            atom_mask,
+            t,
+            cond_in,
+            nbr_idx=nbr_idx,
+            nbr_mask=nbr_mask,
+            dist_nbr=dist_nbr,
+        )
 
         atom_mask_f = atom_mask.unsqueeze(-1)
         loss_f = (pred_v_f - v_f) ** 2
@@ -119,7 +140,20 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_z) * loss_z + self.s_z
         else:
             loss = loss_f + self.cfg.lambda_z * loss_z + self.cfg.lambda_g * loss_g
-        return loss, pred_v_f, pred_v_g, logits_z
+        metrics = {
+            "loss_f": loss_f.detach(),
+            "loss_g": loss_g.detach(),
+            "loss_z": loss_z.detach(),
+        }
+        if self.cfg.use_uncertainty_weighting:
+            metrics.update(
+                {
+                    "s_f": self.s_f.detach(),
+                    "s_g": self.s_g.detach(),
+                    "s_z": self.s_z.detach(),
+                }
+            )
+        return loss, pred_v_f, pred_v_g, logits_z, metrics
 
 
 __all__ = ["AtomDiffusionConfig", "AtomVelocityLoss", "logit_normal_sample", "expand_t", "mask_schedule"]

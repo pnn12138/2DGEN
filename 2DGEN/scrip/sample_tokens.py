@@ -22,6 +22,7 @@ from model.atom_transformer import AtomTransformerConfig  # noqa: E402
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
     parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument("--use-ema", action="store_true", help="Load EMA weights from checkpoint when available.")
     parser.add_argument("--npz", type=Path, default=None, help="Token cache for sampling N/volume stats.")
     parser.add_argument("--num-samples", type=int, default=10)
     parser.add_argument("--steps", type=int, default=20)
@@ -47,7 +48,37 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cell-init", type=str, default=None, choices=["gaussian", "iso"])
     parser.add_argument("--cell-init-scale", type=float, default=None)
     parser.add_argument("--cell-init-noise", type=float, default=None)
+    parser.add_argument(
+        "--pbc-mask",
+        type=str,
+        default=None,
+        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
+    )
+    parser.add_argument(
+        "--project-each-step",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Project frac/lattice back to valid manifold at every sampling step.",
+    )
+    parser.add_argument("--cond-npz", type=Path, default=None, help="NPZ with counts/lattice params for conditioning.")
+    parser.add_argument("--cond-index", type=int, default=None, help="Use a specific row from cond-npz for all samples.")
+    parser.add_argument("--cond-first", type=int, default=None, help="Use the first N rows from cond-npz.")
+    parser.add_argument(
+        "--cond-random",
+        action="store_true",
+        help="Sample random condition rows from cond-npz for each sample.",
+    )
     return parser.parse_args()
+
+
+def _parse_pbc_mask(value: str) -> tuple[int, int, int]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--pbc-mask must have three comma-separated values, e.g. 1,1,0")
+    mask = tuple(int(p) for p in parts)
+    if any(p not in (0, 1) for p in mask):
+        raise ValueError("--pbc-mask values must be 0 or 1")
+    return mask  # type: ignore[return-value]
 
 
 def _load_npz_stats(npz_path: Path) -> Tuple[np.ndarray, Optional[Tuple[float, float]]]:
@@ -69,8 +100,10 @@ def _load_npz_scube_stats(npz_path: Path) -> Optional[Tuple[float, float, float,
     lattice = data["lattice"] if "lattice" in data else None
     if lattice is None:
         return None
+    g_scale = float(data["g_scale"]) if "g_scale" in data else 1.0
     det_l = np.abs(np.linalg.det(lattice))
-    scube = np.power(det_l, 1.0 / 3.0)
+    # For cholesky6, bounds apply to the *scaled* internal lattice (physical / sqrt(g_scale)).
+    scube = np.power(det_l, 1.0 / 3.0) / max(g_scale, 1e-12) ** 0.5
     scube = scube[np.isfinite(scube)]
     if scube.size == 0:
         return None
@@ -79,6 +112,62 @@ def _load_npz_scube_stats(npz_path: Path) -> Optional[Tuple[float, float, float,
     s90 = float(np.percentile(scube, 90.0))
     log_std = float(np.std(np.log(scube + 1e-12)))
     return s10, s50, s90, log_std
+
+
+def _build_cond_from_npz(
+    npz_path: Path,
+    indices: np.ndarray,
+    cond_fields: list[str],
+    max_atoms: int,
+    num_elements: int,
+    cond_stats: dict | None = None,
+) -> torch.Tensor:
+    data = np.load(npz_path)
+    parts = []
+    for field in cond_fields:
+        if field in ("counts", "counts_vector"):
+            if "counts_vector" not in data:
+                raise ValueError("counts_vector not found in cond npz.")
+            counts = data["counts_vector"][indices].astype(np.float32)
+            counts = counts / float(max_atoms)
+            parts.append(counts)
+            continue
+        if field not in data:
+            raise ValueError(f"{field} not found in cond npz.")
+        value = data[field][indices].astype(np.float32)
+        if value.ndim == 1:
+            value = value[:, None]
+        if cond_stats is not None and f"{field}_mean" in cond_stats and f"{field}_std" in cond_stats:
+            mean = np.asarray(cond_stats[f"{field}_mean"], dtype=np.float32)
+            std = np.asarray(cond_stats[f"{field}_std"], dtype=np.float32)
+            value = (value - mean) / std
+        parts.append(value)
+    cond = np.concatenate(parts, axis=-1)
+    if cond.shape[-1] == 0:
+        raise ValueError("Condition vector has unexpected dimension.")
+    return torch.from_numpy(cond)
+
+
+def _cond_stats_from_npz(npz_path: Path, normalize_fields: list[str]) -> dict:
+    data = np.load(npz_path)
+    stats: dict[str, float | list] = {}
+    for field in normalize_fields:
+        if field in ("counts", "counts_vector"):
+            continue
+        mean_key = f"cond_{field}_mean"
+        std_key = f"cond_{field}_std"
+        if mean_key in data and std_key in data:
+            stats[f"{field}_mean"] = data[mean_key].tolist()
+            stats[f"{field}_std"] = data[std_key].tolist()
+            continue
+        if field in data:
+            values = data[field].astype(np.float32)
+            mean = values.mean(axis=0)
+            std = values.std(axis=0)
+            std = np.maximum(std, 1e-6)
+            stats[f"{field}_mean"] = mean.tolist()
+            stats[f"{field}_std"] = std.tolist()
+    return stats
 
 
 def _reduce_lattice_and_frac(lattice: np.ndarray, frac: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -106,6 +195,10 @@ def main() -> None:
         raise ValueError("--num-atoms must be <= --max-atoms")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    n_counts = None
+    vol_bounds = None
+    if args.npz is not None:
+        n_counts, vol_bounds = _load_npz_stats(args.npz)
 
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
     model_cfg = ckpt.get("config")
@@ -118,7 +211,14 @@ def main() -> None:
             model_cfg.chol_log_min = None
         if not hasattr(model_cfg, "chol_log_max"):
             model_cfg.chol_log_max = None
+        if not hasattr(model_cfg, "cond_dim"):
+            model_cfg.cond_dim = 0
+        if not hasattr(model_cfg, "pbc_mask"):
+            model_cfg.pbc_mask = (1, 1, 0)
+    if args.pbc_mask is not None:
+        model_cfg.pbc_mask = _parse_pbc_mask(args.pbc_mask)
     diff_cfg = ckpt.get("diffusion_config")
+    cond_cfg = ckpt.get("cond_config", {})
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     if diff_cfg is not None:
         if isinstance(diff_cfg, dict):
@@ -149,6 +249,8 @@ def main() -> None:
                 model_cfg.chol_log_min = float(np.log(max(0.7 * s10, 1e-6)))
             if model_cfg.chol_log_max is None:
                 model_cfg.chol_log_max = float(np.log(max(2.5 * s90, 1e-6)))
+    if vol_bounds is not None:
+        denoiser_cfg.v_min, denoiser_cfg.v_max = vol_bounds
     if args.cell_init is not None:
         denoiser_cfg.diffusion.cell_init = args.cell_init
     if args.cell_init_scale is not None:
@@ -156,17 +258,68 @@ def main() -> None:
     if args.cell_init_noise is not None:
         denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
     denoiser_cfg.neighbor_update_steps = max(args.neighbor_update_steps, 1)
+    denoiser_cfg.project_each_step = args.project_each_step
     # Avoid lattice-only reductions; apply coordinate-consistent reductions before export.
     denoiser_cfg.reduce_lattice = False
     denoiser_cfg.niggli_reduce = False
     model = AtomDenoiser(denoiser_cfg).to(device)
-    model.load_state_dict(ckpt["model_state_dict"])
+    if args.use_ema and ckpt.get("ema_state_dict") is not None:
+        model.load_state_dict(ckpt["ema_state_dict"], strict=False)
+        print("Loaded EMA weights from checkpoint.")
+    else:
+        model.load_state_dict(ckpt["model_state_dict"])
     model.eval()
 
-    n_counts = None
-    vol_bounds = None
-    if args.npz is not None:
-        n_counts, vol_bounds = _load_npz_stats(args.npz)
+    cond = None
+    cond_fields = []
+    normalize_fields = []
+    if isinstance(cond_cfg, dict):
+        cond_fields = cond_cfg.get("cond_fields") or []
+        normalize_fields = cond_cfg.get("cond_normalize_fields") or []
+        if not cond_fields:
+            if cond_cfg.get("include_lattice", False):
+                cond_fields = ["counts_vector", "lattice_param"]
+            else:
+                cond_fields = ["counts_vector"]
+            if cond_cfg.get("include_t", False):
+                cond_fields.append("t")
+    cond_stats = cond_cfg.get("cond_stats") if isinstance(cond_cfg, dict) else None
+    if cond_cfg.get("use_condition"):
+        cond_npz = args.cond_npz or args.npz
+        if cond_npz is None:
+            raise ValueError("Checkpoint expects conditioning; provide --cond-npz or --npz.")
+        if not cond_stats:
+            cond_stats = _cond_stats_from_npz(Path(cond_npz), normalize_fields)
+        data = np.load(cond_npz)
+        num_rows = data["counts_vector"].shape[0] if "counts_vector" in data else 0
+        if num_rows == 0:
+            raise ValueError("cond npz has no counts_vector rows.")
+        if args.cond_first is not None:
+            if args.cond_first <= 0:
+                raise ValueError("--cond-first must be positive.")
+            if args.cond_first > num_rows:
+                raise ValueError("--cond-first exceeds rows available in cond npz.")
+            if args.num_samples != args.cond_first:
+                raise ValueError("--num-samples must equal --cond-first when using --cond-first.")
+            indices = np.arange(args.cond_first, dtype=int)
+        elif args.cond_index is not None:
+            indices = np.full((args.num_samples,), args.cond_index, dtype=int)
+        elif args.cond_random:
+            rng = np.random.default_rng()
+            indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
+        else:
+            indices = np.zeros((args.num_samples,), dtype=int)
+        cond = _build_cond_from_npz(
+            Path(cond_npz),
+            indices,
+            cond_fields=cond_fields,
+            max_atoms=cond_cfg.get("max_atoms", args.max_atoms),
+            num_elements=cond_cfg.get("num_elements", 118),
+            cond_stats=cond_stats,
+        ).to(device)
+        if model_cfg.cond_dim != cond.shape[-1]:
+            raise ValueError(f"Condition dim {cond.shape[-1]} does not match model cond_dim {model_cfg.cond_dim}.")
+
     if args.num_atoms is None:
         if n_counts is None or len(n_counts) == 0:
             raise ValueError("num-atoms not set and no valid --npz stats found.")
@@ -194,6 +347,7 @@ def main() -> None:
                 z_temperature=args.z_temperature,
                 z_top_k=args.z_top_k,
                 z_top_p=args.z_top_p,
+                cond=cond[idxs] if cond is not None else None,
             )
             lattice = model.gram6_to_lattice(gram6)
         z_np[idxs] = z.cpu().numpy()
@@ -238,6 +392,7 @@ def main() -> None:
         elif args.reduce_lattice:
             lattice_mat, coords_np = _reduce_lattice_and_frac(lattice_mat, coords_np)
 
+        coords_np = coords_np - np.floor(coords_np)
         lattice_np[i] = lattice_mat
         frac_np[i][mask] = coords_np
 
@@ -252,7 +407,7 @@ def main() -> None:
             frac_t = torch.tensor(coords_np, device=device).unsqueeze(0)
             lat_t = torch.tensor(lattice_mat, device=device).unsqueeze(0)
             mask_t = torch.ones(1, frac_t.shape[1], device=device)
-            dist = frac_mic_dist(frac_t, lat_t, mask_t)
+            dist = frac_mic_dist(frac_t, lat_t, mask_t, pbc_mask=model_cfg.pbc_mask)
             min_dist = torch.min(dist[0]).item()
             if min_dist < args.min_dist:
                 valid.append(False)

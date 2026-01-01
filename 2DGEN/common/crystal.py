@@ -170,6 +170,19 @@ def cholesky6_to_lattice(
     return R.transpose(-1, -2)
 
 
+def lattice_to_gram6(lattice: torch.Tensor) -> torch.Tensor:
+    """
+    Convert lattice matrices to Gram 6D vectors.
+    """
+    if lattice.ndim != 3 or lattice.shape[-2:] != (3, 3):
+        raise ValueError(f"Expected lattice shape (B,3,3), got {tuple(lattice.shape)}")
+    gram = lattice.transpose(-1, -2).matmul(lattice)
+    return torch.stack(
+        [gram[:, 0, 0], gram[:, 1, 1], gram[:, 2, 2], gram[:, 0, 1], gram[:, 0, 2], gram[:, 1, 2]],
+        dim=-1,
+    )
+
+
 def reduce_lattice_simple(lattice: torch.Tensor) -> torch.Tensor:
     """
     Simple reduction: sort basis vectors by length and enforce right-handedness.
@@ -217,6 +230,7 @@ def frac_mic_dist(
     frac: torch.Tensor,
     lattice: torch.Tensor,
     mask: torch.Tensor,
+    pbc_mask: Optional[Tuple[int, int, int]] = None,
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """
@@ -230,7 +244,13 @@ def frac_mic_dist(
         dist: (B, N, N) with PAD/self filled as +inf.
     """
     df = frac[:, :, None, :] - frac[:, None, :, :]
-    df_mic = df - torch.round(df)
+    if pbc_mask is None:
+        df_mic = df - torch.round(df)
+    else:
+        pbc = torch.tensor(pbc_mask, device=df.device, dtype=df.dtype)
+        if pbc.shape != (3,):
+            raise ValueError("pbc_mask must be a length-3 tuple.")
+        df_mic = df - torch.round(df) * pbc
     dr = torch.einsum("bijn,bnm->bijm", df_mic, lattice)
     dist = torch.linalg.norm(dr, dim=-1)
 
@@ -298,6 +318,7 @@ __all__ = [
     "gram6_to_cholesky6",
     "cholesky6_to_gram6",
     "cholesky6_to_lattice",
+    "lattice_to_gram6",
     "reduce_lattice_simple",
     "niggli_reduce_lattice",
     "clip_lattice",

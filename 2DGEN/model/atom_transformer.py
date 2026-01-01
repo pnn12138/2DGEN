@@ -48,6 +48,8 @@ class AtomTransformerConfig:
     cell_rep: str = "gram6"  # gram6 | cholesky6
     chol_log_min: Optional[float] = None
     chol_log_max: Optional[float] = None
+    cond_dim: int = 0
+    pbc_mask: Tuple[int, int, int] = (1, 1, 0)
 
 
 class MLP(nn.Module):
@@ -192,6 +194,13 @@ class AtomTransformer(nn.Module):
             nn.SiLU(),
             nn.Linear(cfg.embed_dim, cfg.embed_dim),
         )
+        self.cond_mlp = None
+        if cfg.cond_dim > 0:
+            self.cond_mlp = nn.Sequential(
+                nn.Linear(cfg.cond_dim, cfg.embed_dim),
+                nn.SiLU(),
+                nn.Linear(cfg.embed_dim, cfg.embed_dim),
+            )
         self.cell_mlp = nn.Sequential(
             nn.Linear(6, cfg.embed_dim),
             nn.SiLU(),
@@ -242,12 +251,20 @@ class AtomTransformer(nn.Module):
         g: torch.Tensor,
         atom_mask: torch.Tensor,
         timesteps: torch.Tensor,
+        cond_vec: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
+        nbr_idx: Optional[torch.Tensor] = None,
+        nbr_mask: Optional[torch.Tensor] = None,
+        dist_nbr: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         bsz, n, _ = frac.shape
         t_emb = sinusoidal_timestep_embedding(timesteps, self.cfg.time_embed_dim)
         cond = self.time_mlp(t_emb)
+        if self.cond_mlp is not None:
+            if cond_vec is None:
+                cond_vec = torch.zeros(bsz, self.cfg.cond_dim, device=cond.device, dtype=cond.dtype)
+            cond = cond + self.cond_mlp(cond_vec)
 
         z_emb = self.z_embed(z)
         f_emb = self.f_proj(torus_encode(frac, self.cfg.fourier_freqs))
@@ -257,6 +274,8 @@ class AtomTransformer(nn.Module):
         tokens = torch.cat([cell_token, atom_tokens], dim=1)
 
         use_cache = self.cfg.cache_neighbors and not self.training
+        if nbr_idx is not None:
+            use_cache = False
         if use_cache and cache_every is not None:
             if step is None or step % max(cache_every, 1) == 0:
                 use_cache = False
@@ -272,13 +291,17 @@ class AtomTransformer(nn.Module):
                     use_cache = False
             else:
                 use_cache = False
-        if not use_cache:
+        if nbr_idx is not None:
+            if nbr_mask is None:
+                raise ValueError("nbr_idx requires nbr_mask.")
+            dist = None
+        elif not use_cache:
             if self.cfg.cell_rep == "cholesky6":
                 lattice = cholesky6_to_lattice(g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
                 lattice = lattice * self.cfg.g_scale ** 0.5
             else:
                 lattice = gram6_to_lattice(g * self.cfg.g_scale)
-            dist = frac_mic_dist(frac, lattice, atom_mask)
+            dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.pbc_mask)
             nbr_idx, nbr_mask = build_knn(dist, self.cfg.k_neighbors)
             dist_nbr = torch.gather(dist, 2, nbr_idx)
             if self.cfg.cache_neighbors:
@@ -291,6 +314,16 @@ class AtomTransformer(nn.Module):
             nbr_idx = self._cache["nbr_idx"]
             nbr_mask = self._cache["nbr_mask"]
             dist_nbr = self._cache["dist_nbr"]
+        if dist_nbr is None:
+            if self.cfg.cell_rep == "cholesky6":
+                lattice = cholesky6_to_lattice(g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
+                lattice = lattice * self.cfg.g_scale ** 0.5
+            else:
+                lattice = gram6_to_lattice(g * self.cfg.g_scale)
+            dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.pbc_mask)
+            dist_nbr = torch.gather(dist, 2, nbr_idx)
+        if nbr_mask.dtype != torch.bool:
+            nbr_mask = nbr_mask > 0.5
         rbf = rbf_expand(dist_nbr, self.cfg.rbf_dim, self.cfg.rbf_r_max)
         z_i = z_emb.unsqueeze(2).expand(-1, -1, nbr_idx.shape[-1], -1)
         z_j = z_emb.unsqueeze(2).expand(-1, -1, nbr_idx.shape[-1], -1)
