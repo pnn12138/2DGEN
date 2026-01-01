@@ -68,6 +68,38 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Sample random condition rows from cond-npz for each sample.",
     )
+    parser.add_argument(
+        "--save-cif",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Write sampled structures as CIF alongside samples.npz.",
+    )
+    parser.add_argument(
+        "--cif-filter",
+        type=str,
+        default="all",
+        choices=["all", "valid"],
+        help="Which samples to export as CIF (all samples or only those passing validity checks).",
+    )
+    parser.add_argument(
+        "--cif-mode",
+        type=str,
+        default="both",
+        choices=["per-sample", "single", "both"],
+        help="CIF output mode: per-sample files, a single multi-block CIF, or both.",
+    )
+    parser.add_argument(
+        "--cif-prefix",
+        type=str,
+        default="sample",
+        help="Prefix for per-sample CIF filenames (e.g. sample_0.cif).",
+    )
+    parser.add_argument(
+        "--cif-filename",
+        type=str,
+        default="samples.cif",
+        help="Filename for the single multi-block CIF (used when --cif-mode is single/both).",
+    )
     return parser.parse_args()
 
 
@@ -356,15 +388,10 @@ def main() -> None:
         mask_np[idxs] = atom_mask.cpu().numpy()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    np.savez_compressed(
-        args.out_dir / "samples.npz",
-        z=z_np,
-        frac=frac_np,
-        lattice=lattice_np,
-        atom_mask=mask_np,
-    )
+    valid_flags = np.zeros((args.num_samples,), dtype=np.int8)
+    cif_written = np.zeros((args.num_samples,), dtype=np.int8)
 
-    valid = []
+    cif_blocks: list[str] = []
     element_counts = {}
     if vol_bounds is not None:
         v_min, v_max = vol_bounds
@@ -372,11 +399,13 @@ def main() -> None:
         v_min, v_max = None, None
 
     for i in range(args.num_samples):
+        is_valid = True
         mask = (mask_np[i] > 0.5) & (z_np[i] > 0)
         zs = z_np[i][mask].astype(int).tolist()
         coords_np = frac_np[i][mask]
         lattice_mat = lattice_np[i]
         if not zs:
+            is_valid = False
             continue
 
         if args.niggli_reduce:
@@ -396,13 +425,10 @@ def main() -> None:
         lattice_np[i] = lattice_mat
         frac_np[i][mask] = coords_np
 
-        for z_val in zs:
-            element_counts[z_val] = element_counts.get(z_val, 0) + 1
         if v_min is not None and v_max is not None:
             vol = abs(np.linalg.det(lattice_mat))
             if vol < v_min or vol > v_max:
-                valid.append(False)
-                continue
+                is_valid = False
         if len(zs) > 1:
             frac_t = torch.tensor(coords_np, device=device).unsqueeze(0)
             lat_t = torch.tensor(lattice_mat, device=device).unsqueeze(0)
@@ -410,21 +436,57 @@ def main() -> None:
             dist = frac_mic_dist(frac_t, lat_t, mask_t, pbc_mask=model_cfg.pbc_mask)
             min_dist = torch.min(dist[0]).item()
             if min_dist < args.min_dist:
-                valid.append(False)
-                continue
+                is_valid = False
         elements: List[Element] = [Element.from_Z(z) for z in zs]
         structure = Structure(lattice=lattice_mat, species=elements, coords=coords_np, coords_are_cartesian=False)
-        CifWriter(structure).write_file(args.out_dir / f"sample_{i}.cif")
-        valid.append(True)
 
-    if valid:
-        valid_rate = sum(valid) / len(valid)
-        print(f"Saved {args.num_samples} samples to {args.out_dir} (valid_rate={valid_rate:.2f})")
-        if element_counts:
-            top = sorted(element_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-            print(f"Top elements: {top}")
-    else:
-        print(f"Saved {args.num_samples} samples to {args.out_dir}")
+        if is_valid:
+            valid_flags[i] = 1
+            for z_val in zs:
+                element_counts[z_val] = element_counts.get(z_val, 0) + 1
+
+        if args.save_cif:
+            if args.cif_filter == "valid" and not is_valid:
+                continue
+            try:
+                writer = CifWriter(structure)
+                if args.cif_mode in ("per-sample", "both"):
+                    writer.write_file(args.out_dir / f"{args.cif_prefix}_{i}.cif")
+                if args.cif_mode in ("single", "both"):
+                    cif_str = str(writer).rstrip()
+                    lines = cif_str.splitlines()
+                    for line_idx, line in enumerate(lines):
+                        if line.startswith("data_"):
+                            lines[line_idx] = f"data_{args.cif_prefix}_{i:04d}"
+                            break
+                    cif_blocks.append("\n".join(lines).rstrip())
+                cif_written[i] = 1
+            except Exception:
+                cif_written[i] = 0
+
+    if args.save_cif and args.cif_mode in ("single", "both") and args.cif_filename:
+        if cif_blocks:
+            (args.out_dir / args.cif_filename).write_text("\n\n".join(cif_blocks).rstrip() + "\n")
+
+    np.savez_compressed(
+        args.out_dir / "samples.npz",
+        z=z_np,
+        frac=frac_np,
+        lattice=lattice_np,
+        atom_mask=mask_np,
+        valid=valid_flags,
+        cif_written=cif_written,
+    )
+
+    valid_rate = float(np.mean(valid_flags)) if valid_flags.size else 0.0
+    cif_rate = float(np.mean(cif_written)) if cif_written.size else 0.0
+    print(
+        f"Saved {args.num_samples} samples to {args.out_dir} "
+        f"(valid_rate={valid_rate:.2f}, cif_rate={cif_rate:.2f})"
+    )
+    if element_counts:
+        top = sorted(element_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        print(f"Top elements: {top}")
 
 
 if __name__ == "__main__":
