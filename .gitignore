@@ -1,48 +1,9 @@
-# Python-generated files
-__pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
-.pytest_cache/
+# Keep the repository focused on `2DGEN/` only.
+/*
+!/2DGEN/
+!/2DGEN/**
+!/.gitignore
 
-# Virtual environments
-.venv
-.uv_cache/
-
-# Dataset cache (ignore general data dirs, but keep code under 2DGEN/data)
-# Ignore top-level `data/*` by default, then selectively unignore curated subsets.
-data/*
-P_TASK/data/
-!2DGEN/data/
-!2DGEN/data/**
-2DGEN/data/**/*.pyc
-2DGEN/data/**/__pycache__/
-
-# Allow tracking curated sample data under repo `data/C2DB`
-!data/C2DB/
-!data/C2DB/**
-
-# Training outputs / checkpoints
-outputs/
-lightning_logs/
-
-# Model checkpoints / tensors (do not commit)
-*.pt
-*.pth
-*.ckpt
-*.safetensors
-*.npz
-*.bin
-
-# ...but allow committing curated preprocessed C2DB caches
-!data/C2DB/ache/*.npz
-
-# Vendored/third-party large repos
-model/mattergen/
-
-# OS/editor noise
-.DS_Store
-.idea/
-.vscode/
+# Ignore generated files inside 2DGEN
+2DGEN/**/__pycache__/
+2DGEN/**/*.py[oc]
