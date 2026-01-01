@@ -12,12 +12,17 @@ wheels/
 .uv_cache/
 
 # Dataset cache (ignore general data dirs, but keep code under 2DGEN/data)
-/data/
-**/data/
+# Ignore top-level `data/*` by default, then selectively unignore curated subsets.
+data/*
+P_TASK/data/
 !2DGEN/data/
 !2DGEN/data/**
 2DGEN/data/**/*.pyc
 2DGEN/data/**/__pycache__/
+
+# Allow tracking curated sample data under repo `data/C2DB`
+!data/C2DB/
+!data/C2DB/**
 
 # Training outputs / checkpoints
 outputs/
@@ -30,6 +35,9 @@ lightning_logs/
 *.safetensors
 *.npz
 *.bin
+
+# ...but allow committing curated preprocessed C2DB caches
+!data/C2DB/ache/*.npz
 
 # Vendored/third-party large repos
 model/mattergen/
