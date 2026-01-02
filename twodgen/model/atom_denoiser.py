@@ -9,7 +9,9 @@ from torch import nn
 from twodgen.common.atom_diffusion import AtomDiffusionConfig, AtomVelocityLoss, expand_t, mask_schedule
 from twodgen.common.crystal import (
     cholesky6_to_gram6,
+    cholesky6_to_lattice,
     clip_lattice,
+    gram6_to_cholesky6,
     gram6_to_lattice,
     lattice_to_gram6,
     niggli_reduce_lattice,
@@ -113,8 +115,15 @@ class AtomDenoiser(nn.Module):
                 cell[:, :3] = torch.clamp(
                     cell[:, :3], min=self.cfg.model.chol_log_min, max=self.cfg.model.chol_log_max
                 )
+            lattice = cholesky6_to_lattice(
+                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+            )
+            lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
+            gram6 = lattice_to_gram6(lattice)
+            cell = gram6_to_cholesky6(gram6, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max)
             return frac, cell
         lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
+        lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
         cell = lattice_to_gram6(lattice) / self.cfg.model.g_scale
         return frac, cell
 

@@ -7,6 +7,8 @@
 
 ## Changelog（相对 v3.1 的关键增强点）
 
+> 注意：本节记录的是设计目标，当前代码并未全部落地；已实现能力以实际代码与 `problem.md` 为准。
+
 1. **邻居构图策略强化 2D 先验**：引入 `kNN(d_xy)` 主图 + `kNN(d_3d)` 辅图（或补边）机制，避免 3D kNN 在多层/起伏 slab 中过度选择跨层边。  
 2. **PBC wrap 信息显式编码**：将 MIC 搜索得到的整数平移 `(m,n)`（或等价的 wrap flag / shift class）做成 edge embedding，减少周期边界伪影。  
 3. **排序与规约稳定性“CI 单测化”**：新增“微噪声扰动不翻转/少翻转”单测、near-degenerate cell 的 fallback/日志统计机制。  

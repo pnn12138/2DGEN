@@ -19,3 +19,8 @@ dependencies = [
     "tqdm>=4.67.1",
     "einops>=0.8.1",
 ]
+
+[project.scripts]
+twodgen-train = "twodgen.scrip.train_tokens:main"
+twodgen-sample = "twodgen.scrip.sample_tokens:main"
+twodgen-eval = "twodgen.evaluate.eval_samples:main"

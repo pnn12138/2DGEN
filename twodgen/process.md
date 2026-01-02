@@ -16,14 +16,15 @@
    - `AtomDenoiser` 调用 `AtomVelocityLoss` 构造扩散/flow 的训练目标与损失。
    - `AtomTransformer` 接收 `Z/F/g + t + cond`，输出 `pred_v_f/pred_v_g/logits_z`。
 4. **优化与日志**：AdamW + schedule/EMA（训练脚本），loss 细项记录到 `train_metrics.jsonl`。
-5. **采样**：`scrip/sample_tokens.py` 使用 checkpoint 进行扩散采样，导出 `samples.npz` 与可选 CIF。
-6. **评估**：`evaluate/eval_samples.py` 对样本做 Tier‑0/1 统计与合法性评估。
+5. **采样**：`scrip/sample_tokens.py` 使用 checkpoint 进行扩散采样，导出 `samples.npz` 与可选 CIF；可选 `--eval` 直接输出评估结果。
+6. **评估**：`evaluate/eval_samples.py` 对样本做 Tier‑0/1 统计与合法性评估，并在条件采样时计算化学式匹配指标。
 
 以上环节均以 `Z/F/g` token 表示为主，`lattice_param/t` 当前主要用于条件或缓存字段，不是主扩散变量。
 ## 当前进度摘要（同步更新）
 - 已统一 PBC 为 slab 2D（`pbc_mask=1,1,0`），避免 z 方向假邻居。
 - 条件扩散默认仅化学式（`counts_vector`），通过 `--cond-fields` 预留扩展（如 XRD）。
 - 评估已支持 `--pbc-mask`，可与训练/采样的 slab 2D PBC 对齐。
+- 采样可写入条件计数向量（`cond_counts_vector`），评估会输出化学式匹配指标。
 
 ---
 
@@ -141,13 +142,15 @@
 
 ## 4) 采样策略
 - 采样过程中保持 `pbc_mask=1,1,0` 进行 MIC 距离计算。
-- 默认仅在最终输出投影（`frac` wrap + lattice clip）。
+- 默认仅在最终输出投影（`frac` wrap + lattice clip）；`--project-each-step` 会在每步执行投影并启用 `clip_lattice`。
 - 可选每步投影：`--project-each-step`。
+- 条件采样时若提供 `counts_vector`，采样原子数 `N` 直接由 `counts_vector.sum()` 决定（确保化学式与原子数一致）。
 
 ---
 
 ## 5) 评估策略（当前实现）
 - 结构合法性：最小距离、体积范围、规约后 CIF 导出成功率。
+- 条件匹配：输出 `exact_match_rate`、计数误差与组成相似度。
 - 统计与可视化：`evaluate/eval_samples.py` + `evaluate/plot_eval.py`。
 - 建议输出：`test_fig/` 目录保存对比图与统计图。
 

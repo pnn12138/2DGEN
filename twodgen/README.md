@@ -9,6 +9,7 @@
 ## 当前对齐状态
 - A++ v3 预处理字段已写入 npz（`uv_angle` 等）。
 - 邻居图支持 slab 2D PBC（默认 `--pbc-mask 1,1,0`），训练/采样均在线构图。
+- 采样支持可选 `--eval`，可直接输出 Tier‑0/1 评估结果。
 
 ## 数据预处理（Token 默认）
 1. 准备原始 CSV：`data/C2DB/c2db_summary.csv`（已包含 CIF 文本）。
@@ -36,6 +37,7 @@
     --cell-rep cholesky6 --pbc-mask 1,1,0 \
     --use-condition
   ```
+  也可用 CLI：`twodgen-train --npz ...`
   - `--g-scale` 应与 npz 内 `g_scale` 一致（脚本会提示不一致告警）。
   - `--cell-rep cholesky6` 下 `chol_log_min/max` 会从数据统计自动估计（内部尺度：物理长度除以 `sqrt(g_scale)`），一般不需要手动覆盖；若你手动传 `--chol-log-min/max`，务必使用内部尺度单位。
   - 可用 `--model-size {tiny,base,large,xl}` 控制模型规模（默认 `base`）；也可用 `--embed-dim/--depth/--num-heads/...` 显式覆盖。
@@ -80,6 +82,7 @@ uv run python -m twodgen.scrip.sample_tokens \
   --pbc-mask 1,1,0 \
   --out-dir outputs/samples_tokens
 ```
+也可用 CLI：`twodgen-sample --checkpoint ...`
 可选：
 - `--neighbor-update-steps`：采样时每 N 步更新 kNN（默认 1）。
 - `--reduce-lattice` / `--niggli-reduce`：采样后晶胞规约。
@@ -88,6 +91,7 @@ uv run python -m twodgen.scrip.sample_tokens \
 - `--project-each-step`：每步将 `frac/lattice` 投影回合法域（默认只在最终输出做投影）。
 - `--use-ema`：若 checkpoint 中包含 EMA 权重则优先使用。
 - `--pbc-mask`：控制 MIC 的 PBC 维度，默认 `1,1,0`（仅面内周期，z 非周期）；3D 晶体可设 `1,1,1`。
+- `--eval`：采样后直接输出评估结果（默认写到 `out-dir/eval/`）。
 
 推荐采样参数（更稳的晶胞先验）：
 ```bash
@@ -108,4 +112,38 @@ uv run python -m twodgen.scrip.sample_tokens \
 Token 路线：
 ```bash
 uv run python -m twodgen.scrip.test_tokens
+```
+
+评估（已有 samples.npz）：
+```bash
+uv run python -m twodgen.evaluate.eval_samples --samples outputs/samples_tokens/samples.npz
+```
+也可用 CLI：`twodgen-eval --samples ...`
+
+## 模型规模切换
+模型规模配置集中在 `twodgen/model/model_sizes.py`，默认使用 `base`。
+
+切换到更小模型（例如 tiny）：
+```bash
+uv run python -m twodgen.scrip.train_tokens \
+  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --model-size tiny \
+  --epochs 50 --batch-size 256 --lr 1e-4
+```
+
+切换到更大模型（例如 xl）：
+```bash
+uv run python -m twodgen.scrip.train_tokens \
+  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --model-size xl \
+  --epochs 100 --batch-size 128 --lr 5e-5
+```
+
+自定义规模（在 `model_sizes.py` 添加条目或用显式覆盖）：
+```bash
+uv run python -m twodgen.scrip.train_tokens \
+  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --model-size base \
+  --embed-dim 320 --depth 10 --num-heads 10 \
+  --mlp-ratio 4 --rbf-dim 40 --pair-mlp-hidden 160
 ```

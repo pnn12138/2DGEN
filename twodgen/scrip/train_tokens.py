@@ -16,6 +16,7 @@ from torch.utils.data import DataLoader, Sampler
 from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
+from twodgen.model.model_sizes import resolve_model_hparams
 
 
 def parse_args() -> argparse.Namespace:
@@ -217,7 +218,7 @@ def prepare_dataloader(
     return DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=True,
         drop_last=True,
@@ -545,64 +546,7 @@ def _serialize_cond_stats(cond_stats: dict | None) -> dict:
     return payload
 
 
-def _model_preset(size: str) -> dict:
-    presets = {
-        "tiny": {
-            "embed_dim": 192,
-            "depth": 6,
-            "num_heads": 6,
-            "mlp_ratio": 4.0,
-            "dropout": 0.0,
-            "time_embed_dim": 192,
-            "z_embed_dim": 96,
-            "f_embed_dim": 96,
-            "rbf_dim": 24,
-            "pair_mlp_hidden": 96,
-        },
-        "base": {
-            "embed_dim": 256,
-            "depth": 8,
-            "num_heads": 8,
-            "mlp_ratio": 4.0,
-            "dropout": 0.0,
-            "time_embed_dim": 256,
-            "z_embed_dim": 128,
-            "f_embed_dim": 128,
-            "rbf_dim": 32,
-            "pair_mlp_hidden": 128,
-        },
-        "large": {
-            "embed_dim": 384,
-            "depth": 12,
-            "num_heads": 12,
-            "mlp_ratio": 4.0,
-            "dropout": 0.0,
-            "time_embed_dim": 384,
-            "z_embed_dim": 192,
-            "f_embed_dim": 192,
-            "rbf_dim": 48,
-            "pair_mlp_hidden": 192,
-        },
-        "xl": {
-            "embed_dim": 512,
-            "depth": 16,
-            "num_heads": 16,
-            "mlp_ratio": 4.0,
-            "dropout": 0.0,
-            "time_embed_dim": 512,
-            "z_embed_dim": 256,
-            "f_embed_dim": 256,
-            "rbf_dim": 64,
-            "pair_mlp_hidden": 256,
-        },
-    }
-    if size not in presets:
-        raise ValueError(f"Unknown model size preset: {size}")
-    return presets[size].copy()
-
-
 def _resolve_model_hparams(args: argparse.Namespace) -> dict:
-    hparams = _model_preset(args.model_size)
     overrides = {
         "embed_dim": args.embed_dim,
         "depth": args.depth,
@@ -615,14 +559,7 @@ def _resolve_model_hparams(args: argparse.Namespace) -> dict:
         "rbf_dim": args.rbf_dim,
         "pair_mlp_hidden": args.pair_mlp_hidden,
     }
-    for key, value in overrides.items():
-        if value is not None:
-            hparams[key] = value
-    if hparams["embed_dim"] % hparams["num_heads"] != 0:
-        raise ValueError(
-            f"embed_dim ({hparams['embed_dim']}) must be divisible by num_heads ({hparams['num_heads']})."
-        )
-    return hparams
+    return resolve_model_hparams(args.model_size, overrides)
 
 
 def main() -> None:

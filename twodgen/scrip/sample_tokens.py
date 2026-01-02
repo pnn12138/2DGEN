@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import random
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -11,12 +12,13 @@ from pymatgen.core import Element, Structure
 from pymatgen.io.cif import CifWriter
 
 from twodgen.common.crystal import frac_mic_dist
+from twodgen.evaluate import eval_samples as eval_samples_mod
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.common.atom_diffusion import AtomDiffusionConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 
 
-def parse_args() -> argparse.Namespace:
+def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
     parser.add_argument(
@@ -104,7 +106,21 @@ def parse_args() -> argparse.Namespace:
         default="samples.cif",
         help="Filename for the single multi-block CIF (used when --cif-mode is single/both).",
     )
-    return parser.parse_args()
+    parser.add_argument("--eval", action="store_true", help="Run eval after sampling and write metrics.")
+    parser.add_argument("--eval-out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
+    parser.add_argument("--eval-stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
+    parser.add_argument("--eval-min-dist", type=float, default=1.5)
+    parser.add_argument("--eval-bond-cut", type=float, default=3.0)
+    parser.add_argument("--eval-dup-eps", type=float, default=1e-3)
+    parser.add_argument("--eval-v-min", type=float, default=None)
+    parser.add_argument("--eval-v-max", type=float, default=None)
+    parser.add_argument(
+        "--eval-pbc-mask",
+        type=str,
+        default=None,
+        help="Override PBC mask for evaluation (default uses model config).",
+    )
+    return parser.parse_args(argv)
 
 
 def _parse_pbc_mask(value: str) -> tuple[int, int, int]:
@@ -225,8 +241,7 @@ def _reduce_lattice_and_frac(lattice: np.ndarray, frac: np.ndarray) -> Tuple[np.
     return reduced, frac_new
 
 
-def main() -> None:
-    args = parse_args()
+def run_sampling(args: argparse.Namespace) -> Path:
     random.seed(args.seed)
     np.random.seed(args.seed)
     torch.manual_seed(args.seed)
@@ -248,6 +263,7 @@ def main() -> None:
     if args.npz is not None:
         n_counts, vol_bounds = _load_npz_stats(args.npz)
 
+    print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
     model_cfg = ckpt.get("config")
     if model_cfg is None:
@@ -334,6 +350,8 @@ def main() -> None:
     cond_stats = cond_cfg.get("cond_stats") if isinstance(cond_cfg, dict) else None
     rng = np.random.default_rng(args.seed)
 
+    cond_counts_vector = None
+    cond_indices = None
     if cond_cfg.get("use_condition"):
         cond_npz = args.cond_npz or args.npz
         if cond_npz is None:
@@ -358,6 +376,9 @@ def main() -> None:
             indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
         else:
             indices = np.zeros((args.num_samples,), dtype=int)
+        cond_indices = indices.astype(np.int64)
+        if "counts_vector" in data and ("counts_vector" in cond_fields or "counts" in cond_fields):
+            cond_counts_vector = data["counts_vector"][indices].astype(np.int64)
         cond = _build_cond_from_npz(
             Path(cond_npz),
             indices,
@@ -370,11 +391,18 @@ def main() -> None:
             raise ValueError(f"Condition dim {cond.shape[-1]} does not match model cond_dim {model_cfg.cond_dim}.")
 
     if args.num_atoms is None:
-        if n_counts is None or len(n_counts) == 0:
-            raise ValueError("num-atoms not set and no valid --npz stats found.")
-        num_atoms_list = rng.choice(n_counts, size=args.num_samples).astype(int).tolist()
+        if cond_counts_vector is not None:
+            num_atoms_list = cond_counts_vector.sum(axis=1).astype(int).tolist()
+            if len(num_atoms_list) != args.num_samples:
+                raise ValueError("cond counts size does not match --num-samples.")
+        else:
+            if n_counts is None or len(n_counts) == 0:
+                raise ValueError("num-atoms not set and no valid --npz stats found.")
+            num_atoms_list = rng.choice(n_counts, size=args.num_samples).astype(int).tolist()
     else:
         num_atoms_list = [args.num_atoms] * args.num_samples
+    if any(n > args.max_atoms for n in num_atoms_list):
+        raise ValueError("Sampled num-atoms exceeds --max-atoms.")
 
     z_np = np.zeros((args.num_samples, args.max_atoms), dtype=np.int64)
     frac_np = np.zeros((args.num_samples, args.max_atoms, 3), dtype=np.float32)
@@ -485,15 +513,19 @@ def main() -> None:
         if cif_blocks:
             (args.out_dir / args.cif_filename).write_text("\n\n".join(cif_blocks).rstrip() + "\n")
 
-    np.savez_compressed(
-        args.out_dir / "samples.npz",
-        z=z_np,
-        frac=frac_np,
-        lattice=lattice_np,
-        atom_mask=mask_np,
-        valid=valid_flags,
-        cif_written=cif_written,
-    )
+    payload = {
+        "z": z_np,
+        "frac": frac_np,
+        "lattice": lattice_np,
+        "atom_mask": mask_np,
+        "valid": valid_flags,
+        "cif_written": cif_written,
+    }
+    if cond_indices is not None:
+        payload["cond_indices"] = cond_indices
+    if cond_counts_vector is not None:
+        payload["cond_counts_vector"] = cond_counts_vector
+    np.savez_compressed(args.out_dir / "samples.npz", **payload)
 
     valid_rate = float(np.mean(valid_flags)) if valid_flags.size else 0.0
     cif_rate = float(np.mean(cif_written)) if cif_written.size else 0.0
@@ -504,6 +536,43 @@ def main() -> None:
     if element_counts:
         top = sorted(element_counts.items(), key=lambda x: x[1], reverse=True)[:10]
         print(f"Top elements: {top}")
+    if args.eval:
+        samples_path = args.out_dir / "samples.npz"
+        samples = np.load(samples_path)
+        eval_out_dir = args.eval_out_dir or (args.out_dir / "eval")
+        eval_out_dir.mkdir(parents=True, exist_ok=True)
+        eval_pbc_mask = model_cfg.pbc_mask
+        if args.eval_pbc_mask is not None:
+            eval_pbc_mask = _parse_pbc_mask(args.eval_pbc_mask)
+        v_min = args.eval_v_min
+        v_max = args.eval_v_max
+        if args.eval_stats_npz is not None:
+            stats = eval_samples_mod._load_npz_stats(args.eval_stats_npz)
+            if stats is not None:
+                v_min, v_max = stats
+        per_sample, tier0, tier1 = eval_samples_mod._eval_samples(
+            samples,
+            v_min=v_min,
+            v_max=v_max,
+            min_dist_cut=args.eval_min_dist,
+            bond_cut=args.eval_bond_cut,
+            dup_eps=args.eval_dup_eps,
+            pbc_mask=eval_pbc_mask,
+        )
+        with (eval_out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
+            for row in per_sample:
+                f.write(json.dumps(row, ensure_ascii=True) + "\n")
+        with (eval_out_dir / "tier0_metrics.json").open("w", encoding="utf-8") as f:
+            json.dump(tier0, f, indent=2, ensure_ascii=True)
+        with (eval_out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
+            json.dump(tier1, f, indent=2, ensure_ascii=True)
+        print(f"Saved eval outputs to {eval_out_dir}")
+    return args.out_dir / "samples.npz"
+
+
+def main() -> None:
+    args = parse_args()
+    run_sampling(args)
 
 
 if __name__ == "__main__":

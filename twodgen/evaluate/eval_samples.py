@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 import argparse
-import json
 import itertools
+import json
+import shlex
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+from twodgen.scrip import sample_tokens as sample_tokens_mod
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
     parts = [p.strip() for p in value.split(",")]
@@ -42,6 +44,19 @@ def _summary_stats(values: List[float]) -> Dict[str, Any]:
         "p10": float(np.percentile(arr, 10.0)),
         "p90": float(np.percentile(arr, 90.0)),
     }
+
+
+def _counts_from_samples(z: np.ndarray, atom_mask: np.ndarray, num_elements: int) -> np.ndarray:
+    counts = np.zeros((z.shape[0], num_elements), dtype=np.int64)
+    valid = (atom_mask > 0.5) & (z > 0)
+    batch_idx, atom_idx = np.where(valid)
+    if batch_idx.size == 0:
+        return counts
+    elem_idx = z[batch_idx, atom_idx].astype(np.int64) - 1
+    keep = (elem_idx >= 0) & (elem_idx < num_elements)
+    if keep.any():
+        np.add.at(counts, (batch_idx[keep], elem_idx[keep]), 1)
+    return counts
 
 
 def _min_dist_and_shifts(
@@ -126,6 +141,34 @@ def _eval_samples(
     frac = samples["frac"]
     lattice = samples["lattice"]
     atom_mask = samples["atom_mask"]
+    cond_counts_vector = samples.get("cond_counts_vector")
+    cond_metrics = None
+    if cond_counts_vector is not None:
+        num_elements = int(cond_counts_vector.shape[1])
+        gen_counts = _counts_from_samples(z, atom_mask, num_elements=num_elements)
+        cond_counts = cond_counts_vector.astype(np.int64)
+        exact_match = np.all(gen_counts == cond_counts, axis=1)
+        l1 = np.sum(np.abs(gen_counts - cond_counts), axis=1).astype(float)
+        total_cond = np.sum(cond_counts, axis=1).astype(float)
+        total_gen = np.sum(gen_counts, axis=1).astype(float)
+        l1_norm = l1 / np.maximum(total_cond, 1.0)
+        comp_l1 = np.full_like(l1, np.nan, dtype=float)
+        comp_cos = np.full_like(l1, np.nan, dtype=float)
+        valid_comp = (total_cond > 0) & (total_gen > 0)
+        if np.any(valid_comp):
+            gen_frac = gen_counts[valid_comp] / total_gen[valid_comp][:, None]
+            cond_frac = cond_counts[valid_comp] / total_cond[valid_comp][:, None]
+            comp_l1[valid_comp] = np.sum(np.abs(gen_frac - cond_frac), axis=1)
+            dot = np.sum(gen_frac * cond_frac, axis=1)
+            norm = np.linalg.norm(gen_frac, axis=1) * np.linalg.norm(cond_frac, axis=1)
+            comp_cos[valid_comp] = dot / np.maximum(norm, 1e-12)
+        cond_metrics = {
+            "exact_match": exact_match,
+            "l1": l1,
+            "l1_norm": l1_norm,
+            "comp_l1": comp_l1,
+            "comp_cos": comp_cos,
+        }
 
     per_sample: List[Dict[str, Any]] = []
     fail_counts: Dict[str, int] = {}
@@ -259,27 +302,37 @@ def _eval_samples(
         valid_flags.append(int(valid))
         valid_2d_flags.append(int(valid_2d))
 
-        per_sample.append(
-            {
-                "id": int(i),
-                "n_atoms": n_atoms,
-                "volume": vol,
-                "cond": cond,
-                "min_dist": min_dist,
-                "dup_ratio": dup_ratio,
-                "thickness": thickness,
-                "vacuum": vacuum,
-                "cross_vacuum_bond": cross_vacuum,
-                "gcc_ratio": gcc_ratio,
-                "anisotropy": anisotropy,
-                "valid": valid,
-                "valid_2d": valid_2d,
-                "fail_reason": "+".join(reasons) if reasons else "",
-            }
-        )
+        row = {
+            "id": int(i),
+            "n_atoms": n_atoms,
+            "volume": vol,
+            "cond": cond,
+            "min_dist": min_dist,
+            "dup_ratio": dup_ratio,
+            "thickness": thickness,
+            "vacuum": vacuum,
+            "cross_vacuum_bond": cross_vacuum,
+            "gcc_ratio": gcc_ratio,
+            "anisotropy": anisotropy,
+            "valid": valid,
+            "valid_2d": valid_2d,
+            "fail_reason": "+".join(reasons) if reasons else "",
+        }
+        if cond_metrics is not None:
+            row.update(
+                {
+                    "cond_exact_match": bool(cond_metrics["exact_match"][i]),
+                    "cond_l1_count_error": float(cond_metrics["l1"][i]),
+                    "cond_l1_count_error_norm": float(cond_metrics["l1_norm"][i]),
+                    "cond_comp_l1": float(cond_metrics["comp_l1"][i]),
+                    "cond_comp_cosine": float(cond_metrics["comp_cos"][i]),
+                }
+            )
+        per_sample.append(row)
 
+    eval_valid_rate = float(np.mean(valid_flags)) if valid_flags else 0.0
     tier0 = {
-        "valid_rate": float(np.mean(valid_flags)) if valid_flags else 0.0,
+        "valid_rate_eval": eval_valid_rate,
         "fail_reason_counts": fail_counts,
         "min_dist": _summary_stats(min_dists),
         "volume": _summary_stats(volumes),
@@ -293,6 +346,16 @@ def _eval_samples(
         "element_counts": elem_counts,
         "total_samples": int(z.shape[0]),
     }
+    if cond_metrics is not None:
+        tier0["cond_match"] = {
+            "exact_match_rate": float(np.mean(cond_metrics["exact_match"]))
+            if cond_metrics["exact_match"].size
+            else 0.0,
+            "l1_count_error": _summary_stats(cond_metrics["l1"].tolist()),
+            "l1_count_error_norm": _summary_stats(cond_metrics["l1_norm"].tolist()),
+            "comp_l1": _summary_stats(cond_metrics["comp_l1"].tolist()),
+            "comp_cosine": _summary_stats(cond_metrics["comp_cos"].tolist()),
+        }
     tier1 = {
         "valid_2d_rate": float(np.mean(valid_2d_flags)) if valid_2d_flags else 0.0,
         "thickness": _summary_stats(thicknesses),
@@ -315,6 +378,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dup-eps", type=float, default=1e-3)
     parser.add_argument("--v-min", type=float, default=None)
     parser.add_argument("--v-max", type=float, default=None)
+    parser.add_argument("--sample", action="store_true", help="Run sampling before evaluation.")
+    parser.add_argument("--checkpoint", type=Path, default=None, help="Checkpoint for sampling.")
+    parser.add_argument("--sample-out-dir", type=Path, default=None, help="Output directory for samples.")
+    parser.add_argument(
+        "--sample-args",
+        type=str,
+        default="",
+        help="Extra args passed to sample_tokens.py (use quotes).",
+    )
     parser.add_argument(
         "--pbc-mask",
         type=str,
@@ -343,12 +415,27 @@ def main() -> None:
         print("self-check passed")
         return
 
-    if args.samples is None:
-        raise ValueError("--samples is required unless --self-check is set.")
-    samples = np.load(args.samples)
-    out_dir = args.out_dir
-    if out_dir is None:
-        out_dir = args.samples.parent / "eval"
+    if args.sample and args.samples is not None:
+        raise ValueError("Use either --samples or --sample, not both.")
+    if args.sample:
+        if args.checkpoint is None:
+            raise ValueError("--checkpoint is required when using --sample.")
+        sample_argv = ["--checkpoint", str(args.checkpoint)]
+        if args.sample_out_dir is not None:
+            sample_argv += ["--out-dir", str(args.sample_out_dir)]
+        if args.sample_args:
+            sample_argv += shlex.split(args.sample_args)
+        sample_args = sample_tokens_mod.parse_args(sample_argv)
+        samples_path = sample_tokens_mod.run_sampling(sample_args)
+        samples = np.load(samples_path)
+        out_dir = args.out_dir or (samples_path.parent / "eval")
+    else:
+        if args.samples is None:
+            raise ValueError("--samples is required unless --self-check is set.")
+        samples = np.load(args.samples)
+        out_dir = args.out_dir
+        if out_dir is None:
+            out_dir = args.samples.parent / "eval"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     v_min = args.v_min

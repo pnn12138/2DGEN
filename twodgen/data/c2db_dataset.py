@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -56,7 +56,7 @@ class C2DBMetadata:
 
     material_id: str
     chemical_formula: Optional[str]
-    space_group_number: Optional[int]
+    space_group_number: Optional[float]
     space_group_symbol: Optional[str]
     total_energy: Optional[float]
     formation_energy: Optional[float]
@@ -175,7 +175,7 @@ class C2DBDataset(Dataset):
 
     @staticmethod
     def collate_fn(
-        batch: Iterable[Dict[str, torch.Tensor]]
+        batch: Sequence[Dict[str, torch.Tensor]]
     ) -> Dict[str, torch.Tensor]:
         """Collate samples into a batch of tensors."""
         keys = batch[0].keys()
@@ -260,7 +260,7 @@ class C2DBAtomDataset(Dataset):
         }
 
     @staticmethod
-    def collate_fn(batch: Iterable[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+    def collate_fn(batch: Sequence[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
         keys = batch[0].keys()
         return {k: torch.stack([b[k] for b in batch], dim=0) for k in keys}
 
@@ -397,7 +397,7 @@ class C2DBTokenNPZDataset(Dataset):
         return sample
 
     @staticmethod
-    def collate_fn(batch: Iterable[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
+    def collate_fn(batch: Sequence[Dict[str, torch.Tensor]]) -> Dict[str, torch.Tensor]:
         keys = batch[0].keys()
         return {k: torch.stack([b[k] for b in batch], dim=0) for k in keys}
 
