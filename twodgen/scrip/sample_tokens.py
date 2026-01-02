@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-import sys
+import random
 from pathlib import Path
 from typing import List, Optional, Tuple
 
@@ -10,17 +10,21 @@ import torch
 from pymatgen.core import Element, Structure
 from pymatgen.io.cif import CifWriter
 
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_DIR))
-
-from common.crystal import frac_mic_dist  # noqa: E402
-from model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig  # noqa: E402
-from common.atom_diffusion import AtomDiffusionConfig  # noqa: E402
-from model.atom_transformer import AtomTransformerConfig  # noqa: E402
+from twodgen.common.crystal import frac_mic_dist
+from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
+from twodgen.common.atom_diffusion import AtomDiffusionConfig
+from twodgen.model.atom_transformer import AtomTransformerConfig
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
+    parser.add_argument(
+        "--deterministic",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable deterministic algorithms (may be slower).",
+    )
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--use-ema", action="store_true", help="Load EMA weights from checkpoint when available.")
     parser.add_argument("--npz", type=Path, default=None, help="Token cache for sampling N/volume stats.")
@@ -223,6 +227,18 @@ def _reduce_lattice_and_frac(lattice: np.ndarray, frac: np.ndarray) -> Tuple[np.
 
 def main() -> None:
     args = parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+    if args.deterministic:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        try:
+            torch.use_deterministic_algorithms(True)
+        except Exception:
+            pass
     if args.num_atoms is not None and args.num_atoms > args.max_atoms:
         raise ValueError("--num-atoms must be <= --max-atoms")
 
@@ -316,6 +332,8 @@ def main() -> None:
             if cond_cfg.get("include_t", False):
                 cond_fields.append("t")
     cond_stats = cond_cfg.get("cond_stats") if isinstance(cond_cfg, dict) else None
+    rng = np.random.default_rng(args.seed)
+
     if cond_cfg.get("use_condition"):
         cond_npz = args.cond_npz or args.npz
         if cond_npz is None:
@@ -337,7 +355,6 @@ def main() -> None:
         elif args.cond_index is not None:
             indices = np.full((args.num_samples,), args.cond_index, dtype=int)
         elif args.cond_random:
-            rng = np.random.default_rng()
             indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
         else:
             indices = np.zeros((args.num_samples,), dtype=int)
@@ -355,7 +372,7 @@ def main() -> None:
     if args.num_atoms is None:
         if n_counts is None or len(n_counts) == 0:
             raise ValueError("num-atoms not set and no valid --npz stats found.")
-        num_atoms_list = np.random.choice(n_counts, size=args.num_samples).astype(int).tolist()
+        num_atoms_list = rng.choice(n_counts, size=args.num_samples).astype(int).tolist()
     else:
         num_atoms_list = [args.num_atoms] * args.num_samples
 

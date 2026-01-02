@@ -62,7 +62,7 @@ def _collect_metrics(samples: Dict[str, np.ndarray], pbc_mask: Tuple[int, int, i
 
         metrics["volume"].append(float(abs(np.linalg.det(lattice_i))))
 
-        gram = lattice_i.T @ lattice_i
+        gram = lattice_i @ lattice_i.T
         eigvals = np.linalg.eigvalsh(gram)
         if np.any(eigvals <= 0.0) or not np.all(np.isfinite(eigvals)):
             cond = float("nan")

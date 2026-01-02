@@ -2,15 +2,8 @@
 Smoke test for token-based crystal diffusion.
 """
 
-import sys
-from pathlib import Path
-
 import torch
-
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_DIR))
-
-from model.atom_denoiser import AtomDenoiser  # noqa: E402
+from twodgen.model.atom_denoiser import AtomDenoiser
 
 
 def main() -> None:

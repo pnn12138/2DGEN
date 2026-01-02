@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
+import random
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -13,16 +13,20 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Sampler
 
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_DIR))
-
-from data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset  # noqa: E402
-from model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig  # noqa: E402
-from model.atom_transformer import AtomTransformerConfig  # noqa: E402
+from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
+from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
+from twodgen.model.atom_transformer import AtomTransformerConfig
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
+    parser.add_argument(
+        "--deterministic",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable deterministic algorithms (may be slower).",
+    )
     parser.add_argument(
         "--model-size",
         type=str,
@@ -129,18 +133,25 @@ def _resolve_cond_fields(args: argparse.Namespace) -> list[str]:
 
 
 class BucketBatchSampler(Sampler[list[int]]):
-    def __init__(self, counts: torch.Tensor, batch_size: int, shuffle: bool) -> None:
+    def __init__(
+        self,
+        counts: torch.Tensor,
+        batch_size: int,
+        shuffle: bool,
+        generator: torch.Generator | None = None,
+    ) -> None:
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self.generator = generator
         order = torch.argsort(counts)
         self.buckets = [
             order[i : i + batch_size].tolist() for i in range(0, len(order), batch_size)
         ]
         if self.shuffle:
-            perm = torch.randperm(len(self.buckets)).tolist()
+            perm = torch.randperm(len(self.buckets), generator=self.generator).tolist()
             self.buckets = [self.buckets[i] for i in perm]
             for bucket in self.buckets:
-                perm_in = torch.randperm(len(bucket)).tolist()
+                perm_in = torch.randperm(len(bucket), generator=self.generator).tolist()
                 reordered = [bucket[i] for i in perm_in]
                 bucket[:] = reordered
 
@@ -160,16 +171,48 @@ def _atom_counts(dataset: C2DBAtomDataset | C2DBTokenNPZDataset) -> torch.Tensor
     return torch.stack(counts, dim=0)
 
 
-def prepare_dataloader(dataset: C2DBAtomDataset | C2DBTokenNPZDataset, batch_size: int, num_workers: int, use_buckets: bool, shuffle: bool) -> DataLoader:
+def _seed_everything(seed: int, deterministic: bool) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if deterministic:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
+        try:
+            torch.use_deterministic_algorithms(True)
+        except Exception:
+            pass
+
+
+def prepare_dataloader(
+    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    batch_size: int,
+    num_workers: int,
+    use_buckets: bool,
+    shuffle: bool,
+    seed: int,
+) -> DataLoader:
+    generator = torch.Generator()
+    generator.manual_seed(seed)
+
+    def _seed_worker(worker_id: int) -> None:
+        worker_seed = seed + worker_id + 1
+        random.seed(worker_seed)
+        np.random.seed(worker_seed)
+        torch.manual_seed(worker_seed)
+
     if use_buckets:
         counts = _atom_counts(dataset).float()
-        sampler = BucketBatchSampler(counts, batch_size=batch_size, shuffle=shuffle)
+        sampler = BucketBatchSampler(counts, batch_size=batch_size, shuffle=shuffle, generator=generator)
         return DataLoader(
             dataset,
             batch_sampler=sampler,
             num_workers=num_workers,
             pin_memory=True,
             collate_fn=dataset.collate_fn,
+            worker_init_fn=_seed_worker if num_workers > 0 else None,
         )
     return DataLoader(
         dataset,
@@ -179,6 +222,8 @@ def prepare_dataloader(dataset: C2DBAtomDataset | C2DBTokenNPZDataset, batch_siz
         pin_memory=True,
         drop_last=True,
         collate_fn=dataset.collate_fn,
+        generator=generator,
+        worker_init_fn=_seed_worker if num_workers > 0 else None,
     )
 
 
@@ -582,6 +627,7 @@ def _resolve_model_hparams(args: argparse.Namespace) -> dict:
 
 def main() -> None:
     args = parse_args()
+    _seed_everything(args.seed, args.deterministic)
     pbc_mask = _parse_pbc_mask(args.pbc_mask)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -623,7 +669,14 @@ def main() -> None:
         if args.chol_log_max is None:
             args.chol_log_max = float(np.log(max(args.cell_log_max_factor * s90, 1e-6)))
 
-    loader = prepare_dataloader(dataset, args.batch_size, args.num_workers, args.bucket_batches, args.bucket_shuffle)
+    loader = prepare_dataloader(
+        dataset,
+        args.batch_size,
+        args.num_workers,
+        args.bucket_batches,
+        args.bucket_shuffle,
+        seed=args.seed,
+    )
 
     model_hparams = _resolve_model_hparams(args)
     model_cfg = AtomTransformerConfig(

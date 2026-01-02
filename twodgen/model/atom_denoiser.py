@@ -6,8 +6,8 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-from common.atom_diffusion import AtomDiffusionConfig, AtomVelocityLoss, expand_t, mask_schedule
-from common.crystal import (
+from twodgen.common.atom_diffusion import AtomDiffusionConfig, AtomVelocityLoss, expand_t, mask_schedule
+from twodgen.common.crystal import (
     cholesky6_to_gram6,
     clip_lattice,
     gram6_to_lattice,
@@ -15,7 +15,7 @@ from common.crystal import (
     niggli_reduce_lattice,
     reduce_lattice_simple,
 )
-from model.atom_transformer import AtomTransformer, AtomTransformerConfig
+from twodgen.model.atom_transformer import AtomTransformer, AtomTransformerConfig
 
 
 @dataclass

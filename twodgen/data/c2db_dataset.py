@@ -273,10 +273,22 @@ class C2DBTokenNPZDataset(Dataset):
     def __init__(self, npz_path: Path | str) -> None:
         super().__init__()
         data = np.load(npz_path)
+        gram6_convention = data["gram6_convention"].item() if "gram6_convention" in data else None
+        if gram6_convention is None:
+            raise ValueError(
+                "Legacy token cache detected (missing `gram6_convention`). "
+                "This repo now assumes row-vector lattices (cart = frac @ lattice) and "
+                "Gram6 computed from `G = lattice @ lattice^T`. "
+                "Please re-run preprocessing or migrate the cache via "
+                "`uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`."
+            )
+        if str(gram6_convention) != "row_lattice":
+            raise ValueError(f"Unsupported gram6_convention={gram6_convention!r} (expected 'row_lattice').")
         self.z = torch.from_numpy(data["z"]).long()
         self.f = torch.from_numpy(data["f"]).float()
         self.atom_mask = torch.from_numpy(data["atom_mask"]).float()
         self.gram6 = torch.from_numpy(data["gram6"]).float()
+        self.lattice = torch.from_numpy(data["lattice"]).float() if "lattice" in data else None
         self.material_ids = data["material_id"].tolist() if "material_id" in data else None
         self.max_atoms = int(data["max_atoms"]) if "max_atoms" in data else self.z.shape[1]
         self.g_scale = float(data["g_scale"]) if "g_scale" in data else 1.0
@@ -299,7 +311,10 @@ class C2DBTokenNPZDataset(Dataset):
             "z",
             "f",
             "atom_mask",
+            "lattice",
             "gram6",
+            "gram6_convention",
+            "gram6_version",
             "material_id",
             "max_atoms",
             "g_scale",
@@ -348,6 +363,8 @@ class C2DBTokenNPZDataset(Dataset):
             "atom_mask": self.atom_mask[idx],
             "gram6": self.gram6[idx],
         }
+        if self.lattice is not None:
+            sample["lattice_matrix"] = self.lattice[idx]
         if self.z_canon is not None:
             sample["atomic_numbers_canon"] = self.z_canon[idx]
         if self.uvz is not None:
@@ -387,7 +404,8 @@ class C2DBTokenNPZDataset(Dataset):
 
 def _lattice_to_gram6(lattice: torch.Tensor) -> torch.Tensor:
     """Convert lattice (3x3) to Gram 6D vector."""
-    gram = lattice.t().matmul(lattice)
+    # Convention: lattice basis vectors are stored in rows (cart = frac @ lattice).
+    gram = lattice.matmul(lattice.t())
     return torch.stack(
         [gram[0, 0], gram[1, 1], gram[2, 2], gram[0, 1], gram[0, 2], gram[1, 2]],
         dim=0,

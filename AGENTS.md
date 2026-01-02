@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- Root `pyproject.toml` defines the 2D generation prototype; code sits in `2DGEN/` (dataset scaffolding) with entry script `main.py`. Shared sample data live under `data/` and figures under `test_fig/`.
+- Root `pyproject.toml` defines the 2D generation prototype; code sits in `twodgen/` (dataset scaffolding) with entry script `main.py`. Shared sample data live under `data/` and figures under `test_fig/`.
 - `P_TASK/` is a standalone property-prediction subproject (its own `pyproject.toml` and virtualenv) with Hydra configs in `P_TASK/conf/`, code in `P_TASK/src/p_task/`, helper scripts in `P_TASK/scripts/`, and cached datasets in `P_TASK/data/`.
 - Keep large raw datasets in the existing `data/` or `P_TASK/data/` trees; avoid adding new top-level folders without discussing first.
 

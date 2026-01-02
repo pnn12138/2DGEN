@@ -1,4 +1,4 @@
-# 2DGEN 子项目说明
+# twodgen 子项目说明
 
 ## 内容概览
 - **默认路线（token）**：`model/atom_transformer.py` + `model/atom_denoiser.py`，以 `(Z,F,g)` token 表示进行扩散训练与采样。
@@ -14,18 +14,20 @@
 1. 准备原始 CSV：`data/C2DB/c2db_summary.csv`（已包含 CIF 文本）。
 2. 生成 token 缓存 npz（默认启用 A++ v3 预处理并写入 canonical slab 特征；此命令已包含邻居图缓存，无需额外步骤）：
   ```bash
-  uv run python 2DGEN/data/prepare_c2db_tokens.py \
+  uv run python -m twodgen.data.prepare_c2db_tokens \
     --csv data/C2DB/c2db_summary.csv \
     --out data/C2DB/ache/c2db_tokens_2d_based.npz \
     --max-atoms 24 --g-scale 100
   ```
+  - 约定：`lattice` 为“行向量基矢”，笛卡尔坐标满足 `cart = frac @ lattice`；对应 Gram6 使用 `G = lattice @ lattice^T`（并写入 `gram6_convention=row_lattice`）。
+  - 如你手上有旧版 `.npz`（缺少 `gram6_convention`），需要重新预处理或迁移：`uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
   - `--max-atoms`：最多保留的原子数（超出则跳过该行）。
   - `--g-scale`：Gram6 缩放（训练中会乘回去恢复晶胞）。
   - `--niggli-reduce`：对晶胞做 Niggli 规约（可选，较慢）。
   - `--preprocess-v3/--no-preprocess-v3`：写入 A++ v3 预处理字段（默认启用）。
 3. 训练（不使用预计算邻居图；邻居基于扩散状态在线构建）：
   ```bash
-  uv run python 2DGEN/scrip/train_tokens.py \
+  uv run python -m twodgen.scrip.train_tokens \
     --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
     --epochs 100 --batch-size 256 --lr 1e-4 \
     --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
@@ -43,7 +45,7 @@
 
 训练：
 ```bash
-uv run python 2DGEN/scrip/train_tokens.py \
+uv run python -m twodgen.scrip.train_tokens \
   --npz data/C2DB/ache/c2db_tokens.npz \
   --epochs 100 --batch-size 256 --lr 1e-4 \
   --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
@@ -70,7 +72,7 @@ uv run python 2DGEN/scrip/train_tokens.py \
 
 采样与导出：
 ```bash
-uv run python 2DGEN/scrip/sample_tokens.py \
+uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
   --num-samples 10 --steps 20 --method euler \
   --max-atoms 24 --g-scale 100 --npz data/C2DB/ache/c2db_tokens.npz \
@@ -89,7 +91,7 @@ uv run python 2DGEN/scrip/sample_tokens.py \
 
 推荐采样参数（更稳的晶胞先验）：
 ```bash
-uv run python 2DGEN/scrip/sample_tokens.py \
+uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
   --num-samples 10 --steps 50 --method heun \
   --max-atoms 24 --g-scale 100 --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
@@ -105,5 +107,5 @@ uv run python 2DGEN/scrip/sample_tokens.py \
 ## 快速自测
 Token 路线：
 ```bash
-uv run python 2DGEN/scrip/test_tokens.py
+uv run python -m twodgen.scrip.test_tokens
 ```

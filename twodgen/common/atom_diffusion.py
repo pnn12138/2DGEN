@@ -7,7 +7,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from common.crystal import gram6_to_cholesky6
+from twodgen.common.crystal import gram6_to_cholesky6
 
 @dataclass
 class AtomDiffusionConfig:

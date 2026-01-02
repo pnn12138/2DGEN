@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import itertools
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -47,11 +48,25 @@ def _min_dist_and_shifts(
     frac: np.ndarray, lattice: np.ndarray, pbc_mask: Tuple[int, int, int]
 ) -> Tuple[float, np.ndarray, np.ndarray]:
     df = frac[:, None, :] - frac[None, :, :]
-    pbc = np.asarray(pbc_mask, dtype=float).reshape((1, 1, 3))
-    shifts = np.round(df) * pbc
-    df_mic = df - shifts
-    dr = df_mic @ lattice
-    dist = np.linalg.norm(dr, axis=-1)
+    pbc = np.asarray(pbc_mask, dtype=float).reshape((1, 1, 1, 3))
+
+    # Exact MIC by enumerating neighbor-cell shifts (2D slab: 9 shifts).
+    shifts_1d = (-1.0, 0.0, 1.0)
+    zeros_1d = (0.0,)
+    components = [
+        shifts_1d if pbc_mask[0] == 1 else zeros_1d,
+        shifts_1d if pbc_mask[1] == 1 else zeros_1d,
+        shifts_1d if pbc_mask[2] == 1 else zeros_1d,
+    ]
+    shifts_all = np.asarray(list(itertools.product(*components)), dtype=float)  # (S, 3)
+
+    df_shifted = df[:, :, None, :] - shifts_all[None, None, :, :]  # (N, N, S, 3)
+    dr = df_shifted @ lattice  # (N, N, S, 3)
+    dist_all = np.linalg.norm(dr, axis=-1)  # (N, N, S)
+    best_idx = np.argmin(dist_all, axis=-1)  # (N, N)
+    dist = np.take_along_axis(dist_all, best_idx[:, :, None], axis=-1)[:, :, 0]
+    shifts = shifts_all[best_idx]
+
     np.fill_diagonal(dist, np.inf)
     min_dist = float(np.min(dist)) if dist.size > 0 else float("inf")
     return min_dist, dist, shifts
@@ -152,7 +167,7 @@ def _eval_samples(
             if vol < v_min or vol > v_max:
                 reasons.append("bad_volume")
 
-        gram = lattice_i.T @ lattice_i
+        gram = lattice_i @ lattice_i.T
         eigvals = np.linalg.eigvalsh(gram)
         if not np.all(np.isfinite(eigvals)) or np.any(eigvals <= 0.0):
             reasons.append("non_spd")

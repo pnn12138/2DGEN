@@ -1,7 +1,7 @@
 def main():
-    print("2DGEN default pipeline: token-based diffusion.")
-    print("Train:  uv run python 2DGEN/train_tokens.py --csv data/C2DB/c2db_summary.csv")
-    print("Sample: uv run python 2DGEN/sample_tokens.py --checkpoint outputs/checkpoints/atomdenoiser_best.pt")
+    print("2dgen default pipeline: token-based diffusion.")
+    print("Train:  uv run python -m twodgen.scrip.train_tokens --csv data/C2DB/c2db_summary.csv")
+    print("Sample: uv run python -m twodgen.scrip.sample_tokens --checkpoint outputs/checkpoints/atomdenoiser_best.pt")
 
 
 if __name__ == "__main__":

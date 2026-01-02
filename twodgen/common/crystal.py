@@ -176,7 +176,10 @@ def lattice_to_gram6(lattice: torch.Tensor) -> torch.Tensor:
     """
     if lattice.ndim != 3 or lattice.shape[-2:] != (3, 3):
         raise ValueError(f"Expected lattice shape (B,3,3), got {tuple(lattice.shape)}")
-    gram = lattice.transpose(-1, -2).matmul(lattice)
+    # Convention: lattice basis vectors live in rows, and Cartesian coordinates are
+    # computed as `cart = frac @ lattice`. Under this convention the Gram matrix is
+    # `G = lattice @ lattice^T`.
+    gram = lattice.matmul(lattice.transpose(-1, -2))
     return torch.stack(
         [gram[:, 0, 0], gram[:, 1, 1], gram[:, 2, 2], gram[:, 0, 1], gram[:, 0, 2], gram[:, 1, 2]],
         dim=-1,
@@ -216,7 +219,7 @@ def clip_lattice(
     scale = (v_target / volume.clamp_min(1e-8)).pow(1.0 / 3.0)
     lattice = lattice * scale.unsqueeze(-1).unsqueeze(-1)
 
-    gram = lattice.transpose(-1, -2).matmul(lattice)
+    gram = lattice.matmul(lattice.transpose(-1, -2))
     eigvals = torch.linalg.eigvalsh(gram)
     cond = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
     mask = cond > cond_max
@@ -243,25 +246,42 @@ def frac_mic_dist(
     Returns:
         dist: (B, N, N) with PAD/self filled as +inf.
     """
-    df = frac[:, :, None, :] - frac[:, None, :, :]
+    df = frac[:, :, None, :] - frac[:, None, :, :]  # (B, N, N, 3)
+
+    # Exact MIC via enumerating neighbor-cell shifts.
+    # For 2D PBC: 9 shifts; for 3D PBC: 27 shifts. With max_atoms<=24 this is cheap and avoids
+    # incorrect rounding behavior under non-orthogonal (skewed) cells.
     if pbc_mask is None:
-        df_mic = df - torch.round(df)
+        pbc = torch.ones((3,), device=df.device, dtype=torch.long)
     else:
-        pbc = torch.tensor(pbc_mask, device=df.device, dtype=df.dtype)
+        pbc = torch.tensor(pbc_mask, device=df.device, dtype=torch.long)
         if pbc.shape != (3,):
             raise ValueError("pbc_mask must be a length-3 tuple.")
-        df_mic = df - torch.round(df) * pbc
-    dr = torch.einsum("bijn,bnm->bijm", df_mic, lattice)
-    dist = torch.linalg.norm(dr, dim=-1)
+        if not torch.all((pbc == 0) | (pbc == 1)):
+            raise ValueError("pbc_mask values must be 0 or 1.")
+
+    shifts_1d = torch.tensor([-1, 0, 1], device=df.device, dtype=df.dtype)
+    zeros_1d = torch.tensor([0], device=df.device, dtype=df.dtype)
+    # Only enumerate periodic dimensions to avoid redundant work (2D slab: 9 shifts).
+    components = [
+        shifts_1d if int(pbc[0].item()) == 1 else zeros_1d,
+        shifts_1d if int(pbc[1].item()) == 1 else zeros_1d,
+        shifts_1d if int(pbc[2].item()) == 1 else zeros_1d,
+    ]
+    shifts = torch.cartesian_prod(*components)  # (S, 3)
+
+    df_shifted = df.unsqueeze(-2) - shifts.view(1, 1, 1, -1, 3)  # (B, N, N, S, 3)
+    dr = torch.einsum("bijsk,bkm->bijsm", df_shifted, lattice)  # (B, N, N, S, 3)
+    dist_all = torch.linalg.norm(dr, dim=-1)  # (B, N, N, S)
+    dist = dist_all.min(dim=-1).values  # (B, N, N)
 
     valid = mask > 0.5
     inf = torch.tensor(float("inf"), device=dist.device, dtype=dist.dtype)
     dist = dist.masked_fill(~valid[:, :, None], inf)
     dist = dist.masked_fill(~valid[:, None, :], inf)
 
-    n = dist.shape[-1]
-    idx = torch.arange(n, device=dist.device)
-    dist[:, idx, idx] = inf
+    # Avoid advanced-indexing pitfalls on older/newer PyTorch versions.
+    dist.diagonal(dim1=-2, dim2=-1).fill_(inf)
     return dist.clamp_min(eps)
 
 

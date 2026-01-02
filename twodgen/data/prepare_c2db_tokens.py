@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import argparse
-import sys
+import random
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -9,10 +9,7 @@ import numpy as np
 import pandas as pd
 from pymatgen.core import Structure
 
-PROJECT_DIR = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_DIR))
-
-from data.preprocess import PreprocessConfig, preprocess_cartesian  # noqa: E402
+from twodgen.data.preprocess import PreprocessConfig, preprocess_cartesian
 
 
 def _pad_1d(values: np.ndarray, max_len: int, pad_value: float) -> Tuple[np.ndarray, np.ndarray]:
@@ -43,7 +40,8 @@ def _pad_2d4(values: np.ndarray, max_len: int, pad_value: float) -> Tuple[np.nda
 
 
 def _lattice_to_gram6(lattice: np.ndarray) -> np.ndarray:
-    gram = lattice.T @ lattice
+    # Convention: lattice basis vectors are stored in rows (cart = frac @ lattice).
+    gram = lattice @ lattice.T
     return np.array([gram[0, 0], gram[1, 1], gram[2, 2], gram[0, 1], gram[0, 2], gram[1, 2]], dtype=np.float32)
 
 
@@ -221,6 +219,7 @@ def build_dataset(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Convert C2DB CSV to token npz (Z/F/L/g).")
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
     parser.add_argument("--csv", type=Path, default=Path("data/C2DB/c2db_summary.csv"))
     parser.add_argument("--out", type=Path, default=Path("data/C2DB/ache/c2db_tokens.npz"))
     parser.add_argument("--max-atoms", type=int, default=24)
@@ -243,6 +242,8 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    random.seed(args.seed)
+    np.random.seed(args.seed)
     preprocess_cfg = PreprocessConfig(
         eps_area=args.eps_area,
         eps_inv=args.eps_inv,
@@ -266,6 +267,8 @@ def main() -> None:
         "atom_mask": mask,
         "lattice": lattice,
         "gram6": gram6,
+        "gram6_convention": np.array("row_lattice"),
+        "gram6_version": np.asarray(2, dtype=np.int64),
         "material_id": np.array(material_ids),
         "max_atoms": np.asarray(args.max_atoms, dtype=np.int64),
         "g_scale": np.asarray(args.g_scale, dtype=np.float32),

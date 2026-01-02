@@ -7,8 +7,8 @@ from typing import Optional, Tuple
 import torch
 from torch import nn
 
-from common.crystal import build_knn, cholesky6_to_lattice, frac_mic_dist, gram6_to_lattice, rbf_expand
-from data.torus import torus_encode
+from twodgen.common.crystal import build_knn, cholesky6_to_lattice, frac_mic_dist, gram6_to_lattice, rbf_expand
+from twodgen.data.torus import torus_encode
 
 
 def modulate(x: torch.Tensor, shift: torch.Tensor, scale: torch.Tensor) -> torch.Tensor:
