@@ -115,8 +115,11 @@
 - 若 `use_uncertainty_weighting=True`（默认）：
   - `loss = exp(-s_f)*loss_f + s_f + exp(-s_g)*loss_g + s_g + (exp(-s_z)*loss_z + s_z)`
   - `s_f/s_g/s_z` 为可学习标量
+  - 若启用几何头，会额外加入 `loss_uv/loss_zn/loss_lat/loss_t` 及对应的 `s_*` 项
 - 否则：
   - `loss = loss_f + lambda_g*loss_g + lambda_z*loss_z`
+  - 若启用几何头，会额外加上 `lambda_uv/lambda_zn/lambda_lat/lambda_t` 项
+  - `loss_t` 只在数据包含 `t` 且启用几何分支时出现；不需要厚度预测可关闭几何分支
 
 ### 2.5 训练脚本要点（实现细节）
 - `train_tokens.py` 根据 `--use-condition/--cond-fields/--cond-normalize-fields` 推导 `cond_dim` 与 `cond_stats`。
@@ -137,7 +140,7 @@
 ---
 
 ## 3) 去噪模型（Transformer/DiT-style）
-- 输入：`Z, F, g, atom_mask, t, cond`。
+- 输入：`Z, F, g, atom_mask, t, cond`；若启用 composition encoder 还会接收 `counts_vector`。
 - [CELL] token 用晶胞表征；原子 token 用元素 + torus 编码坐标。
 - 动态 kNN sparse attention（原子-原子），CELL 与原子全连接。
 - attention bias：距离 RBF + 元素对嵌入。
@@ -150,10 +153,15 @@
 - `counts_vector` 先按 `max_atoms` 归一化；连续字段可按 `--cond-normalize-fields` 做 z-score。
 - 最终拼接为 `cond_vec`，形状 `(B, cond_dim)`。
 
+**composition encoder（模型内部）**
+- 若 `use_comp_encoder=True` 且提供 `counts_vector`，模型内部会做元素嵌入 + pooling，得到 `cond_comp`。
+- `cond_comp` 通过标量门控与 `cond_time/cond_vec` 融合：`cond = w_time*cond_time + w_vec*cond_vec_proj + w_comp*cond_comp`。
+- `w_comp` 默认从 0 起步，保证兼容旧 checkpoint 并防止早期训练不稳。
+
 **时间步注入**
 - 扩散时间步 `t` 先做 sinusoidal embedding，再经 `time_mlp` 得到 `cond_time`（形状 `(B, D)`）。
 - 若启用条件，`cond_vec` 经 `cond_mlp` 投影为 `(B, D)`。
-- 当前策略为**相加融合**：`cond = cond_time + cond_mlp(cond_vec)`；若 `cond_vec` 为空则只用时间条件。
+- 当前策略为**门控相加融合**：`cond = w_time*cond_time + w_vec*cond_mlp(cond_vec) + w_comp*cond_comp`；若 `cond_vec` 为空则只用时间条件。
 
 **在 Transformer block 中的 AdaLN 调制**
 - 每个 block 内部用 `cond` 生成 6 路参数：`shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp`。
@@ -169,6 +177,7 @@
 
 **条件 dropout（CFG-style 训练）**
 - 训练中 `cond_drop_prob` 可将 `cond_vec` 置零形成“无条件”样本。
+- 若启用 composition encoder，会同步把 `counts_vector` 置零，保证 unconditional 分支真实。
 - 当前实现仅在训练阶段做 drop；采样阶段默认不做 cond/uncond 双前向。
 
 ---
