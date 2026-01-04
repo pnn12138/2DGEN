@@ -33,6 +33,8 @@ class AtomDenoiserConfig:
     reduce_lattice: bool = False
     niggli_reduce: bool = False
     project_each_step: bool = False
+    project_geometry: bool = False
+    z_norm_clip: float = 1.5
 
 
 class AtomDenoiser(nn.Module):
@@ -49,11 +51,31 @@ class AtomDenoiser(nn.Module):
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
         cond: Optional[torch.Tensor] = None,
+        counts_vector: Optional[torch.Tensor] = None,
+        uv_angle: Optional[torch.Tensor] = None,
+        z_norm: Optional[torch.Tensor] = None,
+        lattice_param: Optional[torch.Tensor] = None,
+        slab_t: Optional[torch.Tensor] = None,
         nbr_idx: Optional[torch.Tensor] = None,
         nbr_mask: Optional[torch.Tensor] = None,
         dist_nbr: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
-        return self.loss_fn(self.model, z, frac, atom_mask, gram6, cond, nbr_idx, nbr_mask, dist_nbr)
+        return self.loss_fn(
+            self.model,
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            cond,
+            counts_vector,
+            uv_angle,
+            z_norm,
+            lattice_param,
+            slab_t,
+            nbr_idx,
+            nbr_mask,
+            dist_nbr,
+        )
 
     def _predict_velocity(
         self,
@@ -63,26 +85,40 @@ class AtomDenoiser(nn.Module):
         gram6: torch.Tensor,
         t: torch.Tensor,
         cond: Optional[torch.Tensor] = None,
+        counts_vector: Optional[torch.Tensor] = None,
+        uv_angle: Optional[torch.Tensor] = None,
+        z_norm: Optional[torch.Tensor] = None,
+        lattice_param: Optional[torch.Tensor] = None,
+        slab_t: Optional[torch.Tensor] = None,
+        return_geom: bool = False,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
         nbr_idx: Optional[torch.Tensor] = None,
         nbr_mask: Optional[torch.Tensor] = None,
         dist_nbr: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        pred_v_f, pred_v_g, logits_z = self.model(
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor] | Tuple[
+        torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]
+    ]:
+        outputs = self.model(
             z,
             frac,
             gram6,
             atom_mask,
             t,
             cond,
+            counts_vector,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+            return_geom=return_geom,
             step=step,
             cache_every=cache_every,
             nbr_idx=nbr_idx,
             nbr_mask=nbr_mask,
             dist_nbr=dist_nbr,
         )
-        return pred_v_f, pred_v_g, logits_z
+        return outputs
 
     @torch.no_grad()
     def _euler_step(
@@ -91,19 +127,78 @@ class AtomDenoiser(nn.Module):
         frac: torch.Tensor,
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
+        uv_angle: Optional[torch.Tensor],
+        z_norm: Optional[torch.Tensor],
+        lattice_param: Optional[torch.Tensor],
+        slab_t: Optional[torch.Tensor],
         t: torch.Tensor,
         t_next: torch.Tensor,
         cond: Optional[torch.Tensor] = None,
+        counts_vector: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        pred_v_f, pred_v_g, logits_z = self._predict_velocity(
-            z, frac, atom_mask, gram6, t, cond, step=step, cache_every=cache_every
+        return_geom: bool = False,
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+    ]:
+        outputs = self._predict_velocity(
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            t,
+            cond,
+            counts_vector,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+            return_geom=return_geom,
+            step=step,
+            cache_every=cache_every,
         )
+        if return_geom:
+            pred_v_f, pred_v_g, logits_z, geom_preds = outputs  # type: ignore[misc]
+        else:
+            pred_v_f, pred_v_g, logits_z = outputs  # type: ignore[misc]
         delta = expand_t(t_next - t, frac.ndim)
         frac = frac + delta * pred_v_f
         gram6 = gram6 + expand_t(t_next - t, gram6.ndim) * pred_v_g
-        return frac, gram6, logits_z
+        if return_geom and uv_angle is not None and z_norm is not None:
+            uv_angle = uv_angle + delta * geom_preds["uv_angle"]
+            delta_zn = expand_t(t_next - t, z_norm.ndim)
+            z_norm = z_norm + delta_zn * geom_preds["z_norm"]
+        if return_geom and lattice_param is not None:
+            delta_lat = expand_t(t_next - t, lattice_param.ndim)
+            lattice_param = lattice_param + delta_lat * geom_preds["lattice_param"]
+        if return_geom and slab_t is not None:
+            delta_t = expand_t(t_next - t, slab_t.ndim)
+            slab_t = slab_t + delta_t * geom_preds["t"]
+        return frac, gram6, logits_z, uv_angle, z_norm, lattice_param, slab_t
+
+    def _project_geometry_step(
+        self,
+        uv_angle: torch.Tensor,
+        z_norm: torch.Tensor,
+        atom_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        uv1 = uv_angle[..., :2]
+        uv2 = uv_angle[..., 2:]
+        eps = 1e-8
+        uv1 = uv1 / uv1.norm(dim=-1, keepdim=True).clamp_min(eps)
+        uv2 = uv2 / uv2.norm(dim=-1, keepdim=True).clamp_min(eps)
+        uv_angle = torch.cat([uv1, uv2], dim=-1)
+        z_norm = torch.clamp(z_norm, min=-self.cfg.z_norm_clip, max=self.cfg.z_norm_clip)
+        mask = atom_mask.unsqueeze(-1)
+        uv_angle = uv_angle * mask
+        z_norm = z_norm * atom_mask
+        return uv_angle, z_norm
 
     def _project_step(
         self, frac: torch.Tensor, cell: torch.Tensor
@@ -134,26 +229,101 @@ class AtomDenoiser(nn.Module):
         frac: torch.Tensor,
         atom_mask: torch.Tensor,
         gram6: torch.Tensor,
+        uv_angle: Optional[torch.Tensor],
+        z_norm: Optional[torch.Tensor],
+        lattice_param: Optional[torch.Tensor],
+        slab_t: Optional[torch.Tensor],
         t: torch.Tensor,
         t_next: torch.Tensor,
         cond: Optional[torch.Tensor] = None,
+        counts_vector: Optional[torch.Tensor] = None,
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        pred_v_f, pred_v_g, logits_z = self._predict_velocity(
-            z, frac, atom_mask, gram6, t, cond, step=step, cache_every=cache_every
+        return_geom: bool = False,
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+    ]:
+        outputs = self._predict_velocity(
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            t,
+            cond,
+            counts_vector,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+            return_geom=return_geom,
+            step=step,
+            cache_every=cache_every,
         )
+        if return_geom:
+            pred_v_f, pred_v_g, logits_z, geom_preds = outputs  # type: ignore[misc]
+        else:
+            pred_v_f, pred_v_g, logits_z = outputs  # type: ignore[misc]
         delta = expand_t(t_next - t, frac.ndim)
         frac_euler = frac + delta * pred_v_f
         gram_euler = gram6 + expand_t(t_next - t, gram6.ndim) * pred_v_g
-        pred_v_f_next, pred_v_g_next, _ = self._predict_velocity(
-            z, frac_euler, atom_mask, gram_euler, t_next, cond, step=step, cache_every=cache_every
+        uv_euler = None
+        zn_euler = None
+        lat_euler = None
+        t_euler = None
+        if return_geom and uv_angle is not None and z_norm is not None:
+            uv_euler = uv_angle + delta * geom_preds["uv_angle"]
+            delta_zn = expand_t(t_next - t, z_norm.ndim)
+            zn_euler = z_norm + delta_zn * geom_preds["z_norm"]
+        if return_geom and lattice_param is not None:
+            delta_lat = expand_t(t_next - t, lattice_param.ndim)
+            lat_euler = lattice_param + delta_lat * geom_preds["lattice_param"]
+        if return_geom and slab_t is not None:
+            delta_t = expand_t(t_next - t, slab_t.ndim)
+            t_euler = slab_t + delta_t * geom_preds["t"]
+        outputs_next = self._predict_velocity(
+            z,
+            frac_euler,
+            atom_mask,
+            gram_euler,
+            t_next,
+            cond,
+            uv_angle=uv_euler if return_geom else None,
+            z_norm=zn_euler if return_geom else None,
+            lattice_param=lat_euler if return_geom else None,
+            slab_t=t_euler if return_geom else None,
+            return_geom=return_geom,
+            step=step,
+            cache_every=cache_every,
         )
+        if return_geom:
+            pred_v_f_next, pred_v_g_next, _, geom_preds_next = outputs_next  # type: ignore[misc]
+            pred_uv = 0.5 * (geom_preds["uv_angle"] + geom_preds_next["uv_angle"])
+            pred_zn = 0.5 * (geom_preds["z_norm"] + geom_preds_next["z_norm"])
+            pred_lat = 0.5 * (geom_preds["lattice_param"] + geom_preds_next["lattice_param"])
+            pred_t = 0.5 * (geom_preds["t"] + geom_preds_next["t"])
+        else:
+            pred_v_f_next, pred_v_g_next, _ = outputs_next  # type: ignore[misc]
         pred_v_f = 0.5 * (pred_v_f + pred_v_f_next)
         pred_v_g = 0.5 * (pred_v_g + pred_v_g_next)
         frac = frac + delta * pred_v_f
         gram6 = gram6 + expand_t(t_next - t, gram6.ndim) * pred_v_g
-        return frac, gram6, logits_z
+        if return_geom and uv_angle is not None and z_norm is not None:
+            uv_angle = uv_angle + delta * pred_uv
+            delta_zn = expand_t(t_next - t, z_norm.ndim)
+            z_norm = z_norm + delta_zn * pred_zn
+        if return_geom and lattice_param is not None:
+            delta_lat = expand_t(t_next - t, lattice_param.ndim)
+            lattice_param = lattice_param + delta_lat * pred_lat
+        if return_geom and slab_t is not None:
+            delta_t = expand_t(t_next - t, slab_t.ndim)
+            slab_t = slab_t + delta_t * pred_t
+        return frac, gram6, logits_z, uv_angle, z_norm, lattice_param, slab_t
 
     @torch.no_grad()
     def generate(
@@ -168,7 +338,15 @@ class AtomDenoiser(nn.Module):
         z_top_k: int = 10,
         z_top_p: float = 0.9,
         cond: Optional[torch.Tensor] = None,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        counts_vector: Optional[torch.Tensor] = None,
+    ) -> Tuple[
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        torch.Tensor,
+        Optional[torch.Tensor],
+        Optional[torch.Tensor],
+    ]:
         method = method or self.cfg.sampling_method
         steps = steps if steps is not None else self.cfg.num_sampling_steps
         device = self.model.z_embed.weight.device
@@ -181,6 +359,17 @@ class AtomDenoiser(nn.Module):
 
         frac = torch.randn(batch_size, max_atoms, 3, device=device) * self.cfg.diffusion.noise_scale_f
         frac = frac * atom_mask.unsqueeze(-1)
+        uv_angle = None
+        z_norm = None
+        lattice_param = None
+        slab_t = None
+        if self.cfg.project_geometry:
+            uv_angle = torch.randn(batch_size, max_atoms, 4, device=device) * self.cfg.diffusion.noise_scale_uv
+            z_norm = torch.randn(batch_size, max_atoms, device=device) * self.cfg.diffusion.noise_scale_zn
+            uv_angle = uv_angle * atom_mask.unsqueeze(-1)
+            z_norm = z_norm * atom_mask
+            lattice_param = torch.randn(batch_size, 3, device=device) * self.cfg.diffusion.noise_scale_lat
+            slab_t = torch.randn(batch_size, device=device) * self.cfg.diffusion.noise_scale_t
         if self.cfg.diffusion.cell_rep == "cholesky6" and self.cfg.diffusion.cell_init == "iso":
             scale = 1.0 if self.cfg.diffusion.cell_init_scale is None else self.cfg.diffusion.cell_init_scale
             log_s = torch.log(torch.tensor(scale, device=device))
@@ -231,34 +420,48 @@ class AtomDenoiser(nn.Module):
             t = t_schedule[i].expand(batch_size)
             t_next = t_schedule[i + 1].expand(batch_size)
             if method == "euler":
-                frac, cell, logits_z = self._euler_step(
+                frac, cell, logits_z, uv_angle, z_norm, lattice_param, slab_t = self._euler_step(
                     z,
                     frac,
                     atom_mask,
                     cell,
+                    uv_angle,
+                    z_norm,
+                    lattice_param,
+                    slab_t,
                     t,
                     t_next,
                     cond,
+                    counts_vector,
                     step=i,
                     cache_every=self.cfg.neighbor_update_steps,
+                    return_geom=self.cfg.project_geometry,
                 )
             elif method == "heun":
-                frac, cell, logits_z = self._heun_step(
+                frac, cell, logits_z, uv_angle, z_norm, lattice_param, slab_t = self._heun_step(
                     z,
                     frac,
                     atom_mask,
                     cell,
+                    uv_angle,
+                    z_norm,
+                    lattice_param,
+                    slab_t,
                     t,
                     t_next,
                     cond,
+                    counts_vector,
                     step=i,
                     cache_every=self.cfg.neighbor_update_steps,
+                    return_geom=self.cfg.project_geometry,
                 )
             else:
                 raise ValueError(f"Unknown sampling method: {method}")
 
             if self.cfg.project_each_step:
                 frac, cell = self._project_step(frac, cell)
+            if self.cfg.project_geometry and uv_angle is not None and z_norm is not None:
+                uv_angle, z_norm = self._project_geometry_step(uv_angle, z_norm, atom_mask)
 
             p_mask = mask_schedule(
                 t_next, self.cfg.diffusion.p_mask_min, self.cfg.diffusion.p_mask_max, self.cfg.diffusion.mode
@@ -286,7 +489,7 @@ class AtomDenoiser(nn.Module):
             )
         else:
             gram6 = cell
-        return z, frac, gram6, atom_mask
+        return z, frac, gram6, atom_mask, lattice_param, slab_t
 
     @torch.no_grad()
     def gram6_to_lattice(self, gram6: torch.Tensor) -> torch.Tensor:

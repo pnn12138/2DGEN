@@ -17,6 +17,27 @@
 
 ---
 
+## 0.x 当前实现对齐状态（以仓库代码为准）
+
+### 已对齐/已落地
+- **A++ v3 预处理**：`data/preprocess.py` 实现 2D reduction、torus mean shift、z 平移与 flip、`t` 统计、`z_norm` clip、`lattice_param` (log-Cholesky)、`(Z,z_norm,u,v)` 排序。
+- **缓存字段**：`prepare_c2db_tokens.py` 保存 `uvz/uv_angle/z_norm/t/lattice_param/counts_vector/order_idx` 等字段到 npz。
+- **训练/采样主输入**：当前主通路使用 `Z/F/gram6`（`C2DBTokenNPZDataset` 读取 `z,f,gram6,atom_mask`）。
+- **2D PBC**：默认 `pbc_mask=1,1,0`，`frac_mic_dist` + `build_knn` 计算邻居。
+- **扩散目标**：连续 `F/g` v-pred + 离散 `Z` mask diffusion（`AtomVelocityLoss`）。
+- **条件扩散**：`counts_vector` 为默认条件；可通过 `--cond-fields` 加入 `lattice_param/t`。
+
+### 未对齐/设计中
+- **uv_angle/z_norm/lattice_param 作为主扩散变量**：目前只缓存，未进入模型前向。
+- **2D 双图/补边策略**：当前仅单图 kNN（基于 MIC 距离），未实现 `kNN(d_xy)` + `kNN(d_3d)`。
+- **PBC wrap embedding**：当前未显式编码 `(m,n)` wrap。
+- **厚度策略 S0–S3**：`t` 仅可作为条件字段；未实现 `t_head` 或 `t` 扩散。
+- **采样期 manifold 投影（uv_angle/z_norm）**：当前仅 `frac` wrap + `clip_lattice`，不涉及 uv_angle/z_norm。
+
+> 结论：本 guide 仍是“设计目标 + 预处理已落地 + 训练/采样部分落地”的混合文档；如需完全对齐实现，应以 `process.md` 与脚本为准。
+
+---
+
 ## 0. 目标与基本假设
 
 ### 0.1 目标
@@ -52,6 +73,8 @@
 - `uv_angle`：`[cos(2πu), sin(2πu), cos(2πv), sin(2πv)]`
 - `z_norm`：z 轴归一化坐标（连续，扩散变量之一）
 - 可选：`is_surface`/`layer_id`（若你能可靠得到；否则不建议硬加）
+
+> 当前实现：模型前向使用 `Z/F/gram6`，而不是 `uv_angle/z_norm/lattice_param`。
 
 ### 1.2 Reconstruction-only（训练可存储，但默认不扩散）
 - `a_hat, b_hat`：canonical 面内基矢（由 `lattice_param` 可重建）
@@ -189,6 +212,8 @@
 **为什么这能强化 2D？**
 - 2D 材料的主要化学键与局域环境在面内；3D kNN 在多层/强起伏 slab 中会偏向跨层近距，导致模型学到“堆叠几何”而不是“层内拓扑”。
 
+> 当前实现：仅单图 kNN（基于 MIC 距离），未区分 d_xy/d_3d。
+
 ### 3.6 PBC wrap embedding（v3.2：减少边界伪影）
 - 从 MIC 得到 `(m,n)`  
   - `(0,0)`：不跨边界  
@@ -200,6 +225,8 @@
 
 **直觉**：在 torus 上，跨边界边与非跨边界边几何等价，但在序列与有限邻域里容易产生“边界处结构断裂”。显式编码 wrap 可显著缓解。
 
+> 当前实现：未显式编码 wrap。
+
 ---
 
 ## 4. Diffusion State & Sampling-time Manifold Projection
@@ -209,6 +236,8 @@
 - `uv_angle`：连续扩散变量（在单位圆上）
 - `lattice_param`：连续扩散变量（SPD via log 参数）
 - `Z`：默认不扩散（条件由 composition + 采样后 assignment/纠错）；也可用离散扩散但工程复杂度更高
+
+> 当前实现：扩散变量是 `F`（frac）与 `gram6`，`Z` 为离散 mask diffusion。
 
 ### 4.2 采样阶段必须同步的投影（否则 train/test 域不一致）
 每一步（或每 1–5 步）做：
@@ -226,6 +255,8 @@
 
 4) **可选：最小距离软约束投影**
 - 若发现采样早期出现大量近距离冲突，可在投影后做一次轻量 repulsion step（不建议过强，以免破坏扩散轨迹）
+
+> 当前实现：仅提供 `--project-each-step`（`frac` wrap + lattice clip），不含 uv_angle/z_norm 投影。
 
 ---
 
@@ -252,6 +283,8 @@
 **真空 `v0`**
 - 强烈建议常量（不扩散）
 - 可取数据集统计 95% 分位的 “空隙高度” 或固定工程值（如 15–25 Å）
+
+> 当前实现：`v0` 未进入模型或缓存；`t` 仅作为可选条件字段。
 
 ---
 

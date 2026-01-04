@@ -285,6 +285,59 @@ def frac_mic_dist(
     return dist.clamp_min(eps)
 
 
+def frac_mic_dist_with_shifts(
+    frac: torch.Tensor,
+    lattice: torch.Tensor,
+    mask: torch.Tensor,
+    pbc_mask: Optional[Tuple[int, int, int]] = None,
+    eps: float = 1e-8,
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Compute MIC distances and the corresponding shift vectors (m,n,l).
+
+    Returns:
+        dist: (B, N, N) with PAD/self filled as +inf.
+        shifts: (B, N, N, 3) integer shifts in {-1,0,1} (or 0 on non-PBC axes).
+    """
+    df = frac[:, :, None, :] - frac[:, None, :, :]  # (B, N, N, 3)
+
+    if pbc_mask is None:
+        pbc = torch.ones((3,), device=df.device, dtype=torch.long)
+    else:
+        pbc = torch.tensor(pbc_mask, device=df.device, dtype=torch.long)
+        if pbc.shape != (3,):
+            raise ValueError("pbc_mask must be a length-3 tuple.")
+        if not torch.all((pbc == 0) | (pbc == 1)):
+            raise ValueError("pbc_mask values must be 0 or 1.")
+
+    shifts_1d = torch.tensor([-1, 0, 1], device=df.device, dtype=df.dtype)
+    zeros_1d = torch.tensor([0], device=df.device, dtype=df.dtype)
+    components = [
+        shifts_1d if int(pbc[0].item()) == 1 else zeros_1d,
+        shifts_1d if int(pbc[1].item()) == 1 else zeros_1d,
+        shifts_1d if int(pbc[2].item()) == 1 else zeros_1d,
+    ]
+    shifts = torch.cartesian_prod(*components)  # (S, 3)
+
+    df_shifted = df.unsqueeze(-2) - shifts.view(1, 1, 1, -1, 3)  # (B, N, N, S, 3)
+    dr = torch.einsum("bijsk,bkm->bijsm", df_shifted, lattice)  # (B, N, N, S, 3)
+    dist_all = torch.linalg.norm(dr, dim=-1)  # (B, N, N, S)
+    min_idx = dist_all.argmin(dim=-1)  # (B, N, N)
+    dist = dist_all.gather(-1, min_idx.unsqueeze(-1)).squeeze(-1)
+
+    shifts_idx = shifts.to(torch.long)
+    shifts_selected = shifts_idx[min_idx]
+
+    valid = mask > 0.5
+    inf = torch.tensor(float("inf"), device=dist.device, dtype=dist.dtype)
+    dist = dist.masked_fill(~valid[:, :, None], inf)
+    dist = dist.masked_fill(~valid[:, None, :], inf)
+    dist.diagonal(dim1=-2, dim2=-1).fill_(inf)
+    shifts_selected = shifts_selected * valid[:, :, None].unsqueeze(-1)
+    shifts_selected = shifts_selected * valid[:, None, :].unsqueeze(-1)
+    return dist.clamp_min(eps), shifts_selected
+
+
 def build_knn(
     dist: torch.Tensor,
     k: int,
@@ -343,6 +396,7 @@ __all__ = [
     "niggli_reduce_lattice",
     "clip_lattice",
     "frac_mic_dist",
+    "frac_mic_dist_with_shifts",
     "build_knn",
     "rbf_expand",
 ]

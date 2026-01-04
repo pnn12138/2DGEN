@@ -53,7 +53,8 @@ uv run python -m twodgen.scrip.train_tokens \
   --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
   --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
   --g-scale 100 --k-neighbors 32 \
-  --cell-rep cholesky6 --pbc-mask 1,1,0
+  --cell-rep cholesky6 --pbc-mask 1,1,0 \
+  --use-condition
 ```
 可选：
 - `--bucket-batches`：按原子数分桶减少 padding。
@@ -70,6 +71,11 @@ uv run python -m twodgen.scrip.train_tokens \
 - `--use-condition`：启用条件扩散（默认仅 `counts_vector`，即化学式计数；如需额外条件再用 `--cond-fields` 指定）。
 - `--cond-fields`：自定义条件字段列表（例如 `counts_vector,lattice_param,t,xrd`）。当前默认不启用 XRD，仅预留接口。
 - `--cond-normalize-fields`：需要做 z-score 的条件字段（默认 `lattice_param,t`）。
+- `--use-comp-encoder/--no-use-comp-encoder`：是否启用 composition encoder（默认开启，推荐开启；需配合 `--use-condition` 才会生效；关闭用于消融或兼容旧 ckpt）。
+- `--comp-embed-dim`：composition encoder 的元素嵌入维度（默认 64；越大表达力越强，成本略增）。
+- `--comp-pool-mode`：composition pooling 权重模式，`count|sqrt|frac`（默认 `count`；`sqrt` 更稳，`frac` 更强调摩尔分数）。
+- `--comp-use-frac/--no-comp-use-frac`：是否拼接 fraction pooling（默认开启，推荐开启）。
+- `--element-ids`：指定 counts_vector 索引对应的元素 Z 列表（逗号分隔，例如 `1,6,8,...`）；当 counts_vector 不是按 Z=1..118 编码时必须设置。
 - `--pbc-mask`：控制 MIC 的 PBC 维度，默认 `1,1,0`（仅面内周期，z 非周期）；3D 晶体可设 `1,1,1`。
 
 采样与导出：

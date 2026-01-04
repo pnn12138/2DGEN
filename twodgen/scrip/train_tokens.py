@@ -65,6 +65,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-atoms", type=int, default=24)
     parser.add_argument("--g-scale", type=float, default=100.0)
     parser.add_argument("--k-neighbors", type=int, default=32)
+    parser.add_argument("--dual-graph", action="store_true", help="Use merged kNN(d_xy) + kNN(d_3d) graph.")
+    parser.add_argument("--edge-type-dim", type=int, default=0, help="Edge type embedding dim (0 disables).")
+    parser.add_argument(
+        "--edge-type-gating",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Apply learnable scalar gating per edge type.",
+    )
+    parser.add_argument("--wrap-embed-dim", type=int, default=0, help="Wrap embedding dim (0 disables).")
     parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--mode", type=str, default="diffusion", choices=["diffusion", "flow"])
     parser.add_argument("--no-uncertainty-weighting", action="store_true")
@@ -77,6 +86,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--cell-init-scale-factor", type=float, default=1.5)
     parser.add_argument("--cell-log-min-factor", type=float, default=0.7)
     parser.add_argument("--cell-log-max-factor", type=float, default=2.5)
+    parser.add_argument(
+        "--use-geometry-fields",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Use uv_angle/z_norm/lattice_param heads when available in the dataset.",
+    )
     parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction on-the-fly (CSV).")
     parser.add_argument("--bucket-batches", action="store_true", help="Bucket batches by atom count to reduce padding.")
     parser.add_argument("--bucket-shuffle", action="store_true", help="Shuffle within/among buckets.")
@@ -93,6 +108,32 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default="",
         help="Comma-separated condition fields to z-score normalize.",
+    )
+    parser.add_argument(
+        "--use-comp-encoder",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Enable composition encoder from counts_vector inside the model.",
+    )
+    parser.add_argument("--comp-embed-dim", type=int, default=64, help="Element embedding dim for comp encoder.")
+    parser.add_argument(
+        "--comp-pool-mode",
+        type=str,
+        default="count",
+        choices=["count", "sqrt", "frac"],
+        help="Composition pooling weights.",
+    )
+    parser.add_argument(
+        "--comp-use-frac",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Append fraction-weighted pooling to comp encoder.",
+    )
+    parser.add_argument(
+        "--element-ids",
+        type=str,
+        default=None,
+        help="Comma-separated element Z ids matching counts_vector indices.",
     )
     parser.add_argument(
         "--pbc-mask",
@@ -117,6 +158,20 @@ def _parse_cond_fields(value: Optional[str]) -> list[str]:
     if not value:
         return []
     return [item.strip() for item in value.split(",") if item.strip()]
+
+
+def _parse_element_ids(value: Optional[str]) -> Optional[list[int]]:
+    if value is None:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    ids = [int(item.strip()) for item in value.split(",") if item.strip()]
+    if not ids:
+        return None
+    if any(elem <= 0 for elem in ids):
+        raise ValueError("--element-ids must be positive integers (Z).")
+    return ids
 
 
 def _parse_betas(value: str) -> tuple[float, float]:
@@ -440,6 +495,8 @@ def train_one_epoch(
     clip_grad: float,
     ema: EMA | None,
     use_condition: bool,
+    use_geometry_fields: bool,
+    use_thickness: bool,
     max_atoms: int,
     num_elements: int,
     cond_stats: dict | None = None,
@@ -456,6 +513,24 @@ def train_one_epoch(
         frac = batch["frac_coords"].to(device, non_blocking=True)
         atom_mask = batch["atom_mask"].to(device, non_blocking=True)
         gram6 = batch["gram6"].to(device, non_blocking=True)
+        uv_angle = None
+        z_norm = None
+        lattice_param = None
+        slab_t = None
+        if use_geometry_fields:
+            uv_angle = batch.get("uv_angle")
+            z_norm = batch.get("z_norm")
+            lattice_param = batch.get("lattice_param")
+            if uv_angle is not None:
+                uv_angle = uv_angle.to(device, non_blocking=True)
+            if z_norm is not None:
+                z_norm = z_norm.to(device, non_blocking=True)
+            if lattice_param is not None:
+                lattice_param = lattice_param.to(device, non_blocking=True)
+        if use_thickness:
+            slab_t = batch.get("t")
+            if slab_t is not None:
+                slab_t = slab_t.to(device, non_blocking=True)
         cond = None
         if use_condition:
             cond = _build_condition(
@@ -465,10 +540,26 @@ def train_one_epoch(
                 cond_stats=cond_stats,
                 cond_fields=cond_fields,
             ).to(device, non_blocking=True)
+        counts_vector = None
+        if use_condition:
+            counts_vector = batch.get("counts_vector")
+            if counts_vector is not None:
+                counts_vector = counts_vector.to(device, non_blocking=True)
 
         lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
         optimizer.zero_grad(set_to_none=True)
-        loss, _, _, _, metrics = model(z, frac, atom_mask, gram6, cond)
+        loss, _, _, _, metrics = model(
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            cond,
+            counts_vector,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+        )
         loss.backward()
         if clip_grad > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
@@ -484,12 +575,28 @@ def train_one_epoch(
                 f"loss_z={metrics['loss_z'].item():.4f} "
                 f"lr={lr:.6e}"
             )
+            if use_geometry_fields:
+                msg += (
+                    f" loss_uv={metrics['loss_uv'].item():.4f}"
+                    f" loss_zn={metrics['loss_zn'].item():.4f}"
+                    f" loss_lat={metrics['loss_lat'].item():.4f}"
+                )
+            if use_thickness:
+                msg += f" loss_t={metrics['loss_t'].item():.4f}"
             if "s_f" in metrics:
                 msg += (
                     f" s_f={metrics['s_f'].item():.3f}"
                     f" s_g={metrics['s_g'].item():.3f}"
                     f" s_z={metrics['s_z'].item():.3f}"
                 )
+                if use_geometry_fields:
+                    msg += (
+                        f" s_uv={metrics['s_uv'].item():.3f}"
+                        f" s_zn={metrics['s_zn'].item():.3f}"
+                        f" s_lat={metrics['s_lat'].item():.3f}"
+                    )
+                if use_thickness:
+                    msg += f" s_t={metrics['s_t'].item():.3f}"
             print(msg)
             if metrics_log_path is not None:
                 payload = {
@@ -500,6 +607,16 @@ def train_one_epoch(
                     "loss_z": float(metrics["loss_z"].item()),
                     "lr": float(lr),
                 }
+                if use_geometry_fields:
+                    payload.update(
+                        {
+                            "loss_uv": float(metrics["loss_uv"].item()),
+                            "loss_zn": float(metrics["loss_zn"].item()),
+                            "loss_lat": float(metrics["loss_lat"].item()),
+                        }
+                    )
+                if use_thickness:
+                    payload["loss_t"] = float(metrics["loss_t"].item())
                 if "s_f" in metrics:
                     payload.update(
                         {
@@ -508,6 +625,16 @@ def train_one_epoch(
                             "s_z": float(metrics["s_z"].item()),
                         }
                     )
+                    if use_geometry_fields:
+                        payload.update(
+                            {
+                                "s_uv": float(metrics["s_uv"].item()),
+                                "s_zn": float(metrics["s_zn"].item()),
+                                "s_lat": float(metrics["s_lat"].item()),
+                            }
+                        )
+                    if use_thickness:
+                        payload["s_t"] = float(metrics["s_t"].item())
                 with metrics_log_path.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
@@ -585,11 +712,22 @@ def main() -> None:
         g_scale = args.g_scale
 
     use_condition = args.use_condition
+    geom_available = all(
+        getattr(dataset, name, None) is not None for name in ("uv_angle", "z_norm", "lattice_param")
+    )
+    t_available = getattr(dataset, "t", None) is not None
+    use_geometry_fields = args.use_geometry_fields and geom_available
+    if args.use_geometry_fields and not geom_available:
+        print("[warn] geometry fields not found in dataset; disabling geometry heads.")
+    use_thickness = use_geometry_fields and t_available
+    if use_geometry_fields and not t_available:
+        print("[warn] thickness field not found in dataset; disabling t head.")
     cond_max_atoms = int(getattr(dataset, "max_atoms", args.max_atoms))
     cond_dim = 0
     cond_stats = {}
     cond_fields = _resolve_cond_fields(args)
     normalize_fields = _parse_cond_fields(args.cond_normalize_fields)
+    element_ids = _parse_element_ids(args.element_ids)
     if use_condition:
         sample = dataset[0]
         cond_dim = _infer_cond_dim(sample, cond_fields, num_elements=118)
@@ -605,6 +743,10 @@ def main() -> None:
             args.chol_log_min = float(np.log(max(args.cell_log_min_factor * s10, 1e-6)))
         if args.chol_log_max is None:
             args.chol_log_max = float(np.log(max(args.cell_log_max_factor * s90, 1e-6)))
+
+    if args.dual_graph and args.edge_type_dim == 0:
+        args.edge_type_dim = 4
+        print("[warn] --dual-graph enabled with edge_type_dim=0; defaulting to 4.")
 
     loader = prepare_dataloader(
         dataset,
@@ -634,7 +776,16 @@ def main() -> None:
         chol_log_min=args.chol_log_min,
         chol_log_max=args.chol_log_max,
         cond_dim=cond_dim,
+        use_comp_encoder=args.use_comp_encoder,
+        comp_embed_dim=args.comp_embed_dim,
+        comp_pool_mode=args.comp_pool_mode,
+        comp_use_frac=args.comp_use_frac,
+        element_ids=element_ids,
         pbc_mask=pbc_mask,
+        dual_graph=args.dual_graph,
+        edge_type_dim=args.edge_type_dim,
+        edge_type_gating=args.edge_type_gating,
+        wrap_embed_dim=args.wrap_embed_dim,
     )
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     denoiser_cfg.diffusion.mode = args.mode
@@ -684,6 +835,11 @@ def main() -> None:
             "cond_normalize_fields": normalize_fields,
             "cond_stats": _serialize_cond_stats(cond_stats),
         },
+        "geometry_config": {
+            "use_geometry_fields": use_geometry_fields,
+            "geom_fields": ["uv_angle", "z_norm", "lattice_param", "t"],
+            "use_thickness": use_thickness,
+        },
     }
     with (run_dir / "config.json").open("w", encoding="utf-8") as f:
         json.dump(config_payload, f, indent=2, ensure_ascii=True)
@@ -712,6 +868,8 @@ def main() -> None:
             clip_grad=args.clip_grad,
             ema=ema,
             use_condition=use_condition,
+            use_geometry_fields=use_geometry_fields,
+            use_thickness=use_thickness,
             max_atoms=cond_max_atoms,
             num_elements=118,
             cond_stats=cond_stats,

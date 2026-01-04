@@ -66,6 +66,18 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         default=False,
         help="Project frac/lattice back to valid manifold at every sampling step.",
     )
+    parser.add_argument(
+        "--project-geometry",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Update uv_angle/z_norm/lattice_param/t; project uv_angle/z_norm back to valid manifold each step.",
+    )
+    parser.add_argument(
+        "--z-norm-clip",
+        type=float,
+        default=None,
+        help="Clip range for z_norm projection (defaults to npz value or 1.5).",
+    )
     parser.add_argument("--cond-npz", type=Path, default=None, help="NPZ with counts/lattice params for conditioning.")
     parser.add_argument("--cond-index", type=int, default=None, help="Use a specific row from cond-npz for all samples.")
     parser.add_argument("--cond-first", type=int, default=None, help="Use the first N rows from cond-npz.")
@@ -164,6 +176,13 @@ def _load_npz_scube_stats(npz_path: Path) -> Optional[Tuple[float, float, float,
     s90 = float(np.percentile(scube, 90.0))
     log_std = float(np.std(np.log(scube + 1e-12)))
     return s10, s50, s90, log_std
+
+
+def _load_npz_z_norm_clip(npz_path: Path) -> Optional[float]:
+    data = np.load(npz_path)
+    if "z_norm_clip" not in data:
+        return None
+    return float(np.asarray(data["z_norm_clip"]).reshape(-1)[0])
 
 
 def _build_cond_from_npz(
@@ -277,12 +296,31 @@ def run_sampling(args: argparse.Namespace) -> Path:
             model_cfg.chol_log_max = None
         if not hasattr(model_cfg, "cond_dim"):
             model_cfg.cond_dim = 0
+        if not hasattr(model_cfg, "use_comp_encoder"):
+            model_cfg.use_comp_encoder = True
+        if not hasattr(model_cfg, "comp_embed_dim"):
+            model_cfg.comp_embed_dim = 64
+        if not hasattr(model_cfg, "comp_pool_mode"):
+            model_cfg.comp_pool_mode = "count"
+        if not hasattr(model_cfg, "comp_use_frac"):
+            model_cfg.comp_use_frac = True
+        if not hasattr(model_cfg, "element_ids"):
+            model_cfg.element_ids = None
         if not hasattr(model_cfg, "pbc_mask"):
             model_cfg.pbc_mask = (1, 1, 0)
+        if not hasattr(model_cfg, "dual_graph"):
+            model_cfg.dual_graph = False
+        if not hasattr(model_cfg, "edge_type_dim"):
+            model_cfg.edge_type_dim = 0
+        if not hasattr(model_cfg, "edge_type_gating"):
+            model_cfg.edge_type_gating = True
+        if not hasattr(model_cfg, "wrap_embed_dim"):
+            model_cfg.wrap_embed_dim = 0
     if args.pbc_mask is not None:
         model_cfg.pbc_mask = _parse_pbc_mask(args.pbc_mask)
     diff_cfg = ckpt.get("diffusion_config")
     cond_cfg = ckpt.get("cond_config", {})
+    geom_cfg = ckpt.get("geometry_config", {})
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     if diff_cfg is not None:
         if isinstance(diff_cfg, dict):
@@ -323,15 +361,31 @@ def run_sampling(args: argparse.Namespace) -> Path:
         denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
     denoiser_cfg.neighbor_update_steps = max(args.neighbor_update_steps, 1)
     denoiser_cfg.project_each_step = args.project_each_step
+    denoiser_cfg.project_geometry = args.project_geometry
+    z_norm_clip = args.z_norm_clip
+    if z_norm_clip is None and args.npz is not None:
+        z_norm_clip = _load_npz_z_norm_clip(args.npz)
+    if z_norm_clip is None and args.cond_npz is not None:
+        z_norm_clip = _load_npz_z_norm_clip(args.cond_npz)
+    if z_norm_clip is None:
+        z_norm_clip = denoiser_cfg.z_norm_clip
+    denoiser_cfg.z_norm_clip = float(z_norm_clip)
+    if args.project_geometry and isinstance(geom_cfg, dict):
+        if geom_cfg.get("use_geometry_fields") is False:
+            print("[warn] geometry projection requested but checkpoint was trained without geometry heads.")
     # Avoid lattice-only reductions; apply coordinate-consistent reductions before export.
     denoiser_cfg.reduce_lattice = False
     denoiser_cfg.niggli_reduce = False
     model = AtomDenoiser(denoiser_cfg).to(device)
     if args.use_ema and ckpt.get("ema_state_dict") is not None:
-        model.load_state_dict(ckpt["ema_state_dict"], strict=False)
+        incompatible = model.load_state_dict(ckpt["ema_state_dict"], strict=False)
         print("Loaded EMA weights from checkpoint.")
     else:
-        model.load_state_dict(ckpt["model_state_dict"])
+        incompatible = model.load_state_dict(ckpt["model_state_dict"], strict=False)
+    if incompatible.missing_keys:
+        print(f"[warn] Missing keys in checkpoint: {len(incompatible.missing_keys)}")
+    if incompatible.unexpected_keys:
+        print(f"[warn] Unexpected keys in checkpoint: {len(incompatible.unexpected_keys)}")
     model.eval()
 
     cond = None
@@ -408,13 +462,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
     frac_np = np.zeros((args.num_samples, args.max_atoms, 3), dtype=np.float32)
     lattice_np = np.zeros((args.num_samples, 3, 3), dtype=np.float32)
     mask_np = np.zeros((args.num_samples, args.max_atoms), dtype=np.float32)
+    lattice_param_np = None
+    slab_t_np = None
 
     for num_atoms in sorted(set(num_atoms_list)):
         idxs = [i for i, val in enumerate(num_atoms_list) if val == num_atoms]
         if not idxs:
             continue
         with torch.no_grad():
-            z, frac, gram6, atom_mask = model.generate(
+            counts_tensor = None
+            if cond_counts_vector is not None:
+                counts_tensor = torch.from_numpy(cond_counts_vector[idxs]).to(device)
+            z, frac, gram6, atom_mask, lattice_param, slab_t = model.generate(
                 num_atoms=num_atoms,
                 max_atoms=args.max_atoms,
                 batch_size=len(idxs),
@@ -425,12 +484,21 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 z_top_k=args.z_top_k,
                 z_top_p=args.z_top_p,
                 cond=cond[idxs] if cond is not None else None,
+                counts_vector=counts_tensor,
             )
             lattice = model.gram6_to_lattice(gram6)
         z_np[idxs] = z.cpu().numpy()
         frac_np[idxs] = frac.cpu().numpy()
         lattice_np[idxs] = lattice.cpu().numpy()
         mask_np[idxs] = atom_mask.cpu().numpy()
+        if lattice_param is not None:
+            if lattice_param_np is None:
+                lattice_param_np = np.zeros((args.num_samples, lattice_param.shape[-1]), dtype=np.float32)
+            lattice_param_np[idxs] = lattice_param.cpu().numpy()
+        if slab_t is not None:
+            if slab_t_np is None:
+                slab_t_np = np.zeros((args.num_samples,), dtype=np.float32)
+            slab_t_np[idxs] = slab_t.cpu().numpy()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     valid_flags = np.zeros((args.num_samples,), dtype=np.int8)
@@ -521,6 +589,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "valid": valid_flags,
         "cif_written": cif_written,
     }
+    if lattice_param_np is not None:
+        payload["lattice_param"] = lattice_param_np
+    if slab_t_np is not None:
+        payload["t"] = slab_t_np
     if cond_indices is not None:
         payload["cond_indices"] = cond_indices
     if cond_counts_vector is not None:
