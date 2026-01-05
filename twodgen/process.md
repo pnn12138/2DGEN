@@ -30,6 +30,8 @@
 - 双图与 wrap embedding 已接入：`--dual-graph` + `--wrap-embed-dim`。
 - 评估已支持 `--pbc-mask`，可与训练/采样的 slab 2D PBC 对齐。
 - 采样可写入条件计数向量（`cond_counts_vector`），评估会输出化学式匹配指标。
+- canonical 坐标系已打通：缓存支持 `f_canon/lattice_canon/gram6_canon`，训练/采样默认 `--coord-frame canon` 并对齐 per-atom 字段。
+- 评估脚本已去掉采样循环依赖；plot_compare 默认精确 MIC（可用 `--mic-mode approx` 复现旧图）。
 
 ---
 
@@ -52,7 +54,8 @@
 
 ### 1.3 缓存字段
 - 训练主输入：`z, f, gram6, atom_mask`。
-- A++ v3 额外字段：`z_canon, uvz, uv_angle, u, v, z_norm, t, a_hat, b_hat, n, lattice_param, counts_vector, order_idx`。
+- canonical 追加字段：`f_canon, lattice_canon, gram6_canon, order_inv, schema_version, coord_frame`。
+- A++ v3 额外字段：`z_canon, uvz, uv_angle, u, v, z_norm, t, a_hat, b_hat, n, lattice_param, counts_vector, order_idx, u_shift, v_shift`。
 
 ### 1.4 Token 缓存格式与约定
 - 由 `data/prepare_c2db_tokens.py` 写出的 npz 需包含 `gram6_convention="row_lattice"`。

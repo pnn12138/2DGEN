@@ -126,6 +126,7 @@ def preprocess_cartesian(
 
     a_vec = cell[0]
     b_vec = cell[1]
+    c_vec = cell[2]
 
     n_raw = np.cross(a_vec, b_vec)
     n_norm = np.linalg.norm(n_raw)
@@ -218,6 +219,14 @@ def preprocess_cartesian(
         if 1 <= int(z_val) <= cfg.max_atomic_number:
             counts[int(z_val) - 1] += 1
 
+    c_len = float(abs(np.dot(c_vec, n_vec)))
+    if c_len < cfg.eps_inv:
+        c_len = float(np.linalg.norm(c_vec))
+    if c_len < cfg.eps_inv:
+        c_len = 1.0
+    c_hat = n_vec * c_len
+    lattice_canon = np.stack([a_hat, b_hat, c_hat], axis=0).astype(np.float32)
+
     return {
         "Z": z_sorted.astype(np.int64),
         "u": u_sorted.astype(np.float32),
@@ -228,6 +237,9 @@ def preprocess_cartesian(
         "a_hat": a_hat.astype(np.float32),
         "b_hat": b_hat.astype(np.float32),
         "n": n_vec.astype(np.float32),
+        "lattice_canon": lattice_canon,
+        "u_shift": np.array(u_shift, dtype=np.float32),
+        "v_shift": np.array(v_shift, dtype=np.float32),
         "lattice_param": lattice_param.astype(np.float32),
         "counts_vector": counts.astype(np.int64),
         "order_idx": order_idx.astype(np.int64),

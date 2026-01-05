@@ -55,6 +55,13 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--cell-init-scale", type=float, default=None)
     parser.add_argument("--cell-init-noise", type=float, default=None)
     parser.add_argument(
+        "--coord-frame",
+        type=str,
+        default="canon",
+        choices=["raw", "canon"],
+        help="Coordinate frame of frac/lattice for sampling and outputs.",
+    )
+    parser.add_argument(
         "--pbc-mask",
         type=str,
         default=None,
@@ -145,12 +152,17 @@ def _parse_pbc_mask(value: str) -> tuple[int, int, int]:
     return mask  # type: ignore[return-value]
 
 
-def _load_npz_stats(npz_path: Path) -> Tuple[np.ndarray, Optional[Tuple[float, float]]]:
+def _load_npz_stats(
+    npz_path: Path, coord_frame: str
+) -> Tuple[np.ndarray, Optional[Tuple[float, float]]]:
     data = np.load(npz_path)
     mask = data["atom_mask"]
     counts = mask.sum(axis=1).astype(int)
     counts = counts[counts > 0]
-    lattice = data["lattice"] if "lattice" in data else None
+    if coord_frame == "canon" and "lattice_canon" in data:
+        lattice = data["lattice_canon"]
+    else:
+        lattice = data["lattice"] if "lattice" in data else None
     if lattice is None:
         return counts, None
     vols = np.abs(np.linalg.det(lattice))
@@ -159,9 +171,12 @@ def _load_npz_stats(npz_path: Path) -> Tuple[np.ndarray, Optional[Tuple[float, f
     return counts, (v_min, v_max)
 
 
-def _load_npz_scube_stats(npz_path: Path) -> Optional[Tuple[float, float, float, float]]:
+def _load_npz_scube_stats(npz_path: Path, coord_frame: str) -> Optional[Tuple[float, float, float, float]]:
     data = np.load(npz_path)
-    lattice = data["lattice"] if "lattice" in data else None
+    if coord_frame == "canon" and "lattice_canon" in data:
+        lattice = data["lattice_canon"]
+    else:
+        lattice = data["lattice"] if "lattice" in data else None
     if lattice is None:
         return None
     g_scale = float(data["g_scale"]) if "g_scale" in data else 1.0
@@ -280,7 +295,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
     n_counts = None
     vol_bounds = None
     if args.npz is not None:
-        n_counts, vol_bounds = _load_npz_stats(args.npz)
+        n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=args.coord_frame)
 
     print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
@@ -340,7 +355,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         if not hasattr(denoiser_cfg.diffusion, "cell_init_noise"):
             denoiser_cfg.diffusion.cell_init_noise = None
     if denoiser_cfg.diffusion.cell_rep == "cholesky6" and args.npz is not None:
-        scube_stats = _load_npz_scube_stats(args.npz)
+        scube_stats = _load_npz_scube_stats(args.npz, coord_frame=args.coord_frame)
         if scube_stats is not None:
             s10, s50, s90, log_std = scube_stats
             if denoiser_cfg.diffusion.cell_init == "iso" and denoiser_cfg.diffusion.cell_init_scale is None:
@@ -402,6 +417,13 @@ def run_sampling(args: argparse.Namespace) -> Path:
             if cond_cfg.get("include_t", False):
                 cond_fields.append("t")
     cond_stats = cond_cfg.get("cond_stats") if isinstance(cond_cfg, dict) else None
+    t_normalize = False
+    t_mean = None
+    t_std = None
+    if isinstance(geom_cfg, dict):
+        t_normalize = bool(geom_cfg.get("t_normalize", False))
+        t_mean = geom_cfg.get("t_mean")
+        t_std = geom_cfg.get("t_std")
     rng = np.random.default_rng(args.seed)
 
     cond_counts_vector = None
@@ -498,7 +520,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
         if slab_t is not None:
             if slab_t_np is None:
                 slab_t_np = np.zeros((args.num_samples,), dtype=np.float32)
-            slab_t_np[idxs] = slab_t.cpu().numpy()
+            slab_t_out = slab_t
+            if t_normalize and t_mean is not None and t_std is not None:
+                slab_t_out = slab_t_out * float(t_std) + float(t_mean)
+            slab_t_np[idxs] = slab_t_out.cpu().numpy()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
     valid_flags = np.zeros((args.num_samples,), dtype=np.int8)
@@ -588,6 +613,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "atom_mask": mask_np,
         "valid": valid_flags,
         "cif_written": cif_written,
+        "coord_frame": np.array(args.coord_frame),
     }
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np

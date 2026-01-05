@@ -1,9 +1,12 @@
 ## 可能的冗余/待确认点
 - Legacy 网格路线已移除，无需再维护 `grid_to_structure()` 相关逻辑。
 - `cond_lattice_mean/cond_lattice_std/cond_t_mean/cond_t_std` 在默认“仅化学式条件”下不会使用，可视情况延迟写入。
+- `data/prepare_c2db_tokens.py` 的 `--preprocess-v3/--no-preprocess-v3` 开关：当前主线已默认 v3+canonical，可评估是否需要保留“禁用预处理”的分支。
+- `C2DBTokenNPZDataset` 中保留的 legacy npz key 白名单（`nbr_idx/nbr_dist/nbr_mask` 等）若不再支持旧缓存，可删除以简化加载逻辑。
 
 ## 疑似冗余/危险代码（建议尽快处理）
 - `data/dataset.py`：历史 stub 已替换为 `C2DBTokenNPZDataset` 的兼容别名（`CrystDataset`），不再依赖 `torch_geometric`。
+- `data/migrate_gram6_convention.py`：仅用于旧缓存迁移，若项目已统一新 npz 可移除或移动到 `tools/legacy`。
 - `common/crystal.py:clip_lattice()` 与 `model/atom_denoiser.py` 的 `v_min/v_max/cond_max`：目前采样/训练流程未实际调用晶胞 clip（只在评估中做 volume 判定），可能导致极端晶胞输出难以约束；建议要么接入采样投影/clip，要么移除这些未使用参数以免误导。
 
 ## 结构性重复（可以合并）

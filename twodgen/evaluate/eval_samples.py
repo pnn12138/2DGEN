@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
-from twodgen.scrip import sample_tokens as sample_tokens_mod
+
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
     parts = [p.strip() for p in value.split(",")]
@@ -420,6 +420,8 @@ def main() -> None:
     if args.sample:
         if args.checkpoint is None:
             raise ValueError("--checkpoint is required when using --sample.")
+        from twodgen.scrip import sample_tokens as sample_tokens_mod
+
         sample_argv = ["--checkpoint", str(args.checkpoint)]
         if args.sample_out_dir is not None:
             sample_argv += ["--out-dir", str(args.sample_out_dir)]

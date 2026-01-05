@@ -77,6 +77,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--mode", type=str, default="diffusion", choices=["diffusion", "flow"])
     parser.add_argument("--no-uncertainty-weighting", action="store_true")
+    parser.add_argument(
+        "--drop-last",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Drop last incomplete batch (can hurt small datasets).",
+    )
     parser.add_argument("--cell-rep", type=str, default="gram6", choices=["gram6", "cholesky6"])
     parser.add_argument("--chol-log-min", type=float, default=None)
     parser.add_argument("--chol-log-max", type=float, default=None)
@@ -91,6 +97,19 @@ def parse_args() -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=True,
         help="Use uv_angle/z_norm/lattice_param heads when available in the dataset.",
+    )
+    parser.add_argument(
+        "--align-atoms",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Align per-atom fields using order_idx when available.",
+    )
+    parser.add_argument(
+        "--coord-frame",
+        type=str,
+        default="canon",
+        choices=["raw", "canon"],
+        help="Coordinate frame for frac/lattice when using token npz.",
     )
     parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction on-the-fly (CSV).")
     parser.add_argument("--bucket-batches", action="store_true", help="Bucket batches by atom count to reduce padding.")
@@ -249,6 +268,7 @@ def prepare_dataloader(
     use_buckets: bool,
     shuffle: bool,
     seed: int,
+    drop_last: bool,
 ) -> DataLoader:
     generator = torch.Generator()
     generator.manual_seed(seed)
@@ -276,7 +296,7 @@ def prepare_dataloader(
         shuffle=shuffle,
         num_workers=num_workers,
         pin_memory=True,
-        drop_last=True,
+        drop_last=drop_last,
         collate_fn=dataset.collate_fn,
         generator=generator,
         worker_init_fn=_seed_worker if num_workers > 0 else None,
@@ -501,6 +521,7 @@ def train_one_epoch(
     num_elements: int,
     cond_stats: dict | None = None,
     cond_fields: Optional[list[str]] = None,
+    t_stats: tuple[float, float] | None = None,
     metrics_log_path: Optional[Path] = None,
 ) -> tuple[int, float]:
     model.train()
@@ -531,6 +552,9 @@ def train_one_epoch(
             slab_t = batch.get("t")
             if slab_t is not None:
                 slab_t = slab_t.to(device, non_blocking=True)
+                if t_stats is not None:
+                    t_mean, t_std = t_stats
+                    slab_t = (slab_t - t_mean) / t_std
         cond = None
         if use_condition:
             cond = _build_condition(
@@ -697,10 +721,26 @@ def main() -> None:
     print(f"Using device: {device}")
 
     if args.npz is not None:
-        dataset = C2DBTokenNPZDataset(args.npz)
+        if args.coord_frame == "canon" and not args.align_atoms:
+            raise ValueError("--coord-frame canon requires --align-atoms to keep per-atom fields aligned.")
+        dataset = C2DBTokenNPZDataset(
+            args.npz, align_atoms=args.align_atoms, coord_frame=args.coord_frame
+        )
         if args.g_scale != dataset.g_scale:
             print(f"[warn] g_scale {args.g_scale} != dataset g_scale {dataset.g_scale}")
         g_scale = dataset.g_scale
+        if getattr(dataset, "coord_frame", None) is not None or getattr(dataset, "schema_version", None) is not None:
+            print(
+                "[info] dataset alignment: "
+                f"align_atoms={dataset.align_atoms} "
+                f"coord_frame={getattr(dataset, 'coord_frame', None)} "
+                f"schema_version={getattr(dataset, 'schema_version', None)}"
+            )
+        if getattr(dataset, "coord_frame_actual", None) is not None and dataset.coord_frame_actual != args.coord_frame:
+            print(
+                f"[warn] requested coord_frame={args.coord_frame} "
+                f"but dataset fell back to coord_frame={dataset.coord_frame_actual}"
+            )
     else:
         csv_path = args.csv if args.csv is not None else Path("data/C2DB/c2db_summary.csv")
         dataset = C2DBAtomDataset(
@@ -715,6 +755,16 @@ def main() -> None:
     geom_available = all(
         getattr(dataset, name, None) is not None for name in ("uv_angle", "z_norm", "lattice_param")
     )
+    if (
+        args.use_geometry_fields
+        and isinstance(dataset, C2DBTokenNPZDataset)
+        and getattr(dataset, "order_idx", None) is not None
+        and not dataset.align_atoms
+    ):
+        raise ValueError(
+            "Geometry fields enabled but align_atoms is False while order_idx exists. "
+            "Set --align-atoms or disable geometry heads."
+        )
     t_available = getattr(dataset, "t", None) is not None
     use_geometry_fields = args.use_geometry_fields and geom_available
     if args.use_geometry_fields and not geom_available:
@@ -722,6 +772,22 @@ def main() -> None:
     use_thickness = use_geometry_fields and t_available
     if use_geometry_fields and not t_available:
         print("[warn] thickness field not found in dataset; disabling t head.")
+    t_stats = None
+    if use_thickness:
+        t_values = getattr(dataset, "t", None)
+        if t_values is not None:
+            if getattr(dataset, "cond_t_mean", None) is not None and getattr(dataset, "cond_t_std", None) is not None:
+                t_mean = float(dataset.cond_t_mean.reshape(-1)[0])
+                t_std = float(dataset.cond_t_std.reshape(-1)[0])
+            else:
+                t_float = t_values.float()
+                t_mean = float(t_float.mean().item())
+                t_std = float(t_float.std(unbiased=False).clamp_min(1e-6).item())
+            if t_std <= 0:
+                t_std = 1e-6
+            t_stats = (t_mean, t_std)
+        else:
+            print("[warn] thickness field missing for normalization; using raw t.")
     cond_max_atoms = int(getattr(dataset, "max_atoms", args.max_atoms))
     cond_dim = 0
     cond_stats = {}
@@ -748,6 +814,9 @@ def main() -> None:
         args.edge_type_dim = 4
         print("[warn] --dual-graph enabled with edge_type_dim=0; defaulting to 4.")
 
+    if not args.drop_last and len(dataset) < args.batch_size:
+        print("[warn] --no-drop-last with dataset smaller than batch size; expect tiny batches.")
+
     loader = prepare_dataloader(
         dataset,
         args.batch_size,
@@ -755,6 +824,7 @@ def main() -> None:
         args.bucket_batches,
         args.bucket_shuffle,
         seed=args.seed,
+        drop_last=args.drop_last,
     )
 
     model_hparams = _resolve_model_hparams(args)
@@ -839,6 +909,9 @@ def main() -> None:
             "use_geometry_fields": use_geometry_fields,
             "geom_fields": ["uv_angle", "z_norm", "lattice_param", "t"],
             "use_thickness": use_thickness,
+            "t_normalize": t_stats is not None,
+            "t_mean": t_stats[0] if t_stats is not None else None,
+            "t_std": t_stats[1] if t_stats is not None else None,
         },
     }
     with (run_dir / "config.json").open("w", encoding="utf-8") as f:
@@ -874,6 +947,7 @@ def main() -> None:
             num_elements=118,
             cond_stats=cond_stats,
             cond_fields=cond_fields,
+            t_stats=t_stats,
             metrics_log_path=metrics_log_path,
         )
         print(f"[epoch {epoch + 1}] mean loss={epoch_loss:.4f}")
@@ -896,6 +970,14 @@ def main() -> None:
                 "cond_fields": cond_fields,
                 "cond_normalize_fields": normalize_fields,
                 "cond_stats": _serialize_cond_stats(cond_stats),
+            },
+            "geometry_config": {
+                "use_geometry_fields": use_geometry_fields,
+                "geom_fields": ["uv_angle", "z_norm", "lattice_param", "t"],
+                "use_thickness": use_thickness,
+                "t_normalize": t_stats is not None,
+                "t_mean": t_stats[0] if t_stats is not None else None,
+                "t_std": t_stats[1] if t_stats is not None else None,
             },
         }
 

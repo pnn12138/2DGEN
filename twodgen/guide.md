@@ -26,13 +26,13 @@
 - **2D PBC**：默认 `pbc_mask=1,1,0`，`frac_mic_dist` + `build_knn` 计算邻居。
 - **扩散目标**：连续 `F/g` v-pred + 离散 `Z` mask diffusion（`AtomVelocityLoss`）。
 - **条件扩散**：`counts_vector` 为默认条件；可通过 `--cond-fields` 加入 `lattice_param/t`。
+- **几何前向与损失**：`uv_angle/z_norm/lattice_param/t` 已接入模型前向与 loss。
+- **双图与 wrap embedding**：支持 `--dual-graph` 与 `--wrap-embed-dim`。
+- **采样期几何投影**：支持 `--project-geometry`（uv_angle/z_norm 投影）。
+- **canonical 坐标缓存**：预处理可写入 `f_canon/lattice_canon/gram6_canon` 与 `order_inv`，训练可切换 `--coord-frame canon`。
 
 ### 未对齐/设计中
-- **uv_angle/z_norm/lattice_param 作为主扩散变量**：目前只缓存，未进入模型前向。
-- **2D 双图/补边策略**：当前仅单图 kNN（基于 MIC 距离），未实现 `kNN(d_xy)` + `kNN(d_3d)`。
-- **PBC wrap embedding**：当前未显式编码 `(m,n)` wrap。
-- **厚度策略 S0–S3**：`t` 仅可作为条件字段；未实现 `t_head` 或 `t` 扩散。
-- **采样期 manifold 投影（uv_angle/z_norm）**：当前仅 `frac` wrap + `clip_lattice`，不涉及 uv_angle/z_norm。
+- **坐标系一致性与字段对齐**：`uv_angle/z_norm` 与 `z/frac` 的顺序和坐标系仍需修复（详见 `problem.md`）。
 
 > 结论：本 guide 仍是“设计目标 + 预处理已落地 + 训练/采样部分落地”的混合文档；如需完全对齐实现，应以 `process.md` 与脚本为准。
 

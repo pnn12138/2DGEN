@@ -10,6 +10,8 @@
 - A++ v3 预处理字段已写入 npz（`uv_angle` 等）。
 - 邻居图支持 slab 2D PBC（默认 `--pbc-mask 1,1,0`），训练/采样均在线构图。
 - 采样支持可选 `--eval`，可直接输出 Tier‑0/1 评估结果。
+- 训练/采样支持 canonical 坐标系（`--coord-frame canon`），并通过 `order_idx` 对齐 per-atom 字段。
+- 评估脚本去除了采样循环依赖；`plot_compare` 默认使用精确 MIC。
 
 ## 数据预处理（Token 默认）
 1. 准备原始 CSV：`data/C2DB/c2db_summary.csv`（已包含 CIF 文本）。
@@ -17,7 +19,7 @@
   ```bash
   uv run python -m twodgen.data.prepare_c2db_tokens \
     --csv data/C2DB/c2db_summary.csv \
-    --out data/C2DB/ache/c2db_tokens_2d_based.npz \
+    --out data/C2DB/cache/c2db_tokens_2d_based.npz \
     --max-atoms 24 --g-scale 100
   ```
   - 约定：`lattice` 为“行向量基矢”，笛卡尔坐标满足 `cart = frac @ lattice`；对应 Gram6 使用 `G = lattice @ lattice^T`（并写入 `gram6_convention=row_lattice`）。
@@ -29,13 +31,13 @@
 3. 训练（不使用预计算邻居图；邻居基于扩散状态在线构建）：
   ```bash
   uv run python -m twodgen.scrip.train_tokens \
-    --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+    --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
     --epochs 100 --batch-size 256 --lr 1e-4 \
     --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
     --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
     --g-scale 100 --k-neighbors 32 \
     --cell-rep cholesky6 --pbc-mask 1,1,0 \
-    --use-condition
+    --use-condition --coord-frame canon --align-atoms
   ```
   也可用 CLI：`twodgen-train --npz ...`
   - `--g-scale` 应与 npz 内 `g_scale` 一致（脚本会提示不一致告警）。
@@ -48,19 +50,24 @@
 训练：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/ache/c2db_tokens.npz \
+  --npz data/C2DB/cache/c2db_tokens.npz \
   --epochs 100 --batch-size 256 --lr 1e-4 \
   --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
   --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
   --g-scale 100 --k-neighbors 32 \
   --cell-rep cholesky6 --pbc-mask 1,1,0 \
-  --use-condition
+  --use-condition --coord-frame canon --align-atoms
 ```
 可选：
 - `--bucket-batches`：按原子数分桶减少 padding。
 - `--niggli-reduce`：CSV 直读时对晶胞做 Niggli 规约。
 - `--cell-rep gram6`：切回 Gram6（默认）。
 - `--cell-init iso`：Cholesky-6D 采样先验用各向同性 `y_iso`，自动估计尺度与 clamp（也可手动覆盖）。
+- `--use-geometry-fields/--no-use-geometry-fields`：启用 uv_angle/z_norm/lattice_param/t 头（npz 中存在时生效）。
+- `--align-atoms/--no-align-atoms`：使用 order_idx 对齐 per-atom 字段（建议开启）。
+- `--coord-frame {raw,canon}`：选择 frac/lattice 坐标系（推荐 `canon`）。
+- `--dual-graph`：启用 kNN(d_xy)+kNN(d_3d) 双图与 edge_type。
+- `--wrap-embed-dim`：启用 wrap embedding 并设置维度（0 关闭）。
 - `--weight-decay`：权重衰减（推荐 1e-2，小数据可降到 1e-3）。
 - `--betas`：AdamW betas（推荐 0.9,0.95）。
 - `--warmup-steps`：warmup 步数（按总 steps 的 5% 取值）。
@@ -83,9 +90,9 @@ uv run python -m twodgen.scrip.train_tokens \
 uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
   --num-samples 10 --steps 20 --method euler \
-  --max-atoms 24 --g-scale 100 --npz data/C2DB/ache/c2db_tokens.npz \
+  --max-atoms 24 --g-scale 100 --npz data/C2DB/cache/c2db_tokens.npz \
   --use-ema \
-  --pbc-mask 1,1,0 \
+  --pbc-mask 1,1,0 --coord-frame canon --project-geometry \
   --out-dir outputs/samples_tokens
 ```
 也可用 CLI：`twodgen-sample --checkpoint ...`
@@ -95,6 +102,7 @@ uv run python -m twodgen.scrip.sample_tokens \
 - `--cell-init iso`：与训练一致时可开启各向同性先验。
 - `--cond-npz`：条件扩散时提供包含 `counts_vector`/`lattice_param`/`t` 的 npz；可配合 `--cond-index` 或 `--cond-random`。
 - `--project-each-step`：每步将 `frac/lattice` 投影回合法域（默认只在最终输出做投影）。
+- `--project-geometry`：采样期更新并投影 `uv_angle/z_norm`（推荐与训练一致时开启）。
 - `--use-ema`：若 checkpoint 中包含 EMA 权重则优先使用。
 - `--pbc-mask`：控制 MIC 的 PBC 维度，默认 `1,1,0`（仅面内周期，z 非周期）；3D 晶体可设 `1,1,1`。
 - `--eval`：采样后直接输出评估结果（默认写到 `out-dir/eval/`）。
@@ -104,10 +112,10 @@ uv run python -m twodgen.scrip.sample_tokens \
 uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
   --num-samples 10 --steps 50 --method heun \
-  --max-atoms 24 --g-scale 100 --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --max-atoms 24 --g-scale 100 --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --use-ema \
   --cell-init iso \
-  --pbc-mask 1,1,0 \
+  --pbc-mask 1,1,0 --coord-frame canon --project-geometry \
   --out-dir outputs/samples_tokens
 ```
 
@@ -132,24 +140,27 @@ uv run python -m twodgen.evaluate.eval_samples --samples outputs/samples_tokens/
 切换到更小模型（例如 tiny）：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --model-size tiny \
-  --epochs 50 --batch-size 256 --lr 1e-4
+  --epochs 50 --batch-size 256 --lr 1e-4 \
+  --coord-frame canon --align-atoms
 ```
 
 切换到更大模型（例如 xl）：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --model-size xl \
-  --epochs 100 --batch-size 128 --lr 5e-5
+  --epochs 100 --batch-size 128 --lr 5e-5 \
+  --coord-frame canon --align-atoms
 ```
 
 自定义规模（在 `model_sizes.py` 添加条目或用显式覆盖）：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/ache/c2db_tokens_2d_based.npz \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --model-size base \
   --embed-dim 320 --depth 10 --num-heads 10 \
-  --mlp-ratio 4 --rbf-dim 40 --pair-mlp-hidden 160
+  --mlp-ratio 4 --rbf-dim 40 --pair-mlp-hidden 160 \
+  --coord-frame canon --align-atoms
 ```
