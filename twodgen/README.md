@@ -37,7 +37,9 @@
     --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
     --g-scale 100 --k-neighbors 32 \
     --cell-rep cholesky6 --pbc-mask 1,1,0 \
-    --use-condition --coord-frame canon --align-atoms
+    --use-geometry-fields \
+    --use-condition --cond-fields counts_vector,lattice_param,t --cond-normalize-fields lattice_param,t \
+    --coord-frame canon --align-atoms
   ```
   也可用 CLI：`twodgen-train --npz ...`
   - `--g-scale` 应与 npz 内 `g_scale` 一致（脚本会提示不一致告警）。
@@ -50,13 +52,15 @@
 训练：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/cache/c2db_tokens.npz \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --epochs 100 --batch-size 256 --lr 1e-4 \
   --weight-decay 1e-2 --betas 0.9,0.95 --warmup-steps 500 \
   --min-lr 1e-6 --lr-schedule cosine --clip-grad 1.0 --ema \
   --g-scale 100 --k-neighbors 32 \
   --cell-rep cholesky6 --pbc-mask 1,1,0 \
-  --use-condition --coord-frame canon --align-atoms
+  --use-geometry-fields \
+  --use-condition --cond-fields counts_vector,lattice_param,t --cond-normalize-fields lattice_param,t \
+  --coord-frame canon --align-atoms
 ```
 可选：
 - `--bucket-batches`：按原子数分桶减少 padding。
