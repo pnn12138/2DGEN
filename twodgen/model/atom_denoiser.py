@@ -11,6 +11,7 @@ from twodgen.common.crystal import (
     cholesky6_to_gram6,
     cholesky6_to_lattice,
     clip_lattice,
+    frac_mic_dist_with_shifts,
     gram6_to_cholesky6,
     gram6_to_lattice,
     lattice_to_gram6,
@@ -35,6 +36,9 @@ class AtomDenoiserConfig:
     project_each_step: bool = False
     project_geometry: bool = False
     z_norm_clip: float = 1.5
+    min_dist_iter: int = 0
+    min_dist_strength: float = 0.03
+    min_dist_cut: float = 1.5
 
 
 class AtomDenoiser(nn.Module):
@@ -221,6 +225,53 @@ class AtomDenoiser(nn.Module):
         lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
         cell = lattice_to_gram6(lattice) / self.cfg.model.g_scale
         return frac, cell
+
+    @torch.no_grad()
+    def _apply_min_dist_repulsion(
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        atom_mask: torch.Tensor,
+    ) -> torch.Tensor:
+        if self.cfg.min_dist_iter <= 0 or self.cfg.min_dist_strength <= 0.0:
+            return frac
+        if self.cfg.min_dist_cut <= 0.0:
+            return frac
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            gram6 = cholesky6_to_gram6(
+                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+            )
+        else:
+            gram6 = cell
+        lattice = gram6_to_lattice(gram6 * self.cfg.model.g_scale)
+        try:
+            inv_lattice = torch.linalg.inv(lattice)
+        except RuntimeError:
+            return frac
+
+        cut = float(self.cfg.min_dist_cut)
+        strength = float(self.cfg.min_dist_strength)
+        for _ in range(int(self.cfg.min_dist_iter)):
+            dist, shifts = frac_mic_dist_with_shifts(
+                frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask
+            )
+            mask = dist < cut
+            if not torch.any(mask):
+                break
+            df = frac[:, :, None, :] - frac[:, None, :, :]
+            mic_df = df - shifts.to(df.dtype)
+            dr = torch.einsum("bijm,bmn->bijn", mic_df, lattice)
+            dist_safe = dist.clamp_min(1e-8)
+            direction = dr / dist_safe.unsqueeze(-1)
+            push = (cut - dist_safe).clamp_min(0.0) / max(cut, 1e-8)
+            push = torch.where(mask, push, torch.zeros_like(push))
+            push = push * strength
+            delta_cart = direction * push.unsqueeze(-1)
+            disp_cart = delta_cart.sum(dim=2)
+            disp_frac = torch.einsum("bim,bmn->bin", disp_cart, inv_lattice)
+            frac = frac + disp_frac * atom_mask.unsqueeze(-1)
+            frac = frac - torch.floor(frac)
+        return frac
 
     @torch.no_grad()
     def _heun_step(
@@ -483,6 +534,7 @@ class AtomDenoiser(nn.Module):
                 z[b, reveal_idx] = z_pred
 
         frac = frac - torch.floor(frac)
+        frac = self._apply_min_dist_repulsion(frac, cell, atom_mask)
         if self.cfg.diffusion.cell_rep == "cholesky6":
             gram6 = cholesky6_to_gram6(
                 cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max

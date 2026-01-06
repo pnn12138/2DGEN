@@ -175,6 +175,7 @@ def _eval_samples(
     elem_counts: Dict[str, int] = {}
 
     min_dists: List[float] = []
+    collision_min_dists: List[float] = []
     volumes: List[float] = []
     conds: List[float] = []
     n_atoms_list: List[int] = []
@@ -223,6 +224,7 @@ def _eval_samples(
             min_dists.append(min_dist)
             if min_dist < min_dist_cut:
                 reasons.append("collision")
+                collision_min_dists.append(min_dist)
 
             quant = np.round(frac_i / dup_eps)
             uniq = np.unique(quant, axis=0)
@@ -335,6 +337,7 @@ def _eval_samples(
         "valid_rate_eval": eval_valid_rate,
         "fail_reason_counts": fail_counts,
         "min_dist": _summary_stats(min_dists),
+        "min_dist_collision": _summary_stats(collision_min_dists),
         "volume": _summary_stats(volumes),
         "cond": _summary_stats(conds),
         "spd_rate": float(np.mean([c < float("inf") for c in conds])) if conds else 0.0,
@@ -374,6 +377,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument("--stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
     parser.add_argument("--min-dist", type=float, default=1.5)
+    parser.add_argument(
+        "--eval-min-dist",
+        type=float,
+        default=None,
+        help="Alias for --min-dist (kept for parameter alignment).",
+    )
     parser.add_argument("--bond-cut", type=float, default=3.0)
     parser.add_argument("--dup-eps", type=float, default=1e-3)
     parser.add_argument("--v-min", type=float, default=None)
@@ -403,6 +412,9 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
+    if args.eval_min_dist is not None:
+        print("[warn] --eval-min-dist is an alias for --min-dist; prefer --min-dist.")
+        args.min_dist = float(args.eval_min_dist)
     pbc_mask = _parse_pbc_mask(args.pbc_mask)
     if args.self_check:
         lattice = np.eye(3, dtype=float)
@@ -440,6 +452,13 @@ def main() -> None:
             out_dir = args.samples.parent / "eval"
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    if "min_dist_cut" in samples:
+        stored = float(np.asarray(samples["min_dist_cut"]).reshape(-1)[0])
+        if abs(stored - args.min_dist) > 1e-6:
+            print(
+                f"[warn] eval --min-dist ({args.min_dist}) differs from samples.npz min_dist_cut ({stored})."
+            )
+
     v_min = args.v_min
     v_max = args.v_max
     if args.stats_npz is not None:
@@ -456,6 +475,14 @@ def main() -> None:
         dup_eps=args.dup_eps,
         pbc_mask=pbc_mask,
     )
+    tier0["eval_params"] = {
+        "min_dist_cut": float(args.min_dist),
+        "bond_cut": float(args.bond_cut),
+        "dup_eps": float(args.dup_eps),
+        "v_min": float(v_min) if v_min is not None else None,
+        "v_max": float(v_max) if v_max is not None else None,
+        "pbc_mask": pbc_mask,
+    }
 
     with (out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
         for row in per_sample:

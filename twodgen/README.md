@@ -100,9 +100,11 @@ uv run python -m twodgen.scrip.sample_tokens \
 - `--neighbor-update-steps`：采样时每 N 步更新 kNN（默认 1）。
 - `--reduce-lattice` / `--niggli-reduce`：采样后晶胞规约。
 - `--cell-init iso`：与训练一致时可开启各向同性先验。
-- `--cond-npz`：条件扩散时提供包含 `counts_vector`/`lattice_param`/`t` 的 npz；可配合 `--cond-index` 或 `--cond-random`。
+- `--cond-npz`：条件扩散时提供包含 `counts_vector`/`lattice_param`/`t` 的 npz；可配合 `--cond-index` 或 `--cond-random`（默认无指定时采用随机条件）。
 - `--project-each-step`：每步将 `frac/lattice` 投影回合法域（默认只在最终输出做投影）。
-- `--project-geometry`：采样期更新并投影 `uv_angle/z_norm`（推荐与训练一致时开启）。
+- `--project-geometry`：采样期更新并投影 `uv_angle/z_norm`（仅在训练启用几何头时使用）。
+- `--eval-min-dist`：采样与评估一致的最小距离阈值（`--min-dist` 已弃用）。
+- `--min-dist-project/--min-dist-iter/--min-dist-strength/--min-dist-cut`：采样后处理的最小距离推开。
 - `--use-ema`：若 checkpoint 中包含 EMA 权重则优先使用。
 - `--pbc-mask`：控制 MIC 的 PBC 维度，默认 `1,1,0`（仅面内周期，z 非周期）；3D 晶体可设 `1,1,1`。
 - `--eval`：采样后直接输出评估结果（默认写到 `out-dir/eval/`）。

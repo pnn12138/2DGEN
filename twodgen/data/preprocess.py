@@ -11,6 +11,7 @@ class PreprocessConfig:
     eps_area: float = 1e-6
     eps_inv: float = 1e-12
     round_prec: float = 1e-6
+    tie_break_eps: float = 1e-4
     z_norm_clip: float = 1.5
     cond_max: float = 1e10
     thickness_q_low: float = 0.01
@@ -198,6 +199,11 @@ def preprocess_cartesian(
     u_key = np.round(u / cfg.round_prec) * cfg.round_prec
     v_key = np.round(v / cfg.round_prec) * cfg.round_prec
     original_idx = np.arange(len(z_numbers))
+    tie_break = cfg.round_prec * cfg.tie_break_eps
+    if tie_break > 0:
+        z_key = z_key + original_idx * tie_break
+        u_key = u_key + original_idx * tie_break
+        v_key = v_key + original_idx * tie_break
     order_idx = np.lexsort((original_idx, v_key, u_key, z_key, z_numbers))
 
     z_sorted = z_numbers[order_idx]

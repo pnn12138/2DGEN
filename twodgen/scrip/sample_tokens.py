@@ -18,6 +18,29 @@ from twodgen.common.atom_diffusion import AtomDiffusionConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 
 
+def _install_checkpoint_legacy_shims() -> None:
+    """
+    Install legacy module name aliases to load older checkpoints.
+
+    Historical checkpoints stored config objects under module paths like
+    `model.atom_transformer.AtomTransformerConfig`. The codebase has since moved
+    them to `twodgen.*`. We alias those modules so `torch.load(..., weights_only=False)`
+    can unpickle trusted checkpoints without requiring the old package layout.
+    """
+    import sys
+    import types
+
+    import twodgen.common.atom_diffusion as atom_diffusion_mod
+    import twodgen.model.atom_denoiser as atom_denoiser_mod
+    import twodgen.model.atom_transformer as atom_transformer_mod
+
+    sys.modules.setdefault("model", types.ModuleType("model"))
+    sys.modules.setdefault("common", types.ModuleType("common"))
+    sys.modules["model.atom_transformer"] = atom_transformer_mod
+    sys.modules["model.atom_denoiser"] = atom_denoiser_mod
+    sys.modules["common.atom_diffusion"] = atom_diffusion_mod
+
+
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
@@ -36,7 +59,36 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--max-atoms", type=int, default=24)
     parser.add_argument("--num-atoms", type=int, default=None, help="Number of atoms to sample (<= max-atoms).")
     parser.add_argument("--g-scale", type=float, default=100.0)
-    parser.add_argument("--min-dist", type=float, default=0.8, help="Minimum allowed MIC distance (angstrom).")
+    parser.add_argument(
+        "--min-dist",
+        type=float,
+        default=None,
+        help="Deprecated: use --eval-min-dist (minimum allowed MIC distance, angstrom).",
+    )
+    parser.add_argument(
+        "--min-dist-project",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Enable min-dist repulsion post-processing after sampling.",
+    )
+    parser.add_argument(
+        "--min-dist-iter",
+        type=int,
+        default=0,
+        help="Number of repulsion iterations (0 disables).",
+    )
+    parser.add_argument(
+        "--min-dist-strength",
+        type=float,
+        default=0.03,
+        help="Repulsion strength per iteration (fraction of cut).",
+    )
+    parser.add_argument(
+        "--min-dist-cut",
+        type=float,
+        default=None,
+        help="Repulsion cut (defaults to --eval-min-dist).",
+    )
     parser.add_argument("--neighbor-update-steps", type=int, default=1, help="Update kNN every N steps.")
     parser.add_argument("--reduce-lattice", action="store_true", help="Apply simple lattice reduction.")
     parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction to lattices.")
@@ -128,7 +180,12 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--eval", action="store_true", help="Run eval after sampling and write metrics.")
     parser.add_argument("--eval-out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument("--eval-stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
-    parser.add_argument("--eval-min-dist", type=float, default=1.5)
+    parser.add_argument(
+        "--eval-min-dist",
+        type=float,
+        default=1.5,
+        help="Minimum allowed MIC distance for validity checks and evaluation (angstrom).",
+    )
     parser.add_argument("--eval-bond-cut", type=float, default=3.0)
     parser.add_argument("--eval-dup-eps", type=float, default=1e-3)
     parser.add_argument("--eval-v-min", type=float, default=None)
@@ -291,6 +348,23 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if args.num_atoms is not None and args.num_atoms > args.max_atoms:
         raise ValueError("--num-atoms must be <= --max-atoms")
 
+    min_dist_cut = float(args.eval_min_dist)
+    if args.min_dist is not None:
+        if args.eval_min_dist != 1.5 and args.eval_min_dist != args.min_dist:
+            print(
+                "[warn] Both --min-dist and --eval-min-dist provided; using --min-dist for validity checks."
+            )
+        print("[warn] --min-dist is deprecated; use --eval-min-dist instead.")
+        min_dist_cut = float(args.min_dist)
+        args.eval_min_dist = float(args.min_dist)
+    min_dist_project = bool(args.min_dist_project)
+    min_dist_iter = max(int(args.min_dist_iter), 0)
+    if min_dist_project and min_dist_iter == 0:
+        min_dist_iter = 5
+        print("[info] --min-dist-project enabled; defaulting --min-dist-iter to 5.")
+    min_dist_strength = float(args.min_dist_strength)
+    min_dist_repulsion_cut = float(args.min_dist_cut) if args.min_dist_cut is not None else min_dist_cut
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_counts = None
     vol_bounds = None
@@ -298,6 +372,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=args.coord_frame)
 
     print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
+    _install_checkpoint_legacy_shims()
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
     model_cfg = ckpt.get("config")
     if model_cfg is None:
@@ -337,6 +412,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
     cond_cfg = ckpt.get("cond_config", {})
     geom_cfg = ckpt.get("geometry_config", {})
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
+    denoiser_cfg.min_dist_iter = min_dist_iter if min_dist_project else 0
+    denoiser_cfg.min_dist_strength = min_dist_strength
+    denoiser_cfg.min_dist_cut = min_dist_repulsion_cut
     if diff_cfg is not None:
         if isinstance(diff_cfg, dict):
             denoiser_cfg.diffusion = AtomDiffusionConfig(**diff_cfg)
@@ -385,9 +463,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if z_norm_clip is None:
         z_norm_clip = denoiser_cfg.z_norm_clip
     denoiser_cfg.z_norm_clip = float(z_norm_clip)
+    geom_use_fields = None
+    if isinstance(geom_cfg, dict):
+        geom_use_fields = geom_cfg.get("use_geometry_fields")
+    print(f"[info] geometry_use_fields={geom_use_fields}, project_geometry={args.project_geometry}")
     if args.project_geometry and isinstance(geom_cfg, dict):
         if geom_cfg.get("use_geometry_fields") is False:
-            print("[warn] geometry projection requested but checkpoint was trained without geometry heads.")
+            raise ValueError(
+                "--project-geometry requested but checkpoint was trained without geometry heads. "
+                "Disable --project-geometry or retrain with --use-geometry-fields."
+            )
+    if args.project_geometry and not isinstance(geom_cfg, dict):
+        print("[warn] geometry config not found in checkpoint; --project-geometry may be unsafe.")
     # Avoid lattice-only reductions; apply coordinate-consistent reductions before export.
     denoiser_cfg.reduce_lattice = False
     denoiser_cfg.niggli_reduce = False
@@ -428,6 +515,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
 
     cond_counts_vector = None
     cond_indices = None
+    cond_strategy = None
     if cond_cfg.get("use_condition"):
         cond_npz = args.cond_npz or args.npz
         if cond_npz is None:
@@ -445,13 +533,20 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 raise ValueError("--cond-first exceeds rows available in cond npz.")
             if args.num_samples != args.cond_first:
                 raise ValueError("--num-samples must equal --cond-first when using --cond-first.")
+            cond_strategy = "first"
             indices = np.arange(args.cond_first, dtype=int)
         elif args.cond_index is not None:
+            if args.cond_index < 0 or args.cond_index >= num_rows:
+                raise ValueError("--cond-index is out of range for cond npz.")
+            cond_strategy = "index"
             indices = np.full((args.num_samples,), args.cond_index, dtype=int)
         elif args.cond_random:
+            cond_strategy = "random"
             indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
         else:
-            indices = np.zeros((args.num_samples,), dtype=int)
+            cond_strategy = "random"
+            print("[info] No cond strategy provided; defaulting to --cond-random.")
+            indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
         cond_indices = indices.astype(np.int64)
         if "counts_vector" in data and ("counts_vector" in cond_fields or "counts" in cond_fields):
             cond_counts_vector = data["counts_vector"][indices].astype(np.int64)
@@ -479,6 +574,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
         num_atoms_list = [args.num_atoms] * args.num_samples
     if any(n > args.max_atoms for n in num_atoms_list):
         raise ValueError("Sampled num-atoms exceeds --max-atoms.")
+    if cond_strategy is not None:
+        unique_atoms, counts = np.unique(np.asarray(num_atoms_list), return_counts=True)
+        summary = {int(k): int(v) for k, v in zip(unique_atoms.tolist(), counts.tolist())}
+        print(f"[info] cond_strategy={cond_strategy}, n_atoms_hist={summary}")
 
     z_np = np.zeros((args.num_samples, args.max_atoms), dtype=np.int64)
     frac_np = np.zeros((args.num_samples, args.max_atoms, 3), dtype=np.float32)
@@ -573,7 +672,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
             mask_t = torch.ones(1, frac_t.shape[1], device=device)
             dist = frac_mic_dist(frac_t, lat_t, mask_t, pbc_mask=model_cfg.pbc_mask)
             min_dist = torch.min(dist[0]).item()
-            if min_dist < args.min_dist:
+            if min_dist < min_dist_cut:
                 is_valid = False
         elements: List[Element] = [Element.from_Z(z) for z in zs]
         structure = Structure(lattice=lattice_mat, species=elements, coords=coords_np, coords_are_cartesian=False)
@@ -606,6 +705,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
         if cif_blocks:
             (args.out_dir / args.cif_filename).write_text("\n\n".join(cif_blocks).rstrip() + "\n")
 
+    valid_rate = float(np.mean(valid_flags)) if valid_flags.size else 0.0
+    cif_rate = float(np.mean(cif_written)) if cif_written.size else 0.0
     payload = {
         "z": z_np,
         "frac": frac_np,
@@ -614,6 +715,11 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "valid": valid_flags,
         "cif_written": cif_written,
         "coord_frame": np.array(args.coord_frame),
+        "min_dist_cut": np.array(min_dist_cut, dtype=np.float32),
+        "min_dist_repulsion_cut": np.array(min_dist_repulsion_cut, dtype=np.float32),
+        "min_dist_repulsion_iter": np.array(min_dist_iter, dtype=np.int64),
+        "min_dist_repulsion_strength": np.array(min_dist_strength, dtype=np.float32),
+        "valid_rate": np.array(valid_rate, dtype=np.float32),
     }
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np
@@ -623,13 +729,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
         payload["cond_indices"] = cond_indices
     if cond_counts_vector is not None:
         payload["cond_counts_vector"] = cond_counts_vector
+    if cond_strategy is not None:
+        payload["cond_strategy"] = np.array(cond_strategy)
     np.savez_compressed(args.out_dir / "samples.npz", **payload)
 
-    valid_rate = float(np.mean(valid_flags)) if valid_flags.size else 0.0
-    cif_rate = float(np.mean(cif_written)) if cif_written.size else 0.0
     print(
         f"Saved {args.num_samples} samples to {args.out_dir} "
         f"(valid_rate={valid_rate:.2f}, cif_rate={cif_rate:.2f})"
+    )
+    print(f"[info] min_dist_cut={min_dist_cut:.3f}, eval_min_dist={args.eval_min_dist:.3f}")
+    print(
+        f"[info] min_dist_repulsion=({min_dist_project}), "
+        f"iter={min_dist_iter}, strength={min_dist_strength:.3f}, cut={min_dist_repulsion_cut:.3f}"
     )
     if element_counts:
         top = sorted(element_counts.items(), key=lambda x: x[1], reverse=True)[:10]
