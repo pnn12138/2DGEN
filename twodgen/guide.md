@@ -24,17 +24,24 @@
 - **缓存字段**：`prepare_c2db_tokens.py` 保存 `uvz/uv_angle/z_norm/t/lattice_param/counts_vector/order_idx` 等字段到 npz。
 - **训练/采样主输入**：当前主通路使用 `Z/F/gram6`（`C2DBTokenNPZDataset` 读取 `z,f,gram6,atom_mask`）。
 - **2D PBC**：默认 `pbc_mask=1,1,0`，`frac_mic_dist` + `build_knn` 计算邻居。
-- **扩散目标**：连续 `F/g` v-pred + 离散 `Z` mask diffusion（`AtomVelocityLoss`）。
-- **条件扩散**：`counts_vector` 为默认条件；可通过 `--cond-fields` 加入 `lattice_param/t`。
+- **扩散目标**：连续 `F/g` 预测 x0（训练时换算为 v 监督）+ 离散 `Z` mask diffusion（`AtomVelocityLoss`）。
+- **条件扩散**：默认条件为 `counts_vector,lattice_param,t`；如需调整请修改训练脚本默认设置。
 - **几何前向与损失**：`uv_angle/z_norm/lattice_param/t` 已接入模型前向与 loss。
 - **双图与 wrap embedding**：支持 `--dual-graph` 与 `--wrap-embed-dim`。
 - **采样期几何投影**：支持 `--project-geometry`（uv_angle/z_norm 投影）。
-- **canonical 坐标缓存**：预处理可写入 `f_canon/lattice_canon/gram6_canon` 与 `order_inv`，训练可切换 `--coord-frame canon`。
+- **canonical 坐标缓存**：预处理可写入 `f_canon/lattice_canon/gram6_canon` 与 `order_inv`，训练/采样默认使用 canonical 坐标系。
 
 ### 未对齐/设计中
 - **坐标系一致性与字段对齐**：`uv_angle/z_norm` 与 `z/frac` 的顺序和坐标系仍需修复（详见 `problem.md`）。
 
 > 结论：本 guide 仍是“设计目标 + 预处理已落地 + 训练/采样部分落地”的混合文档；如需完全对齐实现，应以 `process.md` 与脚本为准。
+
+### 0.y 当前架构仍不合理/需尽快补齐的点
+- **坐标系混用风险**：当 `coord_frame=canon` 但 npz 缺少 `f_canon/gram6_canon` 时，会回退到 raw，而 `uv_angle/z_norm/lattice_param` 仍来自 canonical；geometry heads 与主扩散坐标系可能不一致。
+- **z 的双表征缺少一致性约束**：模型同时扩散 `frac.z`（相对 `c_len`）又预测 `z_norm/t`（相对 slab 厚度），但两者之间没有显式约束或投影，可能造成几何信号冲突。
+- **元素表/计数映射不可追溯**：`counts_vector` 默认假设 `Z-1` 索引，但缺少随数据写入的 `element_ids` 映射；若未来用压缩元素表，composition 条件会静默错位。
+- **num_elements 固定为 118**：训练脚本与模型强绑固定元素数，不利于子集数据或自定义元素表训练。
+- **投影约束不完整**：默认只投影 `uv_angle/z_norm`；`frac/gram6` 只有在 `project_each_step=True` 才做 clip，导致采样稳定性仍主要依赖 min_dist 事后修补。
 
 ---
 
@@ -291,7 +298,7 @@
 ## 6. Training：损失与“二维先验强化”
 
 ### 6.1 基础扩散损失（示例）
-- `L_uv`：对 `uv_angle` 的噪声预测损失（或 v-pred）
+- `L_uv`：对 `uv_angle` 的 x0 预测损失（训练时换算为 v 监督）
 - `L_z`：对 `z_norm` 的噪声预测损失
 - `L_lat`：对 `lattice_param` 的噪声预测损失
 - `L_comp`（可选）：composition-consistency（若你同时预测 Z 分配）

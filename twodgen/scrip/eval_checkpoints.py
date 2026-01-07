@@ -38,15 +38,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--num-samples", type=int, default=2000)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
-    parser.add_argument("--coord-frame", type=str, default="canon", choices=["raw", "canon"])
     parser.add_argument("--seed", type=int, default=0)
-    parser.add_argument("--use-ema", action="store_true")
-    parser.add_argument("--project-geometry", action=argparse.BooleanOptionalAction, default=True)
-    parser.add_argument("--project-each-step", action=argparse.BooleanOptionalAction, default=False)
-    parser.add_argument("--eval-min-dist", type=float, default=1.5)
-    parser.add_argument("--eval-bond-cut", type=float, default=3.0)
-    parser.add_argument("--eval-dup-eps", type=float, default=1e-3)
-    parser.add_argument("--eval-pbc-mask", type=str, default=None)
     parser.add_argument(
         "--checkpoint-name",
         type=str,
@@ -111,34 +103,11 @@ def main(argv: list[str] | None = None) -> None:
             args.method,
             "--out-dir",
             str(out_dir),
-            "--coord-frame",
-            args.coord_frame,
-            "--no-save-cif",
-            "--eval",
-            "--eval-stats-npz",
-            str(args.npz),
-            "--eval-min-dist",
-            str(args.eval_min_dist),
-            "--eval-bond-cut",
-            str(args.eval_bond_cut),
-            "--eval-dup-eps",
-            str(args.eval_dup_eps),
         ]
-        if args.use_ema:
-            cmd_args.append("--use-ema")
-        if args.project_geometry:
-            cmd_args.append("--project-geometry")
-        else:
-            cmd_args.append("--no-project-geometry")
-        if args.project_each_step:
-            cmd_args.append("--project-each-step")
-        else:
-            cmd_args.append("--no-project-each-step")
-        if args.eval_pbc_mask is not None:
-            cmd_args += ["--eval-pbc-mask", args.eval_pbc_mask]
 
         print(f"[run] {name}: sampling {args.num_samples} x {args.steps} ({args.method}) -> {out_dir}")
         sample_args = sample_tokens_mod.parse_args(cmd_args)
+        sample_args.save_cif = False
         sample_tokens_mod.run_sampling(sample_args)
         results.append({"run": name, **_summarize_eval(out_dir)})
 
@@ -149,4 +118,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-

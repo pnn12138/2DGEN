@@ -183,6 +183,7 @@ def _eval_samples(
     angles_beta: List[float] = []
     angles_gamma: List[float] = []
     angle_out_flags: List[int] = []
+    same_elem_min_dists: List[float] = []
 
     thicknesses: List[float] = []
     vacuums: List[float] = []
@@ -225,6 +226,16 @@ def _eval_samples(
             if min_dist < min_dist_cut:
                 reasons.append("collision")
                 collision_min_dists.append(min_dist)
+            if n_atoms > 1:
+                unique, counts = np.unique(z_i, return_counts=True)
+                if np.any(counts >= 2):
+                    same_mask = z_i[:, None] == z_i[None, :]
+                    same_dist = np.where(same_mask, dist, np.inf)
+                    same_elem_min_dists.append(float(np.min(same_dist)))
+                else:
+                    same_elem_min_dists.append(float("nan"))
+            else:
+                same_elem_min_dists.append(float("nan"))
 
             quant = np.round(frac_i / dup_eps)
             uniq = np.unique(quant, axis=0)
@@ -236,6 +247,7 @@ def _eval_samples(
             dist = np.zeros((0, 0))
             shifts = np.zeros((0, 0, 3))
             dup_ratio = float("nan")
+            same_elem_min_dists.append(float("nan"))
 
         lengths = np.linalg.norm(lattice_i, axis=1)
         if np.all(lengths > 0):
@@ -310,6 +322,7 @@ def _eval_samples(
             "volume": vol,
             "cond": cond,
             "min_dist": min_dist,
+            "min_dist_same_elem": same_elem_min_dists[-1],
             "dup_ratio": dup_ratio,
             "thickness": thickness,
             "vacuum": vacuum,
@@ -338,6 +351,7 @@ def _eval_samples(
         "fail_reason_counts": fail_counts,
         "min_dist": _summary_stats(min_dists),
         "min_dist_collision": _summary_stats(collision_min_dists),
+        "min_dist_same_elem": _summary_stats(same_elem_min_dists),
         "volume": _summary_stats(volumes),
         "cond": _summary_stats(conds),
         "spd_rate": float(np.mean([c < float("inf") for c in conds])) if conds else 0.0,
@@ -373,39 +387,22 @@ def _eval_samples(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate token-based samples (Tier-0/1).")
-    parser.add_argument("--samples", type=Path, default=None, help="Path to samples.npz")
+    parser.add_argument("--samples", type=Path, required=True, help="Path to samples.npz")
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument("--stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
-    parser.add_argument("--min-dist", type=float, default=1.5)
-    parser.add_argument(
-        "--eval-min-dist",
-        type=float,
-        default=None,
-        help="Alias for --min-dist (kept for parameter alignment).",
-    )
-    parser.add_argument("--bond-cut", type=float, default=3.0)
-    parser.add_argument("--dup-eps", type=float, default=1e-3)
-    parser.add_argument("--v-min", type=float, default=None)
-    parser.add_argument("--v-max", type=float, default=None)
-    parser.add_argument("--sample", action="store_true", help="Run sampling before evaluation.")
-    parser.add_argument("--checkpoint", type=Path, default=None, help="Checkpoint for sampling.")
-    parser.add_argument("--sample-out-dir", type=Path, default=None, help="Output directory for samples.")
-    parser.add_argument(
-        "--sample-args",
-        type=str,
-        default="",
-        help="Extra args passed to sample_tokens.py (use quotes).",
-    )
-    parser.add_argument(
-        "--pbc-mask",
-        type=str,
-        default="1,1,0",
-        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
-    )
-    parser.add_argument(
-        "--self-check",
-        action="store_true",
-        help="Run a small internal sanity check and exit.",
+    parser.set_defaults(
+        min_dist=1.5,
+        eval_min_dist=None,
+        bond_cut=3.0,
+        dup_eps=1e-3,
+        v_min=None,
+        v_max=None,
+        sample=False,
+        checkpoint=None,
+        sample_out_dir=None,
+        sample_args="",
+        pbc_mask="1,1,0",
+        self_check=False,
     )
     return parser.parse_args()
 

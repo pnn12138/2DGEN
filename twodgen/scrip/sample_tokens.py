@@ -43,158 +43,58 @@ def _install_checkpoint_legacy_shims() -> None:
 
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
-    parser.add_argument(
-        "--deterministic",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enable deterministic algorithms (may be slower).",
-    )
     parser.add_argument("--checkpoint", type=Path, required=True)
-    parser.add_argument("--use-ema", action="store_true", help="Load EMA weights from checkpoint when available.")
     parser.add_argument("--npz", type=Path, default=None, help="Token cache for sampling N/volume stats.")
     parser.add_argument("--num-samples", type=int, default=10)
-    parser.add_argument("--steps", type=int, default=20)
-    parser.add_argument("--method", type=str, default="euler", choices=["euler", "heun"])
-    parser.add_argument("--max-atoms", type=int, default=24)
-    parser.add_argument("--num-atoms", type=int, default=None, help="Number of atoms to sample (<= max-atoms).")
-    parser.add_argument("--g-scale", type=float, default=100.0)
-    parser.add_argument(
-        "--min-dist",
-        type=float,
-        default=None,
-        help="Deprecated: use --eval-min-dist (minimum allowed MIC distance, angstrom).",
-    )
-    parser.add_argument(
-        "--min-dist-project",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enable min-dist repulsion post-processing after sampling.",
-    )
-    parser.add_argument(
-        "--min-dist-iter",
-        type=int,
-        default=0,
-        help="Number of repulsion iterations (0 disables).",
-    )
-    parser.add_argument(
-        "--min-dist-strength",
-        type=float,
-        default=0.03,
-        help="Repulsion strength per iteration (fraction of cut).",
-    )
-    parser.add_argument(
-        "--min-dist-cut",
-        type=float,
-        default=None,
-        help="Repulsion cut (defaults to --eval-min-dist).",
-    )
-    parser.add_argument("--neighbor-update-steps", type=int, default=1, help="Update kNN every N steps.")
-    parser.add_argument("--reduce-lattice", action="store_true", help="Apply simple lattice reduction.")
-    parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction to lattices.")
+    parser.add_argument("--steps", type=int, default=50)
+    parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/samples_tokens"))
-    parser.add_argument(
-        "--z-sampling",
-        type=str,
-        default="temperature",
-        choices=["argmax", "temperature", "topk", "topp"],
-        help="Sampling strategy for element tokens.",
-    )
-    parser.add_argument("--z-temperature", type=float, default=1.2, help="Softmax temperature for z sampling.")
-    parser.add_argument("--z-top-k", type=int, default=10, help="Top-k cutoff for z sampling.")
-    parser.add_argument("--z-top-p", type=float, default=0.9, help="Top-p (nucleus) cutoff for z sampling.")
-    parser.add_argument("--cell-init", type=str, default=None, choices=["gaussian", "iso"])
-    parser.add_argument("--cell-init-scale", type=float, default=None)
-    parser.add_argument("--cell-init-noise", type=float, default=None)
-    parser.add_argument(
-        "--coord-frame",
-        type=str,
-        default="canon",
-        choices=["raw", "canon"],
-        help="Coordinate frame of frac/lattice for sampling and outputs.",
-    )
-    parser.add_argument(
-        "--pbc-mask",
-        type=str,
-        default=None,
-        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
-    )
-    parser.add_argument(
-        "--project-each-step",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Project frac/lattice back to valid manifold at every sampling step.",
-    )
-    parser.add_argument(
-        "--project-geometry",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Update uv_angle/z_norm/lattice_param/t; project uv_angle/z_norm back to valid manifold each step.",
-    )
-    parser.add_argument(
-        "--z-norm-clip",
-        type=float,
-        default=None,
-        help="Clip range for z_norm projection (defaults to npz value or 1.5).",
-    )
-    parser.add_argument("--cond-npz", type=Path, default=None, help="NPZ with counts/lattice params for conditioning.")
-    parser.add_argument("--cond-index", type=int, default=None, help="Use a specific row from cond-npz for all samples.")
-    parser.add_argument("--cond-first", type=int, default=None, help="Use the first N rows from cond-npz.")
-    parser.add_argument(
-        "--cond-random",
-        action="store_true",
-        help="Sample random condition rows from cond-npz for each sample.",
-    )
-    parser.add_argument(
-        "--save-cif",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Write sampled structures as CIF alongside samples.npz.",
-    )
-    parser.add_argument(
-        "--cif-filter",
-        type=str,
-        default="all",
-        choices=["all", "valid"],
-        help="Which samples to export as CIF (all samples or only those passing validity checks).",
-    )
-    parser.add_argument(
-        "--cif-mode",
-        type=str,
-        default="both",
-        choices=["per-sample", "single", "both"],
-        help="CIF output mode: per-sample files, a single multi-block CIF, or both.",
-    )
-    parser.add_argument(
-        "--cif-prefix",
-        type=str,
-        default="sample",
-        help="Prefix for per-sample CIF filenames (e.g. sample_0.cif).",
-    )
-    parser.add_argument(
-        "--cif-filename",
-        type=str,
-        default="samples.cif",
-        help="Filename for the single multi-block CIF (used when --cif-mode is single/both).",
-    )
-    parser.add_argument("--eval", action="store_true", help="Run eval after sampling and write metrics.")
-    parser.add_argument("--eval-out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
-    parser.add_argument("--eval-stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
-    parser.add_argument(
-        "--eval-min-dist",
-        type=float,
-        default=1.5,
-        help="Minimum allowed MIC distance for validity checks and evaluation (angstrom).",
-    )
-    parser.add_argument("--eval-bond-cut", type=float, default=3.0)
-    parser.add_argument("--eval-dup-eps", type=float, default=1e-3)
-    parser.add_argument("--eval-v-min", type=float, default=None)
-    parser.add_argument("--eval-v-max", type=float, default=None)
-    parser.add_argument(
-        "--eval-pbc-mask",
-        type=str,
-        default=None,
-        help="Override PBC mask for evaluation (default uses model config).",
+    parser.add_argument("--seed", type=int, default=0)
+
+    parser.set_defaults(
+        deterministic=False,
+        use_ema=True,
+        max_atoms=24,
+        num_atoms=None,
+        g_scale=100.0,
+        min_dist=None,
+        min_dist_project=True,
+        min_dist_iter=8,
+        min_dist_strength=0.03,
+        min_dist_cut=None,
+        neighbor_update_steps=1,
+        reduce_lattice=False,
+        niggli_reduce=False,
+        z_sampling="temperature",
+        z_temperature=1.2,
+        z_top_k=10,
+        z_top_p=0.9,
+        cell_init=None,
+        cell_init_scale=None,
+        cell_init_noise=None,
+        coord_frame="canon",
+        pbc_mask=None,
+        project_each_step=False,
+        project_geometry=True,
+        z_norm_clip=None,
+        cond_npz=None,
+        cond_index=None,
+        cond_first=None,
+        cond_random=True,
+        save_cif=True,
+        cif_filter="all",
+        cif_mode="both",
+        cif_prefix="sample",
+        cif_filename="samples.cif",
+        eval=True,
+        eval_out_dir=None,
+        eval_stats_npz=None,
+        eval_min_dist=1.5,
+        eval_bond_cut=3.0,
+        eval_dup_eps=1e-3,
+        eval_v_min=None,
+        eval_v_max=None,
+        eval_pbc_mask=None,
     )
     return parser.parse_args(argv)
 
@@ -368,8 +268,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     n_counts = None
     vol_bounds = None
+    coord_frame_actual = args.coord_frame
+    if args.coord_frame == "canon" and args.npz is not None:
+        data = np.load(args.npz)
+        if "f_canon" not in data or "lattice_canon" not in data:
+            coord_frame_actual = "raw"
+            print(
+                "[warn] coord_frame=canon requested but npz lacks f_canon/lattice_canon; "
+                "falling back to raw coord frame."
+            )
+    args.coord_frame_actual = coord_frame_actual
     if args.npz is not None:
-        n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=args.coord_frame)
+        n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=coord_frame_actual)
 
     print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
     _install_checkpoint_legacy_shims()
@@ -408,6 +318,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
             model_cfg.wrap_embed_dim = 0
     if args.pbc_mask is not None:
         model_cfg.pbc_mask = _parse_pbc_mask(args.pbc_mask)
+    print(
+        "[info] checkpoint_config "
+        f"cell_rep={model_cfg.cell_rep} g_scale={model_cfg.g_scale} pbc_mask={model_cfg.pbc_mask}"
+    )
+    if args.g_scale != model_cfg.g_scale:
+        print(f"[warn] args.g_scale={args.g_scale} differs from checkpoint g_scale={model_cfg.g_scale}")
     diff_cfg = ckpt.get("diffusion_config")
     cond_cfg = ckpt.get("cond_config", {})
     geom_cfg = ckpt.get("geometry_config", {})
@@ -433,7 +349,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         if not hasattr(denoiser_cfg.diffusion, "cell_init_noise"):
             denoiser_cfg.diffusion.cell_init_noise = None
     if denoiser_cfg.diffusion.cell_rep == "cholesky6" and args.npz is not None:
-        scube_stats = _load_npz_scube_stats(args.npz, coord_frame=args.coord_frame)
+        scube_stats = _load_npz_scube_stats(args.npz, coord_frame=coord_frame_actual)
         if scube_stats is not None:
             s10, s50, s90, log_std = scube_stats
             if denoiser_cfg.diffusion.cell_init == "iso" and denoiser_cfg.diffusion.cell_init_scale is None:
@@ -583,6 +499,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
     frac_np = np.zeros((args.num_samples, args.max_atoms, 3), dtype=np.float32)
     lattice_np = np.zeros((args.num_samples, 3, 3), dtype=np.float32)
     mask_np = np.zeros((args.num_samples, args.max_atoms), dtype=np.float32)
+    min_dist_pre_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+    min_dist_post_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
     lattice_param_np = None
     slab_t_np = None
 
@@ -594,7 +512,16 @@ def run_sampling(args: argparse.Namespace) -> Path:
             counts_tensor = None
             if cond_counts_vector is not None:
                 counts_tensor = torch.from_numpy(cond_counts_vector[idxs]).to(device)
-            z, frac, gram6, atom_mask, lattice_param, slab_t = model.generate(
+            (
+                z,
+                frac,
+                gram6,
+                atom_mask,
+                lattice_param,
+                slab_t,
+                min_dist_pre,
+                min_dist_post,
+            ) = model.generate(
                 num_atoms=num_atoms,
                 max_atoms=args.max_atoms,
                 batch_size=len(idxs),
@@ -612,6 +539,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
         frac_np[idxs] = frac.cpu().numpy()
         lattice_np[idxs] = lattice.cpu().numpy()
         mask_np[idxs] = atom_mask.cpu().numpy()
+        min_dist_pre_np[idxs] = min_dist_pre.cpu().numpy()
+        min_dist_post_np[idxs] = min_dist_post.cpu().numpy()
         if lattice_param is not None:
             if lattice_param_np is None:
                 lattice_param_np = np.zeros((args.num_samples, lattice_param.shape[-1]), dtype=np.float32)
@@ -707,6 +636,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
 
     valid_rate = float(np.mean(valid_flags)) if valid_flags.size else 0.0
     cif_rate = float(np.mean(cif_written)) if cif_written.size else 0.0
+    pre_collision = int(np.sum(min_dist_pre_np < min_dist_cut))
+    post_collision = int(np.sum(min_dist_post_np < min_dist_cut))
+    pre_mean = float(np.nanmean(min_dist_pre_np)) if min_dist_pre_np.size else float("nan")
+    post_mean = float(np.nanmean(min_dist_post_np)) if min_dist_post_np.size else float("nan")
+    pre_p10 = float(np.nanpercentile(min_dist_pre_np, 10.0)) if min_dist_pre_np.size else float("nan")
+    post_p10 = float(np.nanpercentile(min_dist_post_np, 10.0)) if min_dist_post_np.size else float("nan")
     payload = {
         "z": z_np,
         "frac": frac_np,
@@ -715,11 +650,14 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "valid": valid_flags,
         "cif_written": cif_written,
         "coord_frame": np.array(args.coord_frame),
+        "coord_frame_actual": np.array(getattr(args, "coord_frame_actual", args.coord_frame)),
         "min_dist_cut": np.array(min_dist_cut, dtype=np.float32),
         "min_dist_repulsion_cut": np.array(min_dist_repulsion_cut, dtype=np.float32),
         "min_dist_repulsion_iter": np.array(min_dist_iter, dtype=np.int64),
         "min_dist_repulsion_strength": np.array(min_dist_strength, dtype=np.float32),
         "valid_rate": np.array(valid_rate, dtype=np.float32),
+        "min_dist_pre": min_dist_pre_np,
+        "min_dist_post": min_dist_post_np,
     }
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np
@@ -736,6 +674,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
     print(
         f"Saved {args.num_samples} samples to {args.out_dir} "
         f"(valid_rate={valid_rate:.2f}, cif_rate={cif_rate:.2f})"
+    )
+    print(
+        "[info] min_dist pre/post repulsion: "
+        f"mean={pre_mean:.3f}/{post_mean:.3f}, "
+        f"p10={pre_p10:.3f}/{post_p10:.3f}, "
+        f"collision={pre_collision}/{post_collision}"
     )
     print(f"[info] min_dist_cut={min_dist_cut:.3f}, eval_min_dist={args.eval_min_dist:.3f}")
     print(
@@ -755,8 +699,11 @@ def run_sampling(args: argparse.Namespace) -> Path:
             eval_pbc_mask = _parse_pbc_mask(args.eval_pbc_mask)
         v_min = args.eval_v_min
         v_max = args.eval_v_max
-        if args.eval_stats_npz is not None:
-            stats = eval_samples_mod._load_npz_stats(args.eval_stats_npz)
+        stats_npz = args.eval_stats_npz
+        if stats_npz is None and args.npz is not None:
+            stats_npz = args.npz
+        if stats_npz is not None:
+            stats = eval_samples_mod._load_npz_stats(stats_npz)
             if stats is not None:
                 v_min, v_max = stats
         per_sample, tier0, tier1 = eval_samples_mod._eval_samples(

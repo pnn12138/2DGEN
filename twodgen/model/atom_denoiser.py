@@ -11,6 +11,7 @@ from twodgen.common.crystal import (
     cholesky6_to_gram6,
     cholesky6_to_lattice,
     clip_lattice,
+    frac_mic_dist,
     frac_mic_dist_with_shifts,
     gram6_to_cholesky6,
     gram6_to_lattice,
@@ -39,6 +40,8 @@ class AtomDenoiserConfig:
     min_dist_iter: int = 0
     min_dist_strength: float = 0.03
     min_dist_cut: float = 1.5
+    min_dist_train_cut: float = 1.5
+    min_dist_train_weight: float = 0.02
 
 
 class AtomDenoiser(nn.Module):
@@ -64,7 +67,7 @@ class AtomDenoiser(nn.Module):
         nbr_mask: Optional[torch.Tensor] = None,
         dist_nbr: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
-        return self.loss_fn(
+        loss, pred_v_f, pred_v_g, logits_z, metrics = self.loss_fn(
             self.model,
             z,
             frac,
@@ -80,6 +83,19 @@ class AtomDenoiser(nn.Module):
             nbr_mask,
             dist_nbr,
         )
+        if self.training and self.cfg.min_dist_train_weight > 0.0:
+            lattice = gram6_to_lattice(gram6 * self.cfg.model.g_scale)
+            dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
+            cut = float(self.cfg.min_dist_train_cut)
+            delta = (cut - dist).clamp_min(0.0)
+            valid = torch.isfinite(dist)
+            if valid.any():
+                penalty = (delta[valid] ** 2).mean()
+                loss = loss + self.cfg.min_dist_train_weight * penalty
+                metrics["loss_min_dist"] = penalty.detach()
+            else:
+                metrics["loss_min_dist"] = torch.tensor(0.0, device=loss.device)
+        return loss, pred_v_f, pred_v_g, logits_z, metrics
 
     def _predict_velocity(
         self,
@@ -122,7 +138,53 @@ class AtomDenoiser(nn.Module):
             nbr_mask=nbr_mask,
             dist_nbr=dist_nbr,
         )
-        return outputs
+        if return_geom:
+            pred_x0_f, pred_x0_g, logits_z, geom_preds = outputs  # type: ignore[misc]
+        else:
+            pred_x0_f, pred_x0_g, logits_z = outputs  # type: ignore[misc]
+
+        if self.cfg.diffusion.mode == "flow":
+            denom_f = expand_t(t, frac.ndim).clamp_min(self.cfg.diffusion.t_eps)
+            denom_g = expand_t(t, gram6.ndim).clamp_min(self.cfg.diffusion.t_eps)
+            pred_v_f = (frac - pred_x0_f) / denom_f
+            pred_v_g = (gram6 - pred_x0_g) / denom_g
+        else:
+            denom_f = expand_t(1.0 - t, frac.ndim).clamp_min(self.cfg.diffusion.t_eps)
+            denom_g = expand_t(1.0 - t, gram6.ndim).clamp_min(self.cfg.diffusion.t_eps)
+            pred_v_f = (pred_x0_f - frac) / denom_f
+            pred_v_g = (pred_x0_g - gram6) / denom_g
+
+        if return_geom:
+            if uv_angle is not None:
+                denom_uv = expand_t(t, uv_angle.ndim if uv_angle.ndim > 0 else 2).clamp_min(self.cfg.diffusion.t_eps)
+                if self.cfg.diffusion.mode == "flow":
+                    geom_preds["uv_angle"] = (uv_angle - geom_preds["uv_angle"]) / denom_uv
+                else:
+                    denom_uv = expand_t(1.0 - t, uv_angle.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                    geom_preds["uv_angle"] = (geom_preds["uv_angle"] - uv_angle) / denom_uv
+            if z_norm is not None:
+                denom_zn = expand_t(t, z_norm.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                if self.cfg.diffusion.mode == "flow":
+                    geom_preds["z_norm"] = (z_norm - geom_preds["z_norm"]) / denom_zn
+                else:
+                    denom_zn = expand_t(1.0 - t, z_norm.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                    geom_preds["z_norm"] = (geom_preds["z_norm"] - z_norm) / denom_zn
+            if lattice_param is not None:
+                denom_lat = expand_t(t, lattice_param.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                if self.cfg.diffusion.mode == "flow":
+                    geom_preds["lattice_param"] = (lattice_param - geom_preds["lattice_param"]) / denom_lat
+                else:
+                    denom_lat = expand_t(1.0 - t, lattice_param.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                    geom_preds["lattice_param"] = (geom_preds["lattice_param"] - lattice_param) / denom_lat
+            if slab_t is not None:
+                denom_t = expand_t(t, slab_t.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                if self.cfg.diffusion.mode == "flow":
+                    geom_preds["t"] = (slab_t - geom_preds["t"]) / denom_t
+                else:
+                    denom_t = expand_t(1.0 - t, slab_t.ndim).clamp_min(self.cfg.diffusion.t_eps)
+                    geom_preds["t"] = (geom_preds["t"] - slab_t) / denom_t
+            return pred_v_f, pred_v_g, logits_z, geom_preds
+        return pred_v_f, pred_v_g, logits_z
 
     @torch.no_grad()
     def _euler_step(
@@ -269,7 +331,12 @@ class AtomDenoiser(nn.Module):
             delta_cart = direction * push.unsqueeze(-1)
             disp_cart = delta_cart.sum(dim=2)
             disp_frac = torch.einsum("bim,bmn->bin", disp_cart, inv_lattice)
-            frac = frac + disp_frac * atom_mask.unsqueeze(-1)
+            mask = atom_mask.unsqueeze(-1)
+            disp_frac = disp_frac * mask
+            denom = mask.sum(dim=1).clamp_min(1.0)
+            mean_disp = disp_frac.sum(dim=1, keepdim=True) / denom.unsqueeze(-1)
+            disp_frac = disp_frac - mean_disp
+            frac = frac + disp_frac
             frac = frac - torch.floor(frac)
         return frac
 
@@ -397,6 +464,8 @@ class AtomDenoiser(nn.Module):
         torch.Tensor,
         Optional[torch.Tensor],
         Optional[torch.Tensor],
+        torch.Tensor,
+        torch.Tensor,
     ]:
         method = method or self.cfg.sampling_method
         steps = steps if steps is not None else self.cfg.num_sampling_steps
@@ -534,14 +603,27 @@ class AtomDenoiser(nn.Module):
                 z[b, reveal_idx] = z_pred
 
         frac = frac - torch.floor(frac)
-        frac = self._apply_min_dist_repulsion(frac, cell, atom_mask)
+        frac_pre = frac.clone()
         if self.cfg.diffusion.cell_rep == "cholesky6":
             gram6 = cholesky6_to_gram6(
                 cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
             )
         else:
             gram6 = cell
-        return z, frac, gram6, atom_mask, lattice_param, slab_t
+        lattice = gram6_to_lattice(gram6 * self.cfg.model.g_scale)
+        dist_pre = frac_mic_dist(frac_pre, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
+        min_dist_pre = dist_pre.amin(dim=(1, 2))
+
+        frac = self._apply_min_dist_repulsion(frac, cell, atom_mask)
+        dist_post = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
+        min_dist_post = dist_post.amin(dim=(1, 2))
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            gram6 = cholesky6_to_gram6(
+                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+            )
+        else:
+            gram6 = cell
+        return z, frac, gram6, atom_mask, lattice_param, slab_t, min_dist_pre, min_dist_post
 
     @torch.no_grad()
     def gram6_to_lattice(self, gram6: torch.Tensor) -> torch.Tensor:

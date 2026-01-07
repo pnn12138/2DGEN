@@ -97,7 +97,9 @@ def test_generate() -> None:
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     denoiser_cfg.project_geometry = True
     model = AtomDenoiser(denoiser_cfg).to(device)
-    z_s, frac_s, gram_s, mask_s, lat_s, t_s = model.generate(num_atoms=4, max_atoms=6, batch_size=2, steps=2)
+    z_s, frac_s, gram_s, mask_s, lat_s, t_s, _, _ = model.generate(
+        num_atoms=4, max_atoms=6, batch_size=2, steps=2
+    )
     print(
         f"generate: z={tuple(z_s.shape)} frac={tuple(frac_s.shape)} "
         f"gram={tuple(gram_s.shape)} mask={tuple(mask_s.shape)} "

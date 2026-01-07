@@ -1,0 +1,13 @@
+## Resolved Items
+- Switched model outputs to x0 and convert to v in training/sampling (old checkpoints now incompatible).
+- Simplified CLI to core args; set recommended defaults in train/sample/eval scripts.
+- Enabled min-dist repulsion by default and aligned sampling/eval min_dist usage.
+- Standardized conditioning defaults to `counts_vector,lattice_param,t` with normalization.
+- Kept project-geometry safety guard (prevent use without geometry heads).
+- Updated documentation to reflect x0-only pipeline and simplified CLI.
+- Added min_dist pre/post-repulsion stats and collision counts in sampling outputs/logs.
+- Applied center-of-mass correction during min_dist repulsion to avoid drift.
+- Added same-element nearest-neighbor min_dist stats in evaluation reports.
+- Added training min_dist penalty to discourage collisions.
+- Added training min_dist/collision monitoring in logs.
+- Added sampling consistency warnings for coord_frame and checkpoint config.

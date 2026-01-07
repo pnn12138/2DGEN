@@ -3,6 +3,8 @@
 - `cond_lattice_mean/cond_lattice_std/cond_t_mean/cond_t_std` 在默认“仅化学式条件”下不会使用，可视情况延迟写入。
 - `data/prepare_c2db_tokens.py` 的 `--preprocess-v3/--no-preprocess-v3` 开关：当前主线已默认 v3+canonical，可评估是否需要保留“禁用预处理”的分支。
 - `C2DBTokenNPZDataset` 中保留的 legacy npz key 白名单（`nbr_idx/nbr_dist/nbr_mask` 等）若不再支持旧缓存，可删除以简化加载逻辑。
+- `scrip/sample_tokens.py` 的 `_install_checkpoint_legacy_shims()` 仅用于老 checkpoint 的模块路径兼容；如已不再需要旧 ckpt，可移除。
+- `data/c2db_dataset.py` 的 `C2DBDataset/C2DBAtomDataset`（CSV 直读）可能只用于历史/debug，若主流程已固定 npz，可考虑归档或标注仅作辅助。
 
 ## 疑似冗余/危险代码（建议尽快处理）
 - `data/dataset.py`：历史 stub 已替换为 `C2DBTokenNPZDataset` 的兼容别名（`CrystDataset`），不再依赖 `torch_geometric`。

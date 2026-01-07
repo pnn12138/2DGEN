@@ -14,6 +14,7 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Sampler
 
 from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
+from twodgen.common.crystal import gram6_to_lattice, frac_mic_dist
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 from twodgen.model.model_sizes import resolve_model_hparams
@@ -21,144 +22,80 @@ from twodgen.model.model_sizes import resolve_model_hparams
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
-    parser.add_argument(
-        "--deterministic",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="Enable deterministic algorithms (may be slower).",
-    )
+    parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--batch-size", type=int, default=256)
+    parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument(
         "--model-size",
         type=str,
         default="base",
         choices=["tiny", "base", "large", "xl"],
-        help="Model size preset controlling Transformer width/depth (overridable by explicit --*-dim/--depth flags).",
+        help="Model size preset.",
     )
-    parser.add_argument("--embed-dim", type=int, default=None, help="Transformer embedding dim (override preset).")
-    parser.add_argument("--depth", type=int, default=None, help="Transformer depth (override preset).")
-    parser.add_argument("--num-heads", type=int, default=None, help="Attention heads (override preset).")
-    parser.add_argument("--mlp-ratio", type=float, default=None, help="MLP expansion ratio (override preset).")
-    parser.add_argument("--dropout", type=float, default=None, help="Dropout (override preset).")
-    parser.add_argument("--time-embed-dim", type=int, default=None, help="Timestep embedding dim (override preset).")
-    parser.add_argument("--z-embed-dim", type=int, default=None, help="Element token embedding dim (override preset).")
-    parser.add_argument("--f-embed-dim", type=int, default=None, help="Frac token embedding dim (override preset).")
-    parser.add_argument("--rbf-dim", type=int, default=None, help="RBF distance embedding dim (override preset).")
-    parser.add_argument("--pair-mlp-hidden", type=int, default=None, help="Pair MLP hidden dim (override preset).")
-    parser.add_argument("--csv", type=Path, default=None)
-    parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
-    parser.add_argument("--epochs", type=int, default=1)
-    parser.add_argument("--batch-size", type=int, default=32)
-    parser.add_argument("--lr", type=float, default=1e-4)
-    parser.add_argument("--optimizer", type=str, default="adamw", choices=["adamw"])
-    parser.add_argument("--weight-decay", type=float, default=1e-2)
-    parser.add_argument("--betas", type=str, default="0.9,0.95")
-    parser.add_argument("--warmup-steps", type=int, default=0)
-    parser.add_argument("--min-lr", type=float, default=1e-6)
-    parser.add_argument("--lr-schedule", type=str, default="cosine", choices=["cosine", "constant"])
-    parser.add_argument("--clip-grad", type=float, default=0.0)
-    parser.add_argument("--ema", action="store_true")
-    parser.add_argument("--ema-decay", type=float, default=0.9999)
-    parser.add_argument("--num-workers", type=int, default=4)
-    parser.add_argument("--log-interval", type=int, default=50)
     parser.add_argument("--save-dir", type=Path, default=Path("outputs/checkpoints"))
-    parser.add_argument("--max-atoms", type=int, default=24)
-    parser.add_argument("--g-scale", type=float, default=100.0)
-    parser.add_argument("--k-neighbors", type=int, default=32)
-    parser.add_argument("--dual-graph", action="store_true", help="Use merged kNN(d_xy) + kNN(d_3d) graph.")
-    parser.add_argument("--edge-type-dim", type=int, default=0, help="Edge type embedding dim (0 disables).")
-    parser.add_argument(
-        "--edge-type-gating",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Apply learnable scalar gating per edge type.",
-    )
-    parser.add_argument("--wrap-embed-dim", type=int, default=0, help="Wrap embedding dim (0 disables).")
-    parser.add_argument("--max-steps", type=int, default=None)
-    parser.add_argument("--mode", type=str, default="diffusion", choices=["diffusion", "flow"])
-    parser.add_argument("--no-uncertainty-weighting", action="store_true")
-    parser.add_argument(
-        "--drop-last",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Drop last incomplete batch (can hurt small datasets).",
-    )
-    parser.add_argument("--cell-rep", type=str, default="gram6", choices=["gram6", "cholesky6"])
-    parser.add_argument("--chol-log-min", type=float, default=None)
-    parser.add_argument("--chol-log-max", type=float, default=None)
-    parser.add_argument("--cell-init", type=str, default="gaussian", choices=["gaussian", "iso"])
-    parser.add_argument("--cell-init-scale", type=float, default=None)
-    parser.add_argument("--cell-init-noise", type=float, default=None)
-    parser.add_argument("--cell-init-scale-factor", type=float, default=1.5)
-    parser.add_argument("--cell-log-min-factor", type=float, default=0.7)
-    parser.add_argument("--cell-log-max-factor", type=float, default=2.5)
-    parser.add_argument(
-        "--use-geometry-fields",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Use uv_angle/z_norm/lattice_param heads when available in the dataset.",
-    )
-    parser.add_argument(
-        "--align-atoms",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Align per-atom fields using order_idx when available.",
-    )
-    parser.add_argument(
-        "--coord-frame",
-        type=str,
-        default="canon",
-        choices=["raw", "canon"],
-        help="Coordinate frame for frac/lattice when using token npz.",
-    )
-    parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction on-the-fly (CSV).")
-    parser.add_argument("--bucket-batches", action="store_true", help="Bucket batches by atom count to reduce padding.")
-    parser.add_argument("--bucket-shuffle", action="store_true", help="Shuffle within/among buckets.")
-    parser.add_argument("--use-condition", action="store_true", help="Condition on counts/lattice parameters.")
-    parser.add_argument("--cond-drop-prob", type=float, default=0.1, help="Condition dropout prob for CFG-style training.")
-    parser.add_argument(
-        "--cond-fields",
-        type=str,
-        default=None,
-        help="Comma-separated condition fields (e.g. counts_vector,lattice_param,t,xrd).",
-    )
-    parser.add_argument(
-        "--cond-normalize-fields",
-        type=str,
-        default="",
-        help="Comma-separated condition fields to z-score normalize.",
-    )
-    parser.add_argument(
-        "--use-comp-encoder",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Enable composition encoder from counts_vector inside the model.",
-    )
-    parser.add_argument("--comp-embed-dim", type=int, default=64, help="Element embedding dim for comp encoder.")
-    parser.add_argument(
-        "--comp-pool-mode",
-        type=str,
-        default="count",
-        choices=["count", "sqrt", "frac"],
-        help="Composition pooling weights.",
-    )
-    parser.add_argument(
-        "--comp-use-frac",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Append fraction-weighted pooling to comp encoder.",
-    )
-    parser.add_argument(
-        "--element-ids",
-        type=str,
-        default=None,
-        help="Comma-separated element Z ids matching counts_vector indices.",
-    )
-    parser.add_argument(
-        "--pbc-mask",
-        type=str,
-        default="1,1,0",
-        help="Comma-separated PBC mask for MIC distance, e.g. 1,1,0 for slab.",
+    parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
+
+    parser.set_defaults(
+        deterministic=False,
+        embed_dim=None,
+        depth=None,
+        num_heads=None,
+        mlp_ratio=None,
+        dropout=None,
+        time_embed_dim=None,
+        z_embed_dim=None,
+        f_embed_dim=None,
+        rbf_dim=None,
+        pair_mlp_hidden=None,
+        csv=None,
+        optimizer="adamw",
+        weight_decay=1e-2,
+        betas="0.9,0.95",
+        warmup_steps=500,
+        min_lr=1e-6,
+        lr_schedule="cosine",
+        clip_grad=1.0,
+        ema=True,
+        ema_decay=0.9999,
+        num_workers=4,
+        log_interval=50,
+        max_atoms=24,
+        g_scale=100.0,
+        k_neighbors=32,
+        dual_graph=False,
+        edge_type_dim=0,
+        edge_type_gating=True,
+        wrap_embed_dim=0,
+        max_steps=None,
+        mode="diffusion",
+        no_uncertainty_weighting=False,
+        drop_last=True,
+        cell_rep="cholesky6",
+        chol_log_min=None,
+        chol_log_max=None,
+        cell_init="iso",
+        cell_init_scale=None,
+        cell_init_noise=None,
+        cell_init_scale_factor=1.5,
+        cell_log_min_factor=0.7,
+        cell_log_max_factor=2.5,
+        use_geometry_fields=True,
+        align_atoms=True,
+        coord_frame="canon",
+        niggli_reduce=False,
+        bucket_batches=False,
+        bucket_shuffle=False,
+        use_condition=True,
+        cond_drop_prob=0.1,
+        cond_fields="counts_vector,lattice_param,t",
+        cond_normalize_fields="lattice_param,t",
+        use_comp_encoder=True,
+        comp_embed_dim=64,
+        comp_pool_mode="count",
+        comp_use_frac=True,
+        element_ids=None,
+        pbc_mask="1,1,0",
     )
     return parser.parse_args()
 
@@ -592,6 +529,13 @@ def train_one_epoch(
             ema.update(model)
 
         if global_step % log_interval == 0:
+            with torch.no_grad():
+                lattice = gram6_to_lattice(gram6 * model.cfg.model.g_scale)
+                dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=model.cfg.model.pbc_mask)
+                min_dist_batch = dist.amin(dim=(1, 2)).detach().cpu().numpy()
+                min_dist_mean = float(np.mean(min_dist_batch)) if min_dist_batch.size else float("nan")
+                min_dist_p10 = float(np.percentile(min_dist_batch, 10.0)) if min_dist_batch.size else float("nan")
+                collision_rate = float(np.mean(min_dist_batch < model.cfg.min_dist_train_cut)) if min_dist_batch.size else 0.0
             msg = (
                 f"[step {global_step}] loss={loss.item():.4f} "
                 f"loss_f={metrics['loss_f'].item():.4f} "
@@ -607,6 +551,9 @@ def train_one_epoch(
                 )
             if use_thickness:
                 msg += f" loss_t={metrics['loss_t'].item():.4f}"
+            if "loss_min_dist" in metrics:
+                msg += f" loss_min_dist={metrics['loss_min_dist'].item():.4f}"
+            msg += f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f} collision_rate={collision_rate:.3f}"
             if "s_f" in metrics:
                 msg += (
                     f" s_f={metrics['s_f'].item():.3f}"
@@ -630,6 +577,9 @@ def train_one_epoch(
                     "loss_g": float(metrics["loss_g"].item()),
                     "loss_z": float(metrics["loss_z"].item()),
                     "lr": float(lr),
+                    "min_dist_mean": min_dist_mean,
+                    "min_dist_p10": min_dist_p10,
+                    "collision_rate": collision_rate,
                 }
                 if use_geometry_fields:
                     payload.update(
@@ -641,6 +591,17 @@ def train_one_epoch(
                     )
                 if use_thickness:
                     payload["loss_t"] = float(metrics["loss_t"].item())
+                if "loss_min_dist" in metrics:
+                    payload["loss_min_dist"] = float(metrics["loss_min_dist"].item())
+                if "pred_x0_f_mean" in metrics:
+                    payload.update(
+                        {
+                            "pred_x0_f_mean": float(metrics["pred_x0_f_mean"].item()),
+                            "pred_x0_f_std": float(metrics["pred_x0_f_std"].item()),
+                            "pred_v_f_mean": float(metrics["pred_v_f_mean"].item()),
+                            "pred_v_f_std": float(metrics["pred_v_f_std"].item()),
+                        }
+                    )
                 if "s_f" in metrics:
                     payload.update(
                         {
@@ -871,6 +832,7 @@ def main() -> None:
     model = AtomDenoiser(denoiser_cfg).to(device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {n_params / 1e6:.3f}M (model_size={args.model_size})")
+    print("[info] pred_target=x0")
     betas = _parse_betas(args.betas)
     param_groups = _build_param_groups(model, args.weight_decay)
     optimizer = optim.AdamW(param_groups, lr=args.lr, betas=betas)
@@ -882,6 +844,7 @@ def main() -> None:
     config_payload = {
         "created_at": run_stamp,
         "args": _serialize_args(args),
+        "pred_target": "x0",
         "model_config": asdict(model_cfg),
         "diffusion_config": asdict(denoiser_cfg.diffusion),
         "optimizer_config": {
@@ -959,6 +922,7 @@ def main() -> None:
             "epoch": epoch,
             "global_step": global_step,
             "mean_loss": epoch_loss,
+            "pred_target": "x0",
             "config": model_cfg,
             "diffusion_config": denoiser_cfg.diffusion,
             "optimizer_config": config_payload["optimizer_config"],

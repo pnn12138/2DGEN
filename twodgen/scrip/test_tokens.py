@@ -26,7 +26,9 @@ def main() -> None:
     print(f"pred_v_f: {tuple(pred_v_f.shape)} pred_v_g: {tuple(pred_v_g.shape)} logits_z: {tuple(logits_z.shape)}")
 
     model.eval()
-    z_s, frac_s, gram_s, mask_s, lat_s, t_s = model.generate(num_atoms=4, max_atoms=8, batch_size=2, steps=2)
+    z_s, frac_s, gram_s, mask_s, lat_s, t_s, _, _ = model.generate(
+        num_atoms=4, max_atoms=8, batch_size=2, steps=2
+    )
     print(
         f"samples z: {tuple(z_s.shape)} frac: {tuple(frac_s.shape)} "
         f"gram: {tuple(gram_s.shape)} mask: {tuple(mask_s.shape)} "

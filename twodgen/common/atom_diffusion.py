@@ -197,7 +197,7 @@ class AtomVelocityLoss(nn.Module):
                     counts_in[drop] = 0.0
         geom_preds = None
         if uv_angle is not None or z_norm is not None or lattice_param is not None or slab_t is not None:
-            pred_v_f, pred_v_g, logits_z, geom_preds = model(
+            pred_x0_f, pred_x0_g, logits_z, geom_preds = model(
                 z_masked,
                 frac_t,
                 cell_t,
@@ -215,7 +215,7 @@ class AtomVelocityLoss(nn.Module):
                 dist_nbr=dist_nbr,
             )
         else:
-            pred_v_f, pred_v_g, logits_z = model(
+            pred_x0_f, pred_x0_g, logits_z = model(
                 z_masked,
                 frac_t,
                 cell_t,
@@ -228,6 +228,17 @@ class AtomVelocityLoss(nn.Module):
                 dist_nbr=dist_nbr,
             )
 
+        if self.cfg.mode == "flow":
+            denom_f = t_expand_f.clamp_min(self.cfg.t_eps)
+            denom_g = t_expand_g.clamp_min(self.cfg.t_eps)
+            pred_v_f = (frac_t - pred_x0_f) / denom_f
+            pred_v_g = (cell_t - pred_x0_g) / denom_g
+        else:
+            denom_f = (1.0 - t_expand_f).clamp_min(self.cfg.t_eps)
+            denom_g = (1.0 - t_expand_g).clamp_min(self.cfg.t_eps)
+            pred_v_f = (pred_x0_f - frac_t) / denom_f
+            pred_v_g = (pred_x0_g - cell_t) / denom_g
+
         atom_mask_f = atom_mask.unsqueeze(-1)
         loss_f = (pred_v_f - v_f) ** 2
         loss_f = (loss_f * atom_mask_f).sum() / atom_mask_f.sum().clamp_min(1.0)
@@ -239,18 +250,42 @@ class AtomVelocityLoss(nn.Module):
         loss_t = torch.tensor(0.0, device=device)
         if geom_preds is not None:
             if uv_angle is not None and v_uv is not None:
-                uv_pred = geom_preds["uv_angle"]
+                uv_pred_x0 = geom_preds["uv_angle"]
+                if self.cfg.mode == "flow":
+                    denom_uv = t_expand_uv.clamp_min(self.cfg.t_eps)
+                    uv_pred = (uv_angle_t - uv_pred_x0) / denom_uv
+                else:
+                    denom_uv = (1.0 - t_expand_uv).clamp_min(self.cfg.t_eps)
+                    uv_pred = (uv_pred_x0 - uv_angle_t) / denom_uv
                 loss_uv = (uv_pred - v_uv) ** 2
                 loss_uv = (loss_uv * atom_mask_f).sum() / atom_mask_f.sum().clamp_min(1.0)
             if z_norm is not None and v_zn is not None:
-                zn_pred = geom_preds["z_norm"]
+                zn_pred_x0 = geom_preds["z_norm"]
+                if self.cfg.mode == "flow":
+                    denom_zn = t_expand_zn.clamp_min(self.cfg.t_eps)
+                    zn_pred = (z_norm_t - zn_pred_x0) / denom_zn
+                else:
+                    denom_zn = (1.0 - t_expand_zn).clamp_min(self.cfg.t_eps)
+                    zn_pred = (zn_pred_x0 - z_norm_t) / denom_zn
                 loss_zn = (zn_pred - v_zn) ** 2
                 loss_zn = (loss_zn * atom_mask).sum() / atom_mask.sum().clamp_min(1.0)
             if lattice_param is not None and v_lat is not None:
-                lat_pred = geom_preds["lattice_param"]
+                lat_pred_x0 = geom_preds["lattice_param"]
+                if self.cfg.mode == "flow":
+                    denom_lat = t_expand_lat.clamp_min(self.cfg.t_eps)
+                    lat_pred = (lattice_param_t - lat_pred_x0) / denom_lat
+                else:
+                    denom_lat = (1.0 - t_expand_lat).clamp_min(self.cfg.t_eps)
+                    lat_pred = (lat_pred_x0 - lattice_param_t) / denom_lat
                 loss_lat = F.mse_loss(lat_pred, v_lat)
             if slab_t is not None and v_t is not None:
-                t_pred = geom_preds["t"]
+                t_pred_x0 = geom_preds["t"]
+                if self.cfg.mode == "flow":
+                    denom_t = t_expand_t.clamp_min(self.cfg.t_eps)
+                    t_pred = (slab_t_t - t_pred_x0) / denom_t
+                else:
+                    denom_t = (1.0 - t_expand_t).clamp_min(self.cfg.t_eps)
+                    t_pred = (t_pred_x0 - slab_t_t) / denom_t
                 loss_t = F.mse_loss(t_pred, v_t)
 
         if masked_pos.any():
@@ -288,6 +323,10 @@ class AtomVelocityLoss(nn.Module):
             "loss_zn": loss_zn.detach(),
             "loss_lat": loss_lat.detach(),
             "loss_t": loss_t.detach(),
+            "pred_x0_f_mean": pred_x0_f.detach().mean(),
+            "pred_x0_f_std": pred_x0_f.detach().std(),
+            "pred_v_f_mean": pred_v_f.detach().mean(),
+            "pred_v_f_std": pred_v_f.detach().std(),
         }
         if self.cfg.use_uncertainty_weighting:
             metrics.update(
