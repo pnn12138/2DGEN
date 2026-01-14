@@ -6,6 +6,7 @@ import random
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+import sys
 
 import math
 import numpy as np
@@ -14,7 +15,9 @@ from torch import nn, optim
 from torch.utils.data import DataLoader, Sampler
 
 from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
+from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
 from twodgen.common.crystal import gram6_to_lattice, frac_mic_dist
+from twodgen.common.run_metadata import collect_run_metadata
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 from twodgen.model.model_sizes import resolve_model_hparams
@@ -23,6 +26,19 @@ from twodgen.model.model_sizes import resolve_model_hparams
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
     parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
+    parser.add_argument(
+        "--split-json",
+        type=Path,
+        default=None,
+        help="Optional split json produced by twodgen.data.create_c2db_split (train/heldout indices).",
+    )
+    parser.add_argument(
+        "--split",
+        type=str,
+        default="all",
+        choices=["all", "train", "heldout"],
+        help="Which split subset to use when --split-json is provided.",
+    )
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -206,6 +222,7 @@ def prepare_dataloader(
     shuffle: bool,
     seed: int,
     drop_last: bool,
+    indices: list[int] | None = None,
 ) -> DataLoader:
     generator = torch.Generator()
     generator.manual_seed(seed)
@@ -216,26 +233,85 @@ def prepare_dataloader(
         np.random.seed(worker_seed)
         torch.manual_seed(worker_seed)
 
+    from torch.utils.data import Sampler, SubsetRandomSampler
+
+    class _SubsetSequentialSampler(Sampler[int]):
+        def __init__(self, subset: list[int]) -> None:
+            self.subset = subset
+
+        def __iter__(self):
+            yield from self.subset
+
+        def __len__(self) -> int:
+            return len(self.subset)
+
+    class _IndexBucketBatchSampler(Sampler[list[int]]):
+        def __init__(self, subset: list[int], counts_subset: torch.Tensor) -> None:
+            order_local = torch.argsort(counts_subset).tolist()
+            mapped = [subset[i] for i in order_local]
+            self.buckets = [
+                mapped[i : i + batch_size] for i in range(0, len(mapped), batch_size)
+            ]
+            if shuffle:
+                perm = torch.randperm(len(self.buckets), generator=generator).tolist()
+                self.buckets = [self.buckets[i] for i in perm]
+                for bucket in self.buckets:
+                    perm_in = torch.randperm(len(bucket), generator=generator).tolist()
+                    bucket[:] = [bucket[i] for i in perm_in]
+
+        def __iter__(self):
+            yield from self.buckets
+
+        def __len__(self) -> int:
+            return len(self.buckets)
+
+    if indices is not None:
+        validate_split_indices(indices, total=len(dataset))
+
     if use_buckets:
-        counts = _atom_counts(dataset).float()
-        sampler = BucketBatchSampler(counts, batch_size=batch_size, shuffle=shuffle, generator=generator)
+        counts_full = _atom_counts(dataset).float()
+        if indices is None:
+            batch_sampler: Sampler[list[int]] = BucketBatchSampler(
+                counts_full, batch_size=batch_size, shuffle=shuffle, generator=generator
+            )
+        else:
+            batch_sampler = _IndexBucketBatchSampler(indices, counts_full[indices])
         return DataLoader(
             dataset,
-            batch_sampler=sampler,
+            batch_sampler=batch_sampler,
             num_workers=num_workers,
             pin_memory=True,
             collate_fn=dataset.collate_fn,
             worker_init_fn=_seed_worker if num_workers > 0 else None,
         )
+
+    if indices is None:
+        return DataLoader(
+            dataset,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            num_workers=num_workers,
+            pin_memory=True,
+            drop_last=drop_last,
+            collate_fn=dataset.collate_fn,
+            generator=generator,
+            worker_init_fn=_seed_worker if num_workers > 0 else None,
+        )
+
+    sampler: Sampler[int]
+    if shuffle:
+        sampler = SubsetRandomSampler(indices, generator=generator)
+    else:
+        sampler = _SubsetSequentialSampler(indices)
     return DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=shuffle,
+        sampler=sampler,
+        shuffle=False,
         num_workers=num_workers,
         pin_memory=True,
         drop_last=drop_last,
         collate_fn=dataset.collate_fn,
-        generator=generator,
         worker_init_fn=_seed_worker if num_workers > 0 else None,
     )
 
@@ -329,13 +405,17 @@ def _gram6_to_scube(gram6: torch.Tensor, g_scale: float) -> torch.Tensor:
 
 
 def _estimate_scube_stats(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset, g_scale: float
+    dataset: C2DBAtomDataset | C2DBTokenNPZDataset, g_scale: float, indices: list[int] | None = None
 ) -> tuple[float, float, float, float]:
     if isinstance(dataset, C2DBTokenNPZDataset):
         gram6 = dataset.gram6.float()
+        if indices is not None:
+            gram6 = gram6[indices]
     else:
         gram6_list = []
-        for i in range(len(dataset)):
+        if indices is None:
+            indices = list(range(len(dataset)))
+        for i in indices:
             gram6_list.append(dataset[i]["gram6"].float())
         gram6 = torch.stack(gram6_list, dim=0)
     scube = _gram6_to_scube(gram6, g_scale).cpu().numpy()
@@ -416,10 +496,12 @@ def _compute_cond_stats(
     dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
     cond_fields: list[str],
     normalize_fields: list[str],
+    indices: list[int] | None = None,
 ) -> dict:
     stats: dict[str, torch.Tensor] = {}
     if not isinstance(dataset, C2DBTokenNPZDataset):
         return stats
+    indices_t = torch.as_tensor(indices, dtype=torch.long) if indices is not None else None
     for field in normalize_fields:
         if field in ("counts", "counts_vector"):
             continue
@@ -429,6 +511,8 @@ def _compute_cond_stats(
         if value is None:
             continue
         value = value.float()
+        if indices_t is not None:
+            value = value.index_select(0, indices_t)
         mean = value.mean(dim=0)
         std = value.std(dim=0, unbiased=False).clamp_min(1e-6)
         stats[f"{field}_mean"] = mean
@@ -681,12 +765,19 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
+    split_indices: list[int] | None = None
     if args.npz is not None:
         if args.coord_frame == "canon" and not args.align_atoms:
             raise ValueError("--coord-frame canon requires --align-atoms to keep per-atom fields aligned.")
         dataset = C2DBTokenNPZDataset(
             args.npz, align_atoms=args.align_atoms, coord_frame=args.coord_frame
         )
+        if args.split_json is not None and args.split != "all":
+            split_payload = load_c2db_split(args.split_json)
+            split_indices = select_split_indices(split_payload, args.split)
+            if not split_indices:
+                raise ValueError(f"Split subset {args.split!r} is empty in {args.split_json}.")
+            validate_split_indices(split_indices, total=len(dataset))
         if args.g_scale != dataset.g_scale:
             print(f"[warn] g_scale {args.g_scale} != dataset g_scale {dataset.g_scale}")
         g_scale = dataset.g_scale
@@ -703,6 +794,8 @@ def main() -> None:
                 f"but dataset fell back to coord_frame={dataset.coord_frame_actual}"
             )
     else:
+        if args.split_json is not None and args.split != "all":
+            raise ValueError("--split-json/--split are supported only when training from --npz.")
         csv_path = args.csv if args.csv is not None else Path("data/C2DB/c2db_summary.csv")
         dataset = C2DBAtomDataset(
             csv_path,
@@ -742,6 +835,8 @@ def main() -> None:
                 t_std = float(dataset.cond_t_std.reshape(-1)[0])
             else:
                 t_float = t_values.float()
+                if split_indices is not None:
+                    t_float = t_float.index_select(0, torch.as_tensor(split_indices, dtype=torch.long))
                 t_mean = float(t_float.mean().item())
                 t_std = float(t_float.std(unbiased=False).clamp_min(1e-6).item())
             if t_std <= 0:
@@ -756,12 +851,12 @@ def main() -> None:
     normalize_fields = _parse_cond_fields(args.cond_normalize_fields)
     element_ids = _parse_element_ids(args.element_ids)
     if use_condition:
-        sample = dataset[0]
+        sample = dataset[split_indices[0]] if split_indices is not None else dataset[0]
         cond_dim = _infer_cond_dim(sample, cond_fields, num_elements=118)
-        cond_stats = _compute_cond_stats(dataset, cond_fields, normalize_fields)
+        cond_stats = _compute_cond_stats(dataset, cond_fields, normalize_fields, indices=split_indices)
 
     if args.cell_rep == "cholesky6":
-        s10, s50, s90, log_std = _estimate_scube_stats(dataset, g_scale)
+        s10, s50, s90, log_std = _estimate_scube_stats(dataset, g_scale, indices=split_indices)
         if args.cell_init == "iso" and args.cell_init_scale is None:
             args.cell_init_scale = args.cell_init_scale_factor * s50
         if args.cell_init_noise is None:
@@ -775,7 +870,8 @@ def main() -> None:
         args.edge_type_dim = 4
         print("[warn] --dual-graph enabled with edge_type_dim=0; defaulting to 4.")
 
-    if not args.drop_last and len(dataset) < args.batch_size:
+    dataset_len = len(split_indices) if split_indices is not None else len(dataset)
+    if not args.drop_last and dataset_len < args.batch_size:
         print("[warn] --no-drop-last with dataset smaller than batch size; expect tiny batches.")
 
     loader = prepare_dataloader(
@@ -786,6 +882,7 @@ def main() -> None:
         args.bucket_shuffle,
         seed=args.seed,
         drop_last=args.drop_last,
+        indices=split_indices,
     )
 
     model_hparams = _resolve_model_hparams(args)
@@ -841,8 +938,10 @@ def main() -> None:
     run_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = args.save_dir / run_stamp
     run_dir.mkdir(parents=True, exist_ok=True)
+    run_metadata = collect_run_metadata(argv=sys.argv)
     config_payload = {
         "created_at": run_stamp,
+        "run_metadata": run_metadata,
         "args": _serialize_args(args),
         "pred_target": "x0",
         "model_config": asdict(model_cfg),
@@ -875,6 +974,14 @@ def main() -> None:
             "t_normalize": t_stats is not None,
             "t_mean": t_stats[0] if t_stats is not None else None,
             "t_std": t_stats[1] if t_stats is not None else None,
+        },
+        "dataset": {
+            "type": "C2DBTokenNPZDataset" if args.npz is not None else "C2DBAtomDataset",
+            "npz": str(args.npz) if args.npz is not None else None,
+            "csv": str(args.csv) if args.csv is not None else None,
+            "split_json": str(args.split_json) if args.split_json is not None else None,
+            "split": str(args.split),
+            "pbc_mask": pbc_mask,
         },
     }
     with (run_dir / "config.json").open("w", encoding="utf-8") as f:

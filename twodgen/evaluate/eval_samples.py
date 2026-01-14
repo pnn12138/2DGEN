@@ -10,6 +10,61 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 
 
+EVAL_SCHEMA_VERSION = "eval_samples_v1"
+VALID_CRITERIA = [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "lattice Gram matrix is SPD",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees",
+]
+
+
+def build_eval_params(
+    *,
+    min_dist_cut: float,
+    bond_cut: float,
+    dup_eps: float,
+    v_min: Optional[float],
+    v_max: Optional[float],
+    pbc_mask: Tuple[int, int, int],
+) -> Dict[str, Any]:
+    return {
+        "min_dist_cut": float(min_dist_cut),
+        "bond_cut": float(bond_cut),
+        "dup_eps": float(dup_eps),
+        "v_min": float(v_min) if v_min is not None else None,
+        "v_max": float(v_max) if v_max is not None else None,
+        "pbc_mask": pbc_mask,
+    }
+
+
+def write_eval_outputs(
+    *,
+    out_dir: Path,
+    per_sample: List[Dict[str, Any]],
+    tier0: Dict[str, Any],
+    tier1: Dict[str, Any],
+    eval_params: Dict[str, Any],
+    run_context: Optional[Dict[str, Any]] = None,
+) -> None:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    tier0.setdefault("schema_version", EVAL_SCHEMA_VERSION)
+    tier0.setdefault("valid_criteria", list(VALID_CRITERIA))
+    tier0["eval_params"] = eval_params
+    if run_context is not None:
+        tier0["run_context"] = run_context
+
+    with (out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
+        for row in per_sample:
+            f.write(json.dumps(row, ensure_ascii=True) + "\n")
+    with (out_dir / "tier0_metrics.json").open("w", encoding="utf-8") as f:
+        json.dump(tier0, f, indent=2, ensure_ascii=True)
+    with (out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
+        json.dump(tier1, f, indent=2, ensure_ascii=True)
+
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
     parts = [p.strip() for p in value.split(",")]
@@ -472,23 +527,22 @@ def main() -> None:
         dup_eps=args.dup_eps,
         pbc_mask=pbc_mask,
     )
-    tier0["eval_params"] = {
-        "min_dist_cut": float(args.min_dist),
-        "bond_cut": float(args.bond_cut),
-        "dup_eps": float(args.dup_eps),
-        "v_min": float(v_min) if v_min is not None else None,
-        "v_max": float(v_max) if v_max is not None else None,
-        "pbc_mask": pbc_mask,
-    }
-
-    with (out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
-        for row in per_sample:
-            f.write(json.dumps(row, ensure_ascii=True) + "\n")
-
-    with (out_dir / "tier0_metrics.json").open("w", encoding="utf-8") as f:
-        json.dump(tier0, f, indent=2, ensure_ascii=True)
-    with (out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
-        json.dump(tier1, f, indent=2, ensure_ascii=True)
+    eval_params = build_eval_params(
+        min_dist_cut=float(args.min_dist),
+        bond_cut=float(args.bond_cut),
+        dup_eps=float(args.dup_eps),
+        v_min=v_min,
+        v_max=v_max,
+        pbc_mask=pbc_mask,
+    )
+    write_eval_outputs(
+        out_dir=out_dir,
+        per_sample=per_sample,
+        tier0=tier0,
+        tier1=tier1,
+        eval_params=eval_params,
+        run_context={"source": "eval_samples", "samples": str(args.samples)},
+    )
 
     print(f"Saved eval outputs to {out_dir}")
 
