@@ -96,6 +96,13 @@ uv run python -m twodgen.evaluate.eval_samples --samples outputs/samples_tokens/
 ```
 也可用 CLI：`twodgen-eval --samples ...`
 
+### Baseline 评估（`eval_run_001`）
+为保证可复现与 train/held-out 指标显式区分，推荐使用：
+- split：`uv run python -m twodgen.data.create_c2db_split ...`
+- 统一评估入口：`uv run python -m twodgen.evaluate.eval_run_001 ...`
+
+详情与 `valid_rate` 定义见 `twodgen/baselines/eval_run_001.md`。
+
 评估方法举例：
 - 基础评估（输出 `per_sample.jsonl` 与 Tier‑0/1 结果）：
   ```bash

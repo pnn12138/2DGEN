@@ -5,6 +5,7 @@ import json
 import random
 from pathlib import Path
 from typing import List, Optional, Tuple
+import sys
 
 import numpy as np
 import torch
@@ -13,6 +14,8 @@ from pymatgen.io.cif import CifWriter
 
 from twodgen.common.crystal import frac_mic_dist
 from twodgen.evaluate import eval_samples as eval_samples_mod
+from twodgen.common.run_metadata import collect_run_metadata
+from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.common.atom_diffusion import AtomDiffusionConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
@@ -45,6 +48,20 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--npz", type=Path, default=None, help="Token cache for sampling N/volume stats.")
+    parser.add_argument("--cond-npz", type=Path, default=None, help="Token cache used to provide conditioning rows.")
+    parser.add_argument(
+        "--cond-split-json",
+        type=Path,
+        default=None,
+        help="Optional split json to restrict conditioning rows (train/heldout indices).",
+    )
+    parser.add_argument(
+        "--cond-split",
+        type=str,
+        default="all",
+        choices=["all", "train", "heldout"],
+        help="Which subset to draw conditioning rows from when --cond-split-json is set.",
+    )
     parser.add_argument("--num-samples", type=int, default=10)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
@@ -77,7 +94,6 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         project_each_step=False,
         project_geometry=True,
         z_norm_clip=None,
-        cond_npz=None,
         cond_index=None,
         cond_first=None,
         cond_random=True,
@@ -247,6 +263,19 @@ def run_sampling(args: argparse.Namespace) -> Path:
             pass
     if args.num_atoms is not None and args.num_atoms > args.max_atoms:
         raise ValueError("--num-atoms must be <= --max-atoms")
+
+    sampling_config: dict = {
+        "run_metadata": collect_run_metadata(argv=sys.argv),
+        "checkpoint": str(args.checkpoint),
+        "npz": str(args.npz) if args.npz is not None else None,
+        "cond_npz": str(args.cond_npz) if args.cond_npz is not None else None,
+        "cond_split_json": str(args.cond_split_json) if args.cond_split_json is not None else None,
+        "cond_split": str(args.cond_split),
+        "num_samples": int(args.num_samples),
+        "steps": int(args.steps),
+        "method": str(args.method),
+        "seed": int(args.seed),
+    }
 
     min_dist_cut = float(args.eval_min_dist)
     if args.min_dist is not None:
@@ -442,27 +471,54 @@ def run_sampling(args: argparse.Namespace) -> Path:
         num_rows = data["counts_vector"].shape[0] if "counts_vector" in data else 0
         if num_rows == 0:
             raise ValueError("cond npz has no counts_vector rows.")
+        pool_indices: Optional[list[int]] = None
+        pool_set: Optional[set[int]] = None
+        if args.cond_split_json is not None and args.cond_split != "all":
+            split = load_c2db_split(args.cond_split_json)
+            pool_indices = select_split_indices(split, args.cond_split)
+            if not pool_indices:
+                raise ValueError(f"cond_split {args.cond_split!r} is empty in {args.cond_split_json}.")
+            validate_split_indices(pool_indices, total=num_rows)
+            pool_set = set(pool_indices)
+            sampling_config["cond_pool_size"] = int(len(pool_indices))
+        else:
+            sampling_config["cond_pool_size"] = int(num_rows)
         if args.cond_first is not None:
             if args.cond_first <= 0:
                 raise ValueError("--cond-first must be positive.")
-            if args.cond_first > num_rows:
+            if pool_indices is None and args.cond_first > num_rows:
                 raise ValueError("--cond-first exceeds rows available in cond npz.")
             if args.num_samples != args.cond_first:
                 raise ValueError("--num-samples must equal --cond-first when using --cond-first.")
             cond_strategy = "first"
-            indices = np.arange(args.cond_first, dtype=int)
+            if pool_indices is None:
+                indices = np.arange(args.cond_first, dtype=int)
+            else:
+                indices = np.asarray(pool_indices[: args.cond_first], dtype=int)
         elif args.cond_index is not None:
             if args.cond_index < 0 or args.cond_index >= num_rows:
                 raise ValueError("--cond-index is out of range for cond npz.")
+            if pool_set is not None and int(args.cond_index) not in pool_set:
+                raise ValueError("--cond-index is not part of the requested --cond-split subset.")
             cond_strategy = "index"
             indices = np.full((args.num_samples,), args.cond_index, dtype=int)
         elif args.cond_random:
             cond_strategy = "random"
-            indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
+            if pool_indices is None:
+                indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
+            else:
+                pool = np.asarray(pool_indices, dtype=int)
+                picked = rng.integers(0, len(pool), size=args.num_samples, dtype=int)
+                indices = pool[picked]
         else:
             cond_strategy = "random"
             print("[info] No cond strategy provided; defaulting to --cond-random.")
-            indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
+            if pool_indices is None:
+                indices = rng.integers(0, num_rows, size=args.num_samples, dtype=int)
+            else:
+                pool = np.asarray(pool_indices, dtype=int)
+                picked = rng.integers(0, len(pool), size=args.num_samples, dtype=int)
+                indices = pool[picked]
         cond_indices = indices.astype(np.int64)
         if "counts_vector" in data and ("counts_vector" in cond_fields or "counts" in cond_fields):
             cond_counts_vector = data["counts_vector"][indices].astype(np.int64)
@@ -476,6 +532,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         ).to(device)
         if model_cfg.cond_dim != cond.shape[-1]:
             raise ValueError(f"Condition dim {cond.shape[-1]} does not match model cond_dim {model_cfg.cond_dim}.")
+        sampling_config["cond_strategy"] = str(cond_strategy)
 
     if args.num_atoms is None:
         if cond_counts_vector is not None:
@@ -669,7 +726,27 @@ def run_sampling(args: argparse.Namespace) -> Path:
         payload["cond_counts_vector"] = cond_counts_vector
     if cond_strategy is not None:
         payload["cond_strategy"] = np.array(cond_strategy)
+    if args.cond_split_json is not None:
+        payload["cond_split"] = np.array(str(args.cond_split))
     np.savez_compressed(args.out_dir / "samples.npz", **payload)
+    sampling_config["export"] = {
+        "valid_rate_samples": float(valid_rate),
+        "cif_rate_samples": float(cif_rate),
+        "min_dist_pre_mean": float(pre_mean),
+        "min_dist_post_mean": float(post_mean),
+        "min_dist_pre_p10": float(pre_p10),
+        "min_dist_post_p10": float(post_p10),
+        "collision_pre": int(pre_collision),
+        "collision_post": int(post_collision),
+        "min_dist_cut": float(min_dist_cut),
+        "min_dist_repulsion_cut": float(min_dist_repulsion_cut),
+        "min_dist_repulsion_iter": int(min_dist_iter),
+        "min_dist_repulsion_strength": float(min_dist_strength),
+    }
+    (args.out_dir / "sampling_config.json").write_text(
+        json.dumps(sampling_config, indent=2, ensure_ascii=True),
+        encoding="utf-8",
+    )
 
     print(
         f"Saved {args.num_samples} samples to {args.out_dir} "
@@ -693,7 +770,6 @@ def run_sampling(args: argparse.Namespace) -> Path:
         samples_path = args.out_dir / "samples.npz"
         samples = np.load(samples_path)
         eval_out_dir = args.eval_out_dir or (args.out_dir / "eval")
-        eval_out_dir.mkdir(parents=True, exist_ok=True)
         eval_pbc_mask = model_cfg.pbc_mask
         if args.eval_pbc_mask is not None:
             eval_pbc_mask = _parse_pbc_mask(args.eval_pbc_mask)
@@ -715,13 +791,27 @@ def run_sampling(args: argparse.Namespace) -> Path:
             dup_eps=args.eval_dup_eps,
             pbc_mask=eval_pbc_mask,
         )
-        with (eval_out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
-            for row in per_sample:
-                f.write(json.dumps(row, ensure_ascii=True) + "\n")
-        with (eval_out_dir / "tier0_metrics.json").open("w", encoding="utf-8") as f:
-            json.dump(tier0, f, indent=2, ensure_ascii=True)
-        with (eval_out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
-            json.dump(tier1, f, indent=2, ensure_ascii=True)
+        eval_params = eval_samples_mod.build_eval_params(
+            min_dist_cut=float(args.eval_min_dist),
+            bond_cut=float(args.eval_bond_cut),
+            dup_eps=float(args.eval_dup_eps),
+            v_min=v_min,
+            v_max=v_max,
+            pbc_mask=eval_pbc_mask,
+        )
+        eval_samples_mod.write_eval_outputs(
+            out_dir=eval_out_dir,
+            per_sample=per_sample,
+            tier0=tier0,
+            tier1=tier1,
+            eval_params=eval_params,
+            run_context={
+                "source": "sample_tokens",
+                "samples": str(samples_path),
+                "cond_split": str(args.cond_split),
+                "cond_split_json": str(args.cond_split_json) if args.cond_split_json is not None else None,
+            },
+        )
         print(f"Saved eval outputs to {eval_out_dir}")
     return args.out_dir / "samples.npz"
 
