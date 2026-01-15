@@ -51,6 +51,42 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--save-dir", type=Path, default=Path("outputs/checkpoints"))
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
+    parser.add_argument(
+        "--min-dist-train-cut",
+        type=float,
+        default=1.5,
+        help="Distance cutoff (Angstrom) for collision penalty during training.",
+    )
+    parser.add_argument(
+        "--min-dist-train-weight",
+        type=float,
+        default=0.02,
+        help="Weight for collision penalty during training (0 disables).",
+    )
+    parser.add_argument(
+        "--filter-min-dist-below",
+        type=float,
+        default=None,
+        help="Optionally drop extreme-collision training samples with min_dist below this value.",
+    )
+    parser.add_argument(
+        "--curriculum-collision",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Curriculum learning: start with non-collision samples and gradually introduce collision-risk samples.",
+    )
+    parser.add_argument(
+        "--curriculum-epochs",
+        type=int,
+        default=20,
+        help="Number of epochs to linearly ramp collision-risk samples from 0% to 100%.",
+    )
+    parser.add_argument(
+        "--curriculum-min-dist-cut",
+        type=float,
+        default=1.5,
+        help="Threshold (Angstrom) to classify collision-risk samples for curriculum.",
+    )
 
     parser.set_defaults(
         deterministic=False,
@@ -314,6 +350,92 @@ def prepare_dataloader(
         collate_fn=dataset.collate_fn,
         worker_init_fn=_seed_worker if num_workers > 0 else None,
     )
+
+@torch.no_grad()
+def _compute_dataset_min_dist(
+    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    *,
+    pbc_mask: tuple[int, int, int],
+    g_scale: float,
+    batch_size: int = 256,
+) -> torch.Tensor:
+    if isinstance(dataset, C2DBTokenNPZDataset):
+        cached = dataset.extra.get("min_dist")
+        if cached is not None:
+            return cached.float().reshape(-1).cpu()
+        use_canon = getattr(dataset, "coord_frame_actual", "raw") == "canon"
+        frac = dataset.f_canon if use_canon and dataset.f_canon is not None else dataset.f
+        mask = (
+            dataset.atom_mask_canon
+            if use_canon and dataset.atom_mask_canon is not None
+            else dataset.atom_mask
+        )
+        lattice = None
+        if use_canon and dataset.lattice_canon is not None:
+            lattice = dataset.lattice_canon
+        elif dataset.lattice is not None:
+            lattice = dataset.lattice
+        if lattice is None:
+            gram6 = dataset.gram6_canon if use_canon and dataset.gram6_canon is not None else dataset.gram6
+            lattice = gram6_to_lattice(gram6 * g_scale)
+
+        n = frac.shape[0]
+        out = torch.empty((n,), dtype=torch.float32)
+        for start in range(0, n, batch_size):
+            end = min(n, start + batch_size)
+            dist = frac_mic_dist(
+                frac[start:end],
+                lattice[start:end],
+                mask[start:end],
+                pbc_mask=pbc_mask,
+            )
+            out[start:end] = dist.amin(dim=(1, 2)).float().cpu()
+        return out
+
+    loader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        pin_memory=False,
+        drop_last=False,
+        collate_fn=lambda items: {k: torch.stack([it[k] for it in items], dim=0) for k in items[0]},
+    )
+    mins: list[torch.Tensor] = []
+    for batch in loader:
+        frac = batch["frac_coords"].float()
+        atom_mask = batch["atom_mask"].float()
+        gram6 = batch["gram6"].float()
+        lattice = gram6_to_lattice(gram6 * g_scale)
+        dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=pbc_mask)
+        mins.append(dist.amin(dim=(1, 2)).float().cpu())
+    return torch.cat(mins, dim=0) if mins else torch.empty((0,), dtype=torch.float32)
+
+
+def _curriculum_indices(
+    *,
+    base_indices: list[int],
+    min_dist_all: torch.Tensor,
+    min_dist_cut: float,
+    epoch: int,
+    epochs_ramp: int,
+    seed: int,
+) -> list[int]:
+    easy = [i for i in base_indices if float(min_dist_all[i]) >= min_dist_cut]
+    hard = [i for i in base_indices if float(min_dist_all[i]) < min_dist_cut]
+    if not hard or epochs_ramp <= 0:
+        return base_indices
+    frac = min(1.0, float(epoch) / float(epochs_ramp))
+    k = int(round(len(hard) * frac))
+    if k <= 0:
+        return easy
+    if k >= len(hard):
+        return base_indices
+    g = torch.Generator()
+    g.manual_seed(seed + 1009 * epoch)
+    perm = torch.randperm(len(hard), generator=g).tolist()
+    selected = [hard[i] for i in perm[:k]]
+    return easy + selected
 
 
 def _build_param_groups(model: nn.Module, weight_decay: float) -> list[dict]:
@@ -805,6 +927,36 @@ def main() -> None:
         )
         g_scale = args.g_scale
 
+    base_indices: list[int] | None = split_indices
+    min_dist_all: torch.Tensor | None = None
+    needs_min_dist = args.curriculum_collision or (args.filter_min_dist_below is not None)
+    if needs_min_dist:
+        min_dist_all = _compute_dataset_min_dist(
+            dataset,
+            pbc_mask=pbc_mask,
+            g_scale=g_scale,
+            batch_size=min(512, max(32, args.batch_size)),
+        )
+        if min_dist_all.numel() != len(dataset):
+            raise ValueError(
+                f"min_dist computation returned shape {tuple(min_dist_all.shape)} but dataset has len={len(dataset)}"
+            )
+        if base_indices is None:
+            base_indices = list(range(len(dataset)))
+        if args.filter_min_dist_below is not None:
+            cut = float(args.filter_min_dist_below)
+            before = len(base_indices)
+            base_indices = [i for i in base_indices if float(min_dist_all[i]) >= cut]
+            print(f"[info] filter-min-dist-below={cut:.3f}: kept {len(base_indices)}/{before} samples")
+        if args.curriculum_collision:
+            easy = sum(float(min_dist_all[i]) >= float(args.curriculum_min_dist_cut) for i in base_indices)
+            hard = len(base_indices) - easy
+            print(
+                "[info] collision curriculum enabled: "
+                f"easy={easy} hard={hard} "
+                f"(cut={float(args.curriculum_min_dist_cut):.3f}, ramp_epochs={args.curriculum_epochs})"
+            )
+
     use_condition = args.use_condition
     geom_available = all(
         getattr(dataset, name, None) is not None for name in ("uv_angle", "z_norm", "lattice_param")
@@ -870,20 +1022,23 @@ def main() -> None:
         args.edge_type_dim = 4
         print("[warn] --dual-graph enabled with edge_type_dim=0; defaulting to 4.")
 
-    dataset_len = len(split_indices) if split_indices is not None else len(dataset)
+    dataset_len = len(base_indices) if base_indices is not None else len(dataset)
     if not args.drop_last and dataset_len < args.batch_size:
         print("[warn] --no-drop-last with dataset smaller than batch size; expect tiny batches.")
 
-    loader = prepare_dataloader(
-        dataset,
-        args.batch_size,
-        args.num_workers,
-        args.bucket_batches,
-        args.bucket_shuffle,
-        seed=args.seed,
-        drop_last=args.drop_last,
-        indices=split_indices,
-    )
+    def _make_loader(epoch_indices: list[int] | None) -> DataLoader:
+        return prepare_dataloader(
+            dataset,
+            args.batch_size,
+            args.num_workers,
+            args.bucket_batches,
+            args.bucket_shuffle,
+            seed=args.seed,
+            drop_last=args.drop_last,
+            indices=epoch_indices,
+        )
+
+    loader = _make_loader(base_indices)
 
     model_hparams = _resolve_model_hparams(args)
     model_cfg = AtomTransformerConfig(
@@ -926,6 +1081,8 @@ def main() -> None:
     if use_condition:
         denoiser_cfg.diffusion.cond_drop_prob = args.cond_drop_prob
     denoiser_cfg.diffusion.use_uncertainty_weighting = not args.no_uncertainty_weighting
+    denoiser_cfg.min_dist_train_cut = float(args.min_dist_train_cut)
+    denoiser_cfg.min_dist_train_weight = float(args.min_dist_train_weight)
     model = AtomDenoiser(denoiser_cfg).to(device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {n_params / 1e6:.3f}M (model_size={args.model_size})")
@@ -992,9 +1149,23 @@ def main() -> None:
 
     global_step = 0
     best_loss = float("inf")
-    total_steps = args.max_steps if args.max_steps is not None else args.epochs * len(loader)
+    if args.drop_last:
+        steps_per_epoch = dataset_len // max(1, args.batch_size)
+    else:
+        steps_per_epoch = math.ceil(dataset_len / max(1, args.batch_size))
+    total_steps = args.max_steps if args.max_steps is not None else args.epochs * steps_per_epoch
     for epoch in range(args.epochs):
         print(f"Epoch {epoch + 1}/{args.epochs}")
+        if args.curriculum_collision and base_indices is not None and min_dist_all is not None:
+            epoch_indices = _curriculum_indices(
+                base_indices=base_indices,
+                min_dist_all=min_dist_all,
+                min_dist_cut=float(args.curriculum_min_dist_cut),
+                epoch=epoch,
+                epochs_ramp=max(1, int(args.curriculum_epochs)),
+                seed=args.seed,
+            )
+            loader = _make_loader(epoch_indices)
         global_step, epoch_loss = train_one_epoch(
             model=model,
             loader=loader,

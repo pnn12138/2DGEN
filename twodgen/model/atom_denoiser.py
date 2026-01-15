@@ -88,13 +88,12 @@ class AtomDenoiser(nn.Module):
             dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
             cut = float(self.cfg.min_dist_train_cut)
             delta = (cut - dist).clamp_min(0.0)
-            valid = torch.isfinite(dist)
-            if valid.any():
-                penalty = (delta[valid] ** 2).mean()
-                loss = loss + self.cfg.min_dist_train_weight * penalty
-                metrics["loss_min_dist"] = penalty.detach()
-            else:
-                metrics["loss_min_dist"] = torch.tensor(0.0, device=loss.device)
+            # Collision-prioritized reduction: penalize only the worst (closest) pair per structure.
+            # This makes "one bad short bond" visible even when many pairs are already fine.
+            penalty_per = (delta ** 2).amax(dim=(1, 2))
+            penalty = penalty_per.mean()
+            loss = loss + self.cfg.min_dist_train_weight * penalty
+            metrics["loss_min_dist"] = penalty.detach()
         return loss, pred_v_f, pred_v_g, logits_z, metrics
 
     def _predict_velocity(
