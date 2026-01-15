@@ -27,3 +27,10 @@
 
 - `C2DBTokenNPZDataset` 读取 `prepare_c2db_tokens.py` 生成的 `npz`。
 - 若 `npz` 内包含 A++ v3 字段（如 `counts_vector`、`lattice_param`、`t`），会自动加入样本字典，供条件扩散使用。
+
+## Clean-2D 数据集治理（硬过滤 + 质量标签）
+文件：`twodgen/data/clean_c2db_2d.py`
+
+- 对 `data/C2DB/c2db_summary.csv` 逐行解析 CIF，计算 slab 2D 指标（n_atoms / vacuum / thickness / cross-vacuum bond / min_dist）。
+- **硬过滤**（可配置）：原子数上限、真空层下限、跨真空成键（基于 3D MIC + shift）。
+- 生成三类产物：审计表 `c2db_audit_2d.csv`、过滤后 `c2db_clean_2d.csv`、以及质量标签 `c2db_quality.jsonl` 与统计报告 `c2db_clean_report.json`。
