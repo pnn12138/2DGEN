@@ -24,6 +24,9 @@ P_TASK/data/
 !data/C2DB/
 !data/C2DB/**
 
+# Generated C2DB cleaning outputs
+data/C2DB/clean/
+
 # Training outputs / checkpoints
 outputs/
 lightning_logs/

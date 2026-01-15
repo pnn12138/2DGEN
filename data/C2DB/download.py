@@ -10,7 +10,7 @@ from ase.db import connect
 OUTPUT_COLUMNS = [
     # Identifiers / basic attributes
     "material_id",
-    "chemical_formula",a
+    "chemical_formula",
     "space_group_number",
     "space_group_symbol",
     # Energetics and stability
