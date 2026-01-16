@@ -31,3 +31,7 @@
 ## Data & Reproducibility Tips
 - Avoid committing large raw datasets or checkpoints; store them under `data/` or `P_TASK/data/` locally and document download scripts/URLs instead.
 - Respect deterministic seeds (`task.seed`) and note any nondeterministic steps. If adding new datasets, mirror the existing metadata/split layout so scripts remain compatible.
+
+## Project Workflow Requirements
+- When completing items in `twodgen/todo_list.md`, update `twodgen/process.md` with current progress.
+- After fixing bugs, append a clear, itemized record to `twodgen/history.md`.

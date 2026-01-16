@@ -8,8 +8,10 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
+import torch
 from pymatgen.core import Structure
 
+from twodgen.common.crystal import frac_mic_dist
 from twodgen.data.preprocess import PreprocessConfig, preprocess_cartesian
 
 
@@ -66,6 +68,8 @@ def row_to_tokens(
     niggli_reduce: bool,
     preprocess_v3: bool,
     preprocess_cfg: PreprocessConfig,
+    min_dist_cut: float,
+    min_dist_pbc_mask: Tuple[int, int, int],
 ) -> Optional[Dict[str, np.ndarray]]:
     structure = Structure.from_str(cif_str, fmt="cif")
     num_atoms = len(structure)
@@ -79,6 +83,16 @@ def row_to_tokens(
     lattice = np.asarray(structure.lattice.matrix, dtype=np.float32)
     pos_cart = np.asarray(structure.cart_coords, dtype=np.float64)
 
+    min_dist = float("inf")
+    collision_risk = 0
+    if num_atoms > 0:
+        frac_t = torch.from_numpy(frac_coords[None, ...]).float()
+        lattice_t = torch.from_numpy(lattice[None, ...]).float()
+        mask_t = torch.ones((1, num_atoms), dtype=torch.float32)
+        dist = frac_mic_dist(frac_t, lattice_t, mask_t, pbc_mask=min_dist_pbc_mask)
+        min_dist = float(dist.amin(dim=(1, 2)).item())
+        collision_risk = int(min_dist < min_dist_cut)
+
     padded_numbers, mask_numbers = _pad_1d(atomic_numbers, max_atoms, pad_value)
     padded_coords, mask_coords = _pad_2d(frac_coords, max_atoms, pad_value)
     atom_mask = np.minimum(mask_numbers, mask_coords)
@@ -90,6 +104,8 @@ def row_to_tokens(
         "atom_mask": atom_mask,
         "lattice": lattice,
         "gram6": gram6,
+        "min_dist": np.asarray(min_dist, dtype=np.float32),
+        "collision_risk": np.asarray(collision_risk, dtype=np.int64),
     }
 
     if preprocess_v3 and num_atoms > 0:
@@ -163,6 +179,8 @@ def build_dataset(
     niggli_reduce: bool,
     preprocess_v3: bool,
     preprocess_cfg: PreprocessConfig,
+    min_dist_cut: float,
+    min_dist_pbc_mask: Tuple[int, int, int],
     verbose: bool = False,
 ) -> Tuple[
     np.ndarray,
@@ -208,6 +226,8 @@ def build_dataset(
     order_inv_list: List[np.ndarray] = []
     lattice_canon_list: List[np.ndarray] = []
     gram6_canon_list: List[np.ndarray] = []
+    min_dist_list: List[np.ndarray] = []
+    collision_risk_list: List[np.ndarray] = []
     material_ids: List[str] = []
 
     error_examples: List[str] = []
@@ -226,6 +246,8 @@ def build_dataset(
                 niggli_reduce=niggli_reduce,
                 preprocess_v3=preprocess_v3,
                 preprocess_cfg=preprocess_cfg,
+                min_dist_cut=min_dist_cut,
+                min_dist_pbc_mask=min_dist_pbc_mask,
             )
         except Exception as exc:
             stats["skipped_parse"] += 1
@@ -240,6 +262,8 @@ def build_dataset(
         mask_list.append(result["atom_mask"])
         lattice_list.append(result["lattice"])
         gram_list.append(result["gram6"])
+        min_dist_list.append(result["min_dist"])
+        collision_risk_list.append(result["collision_risk"])
         if preprocess_v3 and "z_canon" in result:
             z_canon_list.append(result["z_canon"])
             if "f_canon" in result:
@@ -272,7 +296,10 @@ def build_dataset(
         mask = np.zeros((0, max_atoms), dtype=np.float32)
         lattice = np.zeros((0, 3, 3), dtype=np.float32)
         gram6 = np.zeros((0, 6), dtype=np.float32)
-        extras: Dict[str, np.ndarray] = {}
+        extras: Dict[str, np.ndarray] = {
+            "min_dist": np.zeros((0,), dtype=np.float32),
+            "collision_risk": np.zeros((0,), dtype=np.int64),
+        }
         return z, f, mask, lattice, gram6, [], extras, stats
 
     z = np.stack(z_list, axis=0)
@@ -280,9 +307,13 @@ def build_dataset(
     mask = np.stack(mask_list, axis=0)
     lattice = np.stack(lattice_list, axis=0)
     gram6 = np.stack(gram_list, axis=0)
-    extras: Dict[str, np.ndarray] = {}
+    extras: Dict[str, np.ndarray] = {
+        "min_dist": np.stack(min_dist_list, axis=0).astype(np.float32),
+        "collision_risk": np.stack(collision_risk_list, axis=0).astype(np.int64),
+    }
     if preprocess_v3 and z_canon_list:
-        extras = {
+        extras.update(
+            {
             "z_canon": np.stack(z_canon_list, axis=0),
             "f_canon": np.stack(f_canon_list, axis=0) if f_canon_list else None,
             "atom_mask_canon": np.stack(atom_mask_canon_list, axis=0) if atom_mask_canon_list else None,
@@ -302,6 +333,7 @@ def build_dataset(
             "order_idx": np.stack(order_list, axis=0),
             "order_inv": np.stack(order_inv_list, axis=0) if order_inv_list else None,
         }
+        )
         extras = {k: v for k, v in extras.items() if v is not None}
     if error_examples:
         stats["error_examples"] = error_examples
@@ -328,8 +360,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eps-inv", type=float, default=1e-12)
     parser.add_argument("--round-prec", type=float, default=1e-6)
     parser.add_argument("--z-norm-clip", type=float, default=1.5)
+    parser.add_argument(
+        "--min-dist-cut",
+        type=float,
+        default=1.5,
+        help="Collision threshold for min_dist annotation (Angstrom).",
+    )
+    parser.add_argument(
+        "--pbc-mask",
+        type=str,
+        default="1,1,0",
+        help="PBC mask for min_dist MIC, e.g. 1,1,0.",
+    )
     parser.add_argument("--verbose", action="store_true", help="Print sample errors during preprocessing.")
     return parser.parse_args()
+
+
+def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
+    parts = [p.strip() for p in value.split(",")]
+    if len(parts) != 3:
+        raise ValueError("--pbc-mask must have three comma-separated values, e.g. 1,1,0")
+    mask = tuple(int(p) for p in parts)
+    if any(p not in (0, 1) for p in mask):
+        raise ValueError("--pbc-mask values must be 0 or 1")
+    return mask  # type: ignore[return-value]
 
 
 def main() -> None:
@@ -342,6 +396,7 @@ def main() -> None:
         round_prec=args.round_prec,
         z_norm_clip=args.z_norm_clip,
     )
+    min_dist_pbc_mask = _parse_pbc_mask(args.pbc_mask)
     z, f, mask, lattice, gram6, material_ids, extras, stats = build_dataset(
         csv_path=args.csv,
         max_atoms=args.max_atoms,
@@ -351,6 +406,8 @@ def main() -> None:
         niggli_reduce=args.niggli_reduce,
         preprocess_v3=args.preprocess_v3,
         preprocess_cfg=preprocess_cfg,
+        min_dist_cut=args.min_dist_cut,
+        min_dist_pbc_mask=min_dist_pbc_mask,
         verbose=args.verbose,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -369,7 +426,10 @@ def main() -> None:
         "preprocess_version": np.array("A++_v3"),
         "schema_version": np.array("v4"),
         "coord_frame": np.array("raw"),
+        "min_dist_cut": np.asarray(args.min_dist_cut, dtype=np.float32),
+        "min_dist_pbc_mask": np.asarray(min_dist_pbc_mask, dtype=np.int64),
     }
+    payload.update(extras)
     if args.preprocess_v3 and extras:
         payload.update(
             {
@@ -394,7 +454,6 @@ def main() -> None:
                 t_std = 1e-6
             payload["cond_t_mean"] = np.asarray(t_mean, dtype=np.float32)
             payload["cond_t_std"] = np.asarray(t_std, dtype=np.float32)
-        payload.update(extras)
     np.savez_compressed(args.out, **payload)
     stats["saved_samples"] = int(z.shape[0])
     stats_path = args.out.parent / "preprocess_stats.json"

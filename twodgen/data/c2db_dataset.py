@@ -314,6 +314,16 @@ class C2DBTokenNPZDataset(Dataset):
         )
         self.order_idx = torch.from_numpy(data["order_idx"]).long() if "order_idx" in data else None
         self.order_inv = torch.from_numpy(data["order_inv"]).long() if "order_inv" in data else None
+        self.min_dist = torch.from_numpy(data["min_dist"]).float() if "min_dist" in data else None
+        self.collision_risk = (
+            torch.from_numpy(data["collision_risk"]).long() if "collision_risk" in data else None
+        )
+        self.min_dist_cut = float(np.asarray(data["min_dist_cut"]).reshape(-1)[0]) if "min_dist_cut" in data else None
+        self.min_dist_pbc_mask = None
+        if "min_dist_pbc_mask" in data:
+            mask_arr = np.asarray(data["min_dist_pbc_mask"]).astype(int).reshape(-1).tolist()
+            if len(mask_arr) == 3:
+                self.min_dist_pbc_mask = tuple(int(x) for x in mask_arr)
         self.cond_t_mean = torch.from_numpy(data["cond_t_mean"]).float() if "cond_t_mean" in data else None
         self.cond_t_std = torch.from_numpy(data["cond_t_std"]).float() if "cond_t_std" in data else None
         self.schema_version = data["schema_version"].item() if "schema_version" in data else None
@@ -354,6 +364,10 @@ class C2DBTokenNPZDataset(Dataset):
             "counts_vector",
             "order_idx",
             "order_inv",
+            "min_dist",
+            "collision_risk",
+            "min_dist_cut",
+            "min_dist_pbc_mask",
             # Deprecated neighbor caches (kept in `known` so legacy npz loads cleanly).
             "nbr_idx",
             "nbr_dist",
@@ -476,6 +490,10 @@ class C2DBTokenNPZDataset(Dataset):
             sample["counts_vector"] = self.counts_vector[idx]
         if self.order_idx is not None:
             sample["order_idx"] = self.order_idx[idx]
+        if self.min_dist is not None:
+            sample["min_dist"] = self.min_dist[idx]
+        if self.collision_risk is not None:
+            sample["collision_risk"] = self.collision_risk[idx]
         if self.extra:
             for key, value in self.extra.items():
                 sample[key] = value[idx]
