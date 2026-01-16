@@ -100,6 +100,24 @@ def test_generate() -> None:
     z_s, frac_s, gram_s, mask_s, lat_s, t_s, _, _ = model.generate(
         num_atoms=4, max_atoms=6, batch_size=2, steps=2
     )
+    target_counts = torch.zeros(2, 118, dtype=torch.long, device=device)
+    target_counts[0, 0] = 2
+    target_counts[0, 7] = 2
+    target_counts[1, 5] = 4
+    z_c, _, _, mask_c, _, _, _, _ = model.generate(
+        num_atoms=4,
+        max_atoms=6,
+        batch_size=2,
+        steps=2,
+        counts_vector=target_counts,
+    )
+    gen_counts = torch.zeros_like(target_counts)
+    valid = (mask_c > 0.5) & (z_c > 0)
+    for b in range(2):
+        zs = z_c[b][valid[b]] - 1
+        if zs.numel():
+            gen_counts[b].index_put_((zs.long(),), torch.ones_like(zs, dtype=torch.long), accumulate=True)
+    assert torch.all(gen_counts == target_counts)
     print(
         f"generate: z={tuple(z_s.shape)} frac={tuple(frac_s.shape)} "
         f"gram={tuple(gram_s.shape)} mask={tuple(mask_s.shape)} "

@@ -59,6 +59,14 @@ def _invert_order(order_idx: np.ndarray) -> np.ndarray:
     return order_inv
 
 
+def _counts_vector(atomic_numbers: np.ndarray, max_atomic_number: int = 118) -> np.ndarray:
+    counts = np.zeros((max_atomic_number,), dtype=np.int64)
+    for z_val in atomic_numbers.astype(int).tolist():
+        if 1 <= z_val <= max_atomic_number:
+            counts[z_val - 1] += 1
+    return counts
+
+
 def row_to_tokens(
     cif_str: str,
     max_atoms: int,
@@ -105,6 +113,7 @@ def row_to_tokens(
         "gram6": gram6,
         "min_dist": np.asarray(min_dist, dtype=np.float32),
         "collision_risk": np.asarray(collision_risk, dtype=np.float32),
+        "counts_vector": _counts_vector(atomic_numbers).astype(np.int64),
     }
 
     if preprocess_v3 and num_atoms > 0:
@@ -263,6 +272,7 @@ def build_dataset(
         gram_list.append(result["gram6"])
         min_dist_list.append(result["min_dist"])
         collision_risk_list.append(result["collision_risk"])
+        counts_list.append(result["counts_vector"])
         if preprocess_v3 and "z_canon" in result:
             z_canon_list.append(result["z_canon"])
             if "f_canon" in result:
@@ -279,7 +289,6 @@ def build_dataset(
             b_hat_list.append(result["b_hat"])
             n_list.append(result["n"])
             lattice_param_list.append(result["lattice_param"])
-            counts_list.append(result["counts_vector"])
             order_list.append(result["order_idx"])
             if "order_inv" in result:
                 order_inv_list.append(result["order_inv"])
@@ -306,6 +315,7 @@ def build_dataset(
     extras: Dict[str, np.ndarray] = {
         "min_dist": np.stack(min_dist_list, axis=0).astype(np.float32),
         "collision_risk": np.stack(collision_risk_list, axis=0).astype(np.float32),
+        "counts_vector": np.stack(counts_list, axis=0).astype(np.int64),
     }
     if preprocess_v3 and z_canon_list:
         extras.update(
@@ -325,7 +335,6 @@ def build_dataset(
             "b_hat": np.stack(b_hat_list, axis=0),
             "n": np.stack(n_list, axis=0),
             "lattice_param": np.stack(lattice_param_list, axis=0),
-            "counts_vector": np.stack(counts_list, axis=0),
             "order_idx": np.stack(order_list, axis=0),
             "order_inv": np.stack(order_inv_list, axis=0) if order_inv_list else None,
             }

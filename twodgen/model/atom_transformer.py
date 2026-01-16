@@ -253,7 +253,7 @@ class AtomTransformer(nn.Module):
             )
         self.cond_scale_time = nn.Parameter(torch.tensor(1.0))
         self.cond_scale_vec = nn.Parameter(torch.tensor(1.0))
-        self.cond_scale_comp = nn.Parameter(torch.tensor(0.0))
+        self.cond_scale_comp = nn.Parameter(torch.tensor(1.0))
         self.cell_mlp = nn.Sequential(
             nn.Linear(6, cfg.embed_dim),
             nn.SiLU(),
