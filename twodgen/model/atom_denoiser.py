@@ -507,6 +507,25 @@ class AtomDenoiser(nn.Module):
         else:
             t_schedule = torch.linspace(0.0, 1.0, steps + 1, device=device)
 
+        remaining_counts = None
+        if counts_vector is not None:
+            counts = counts_vector.to(device=device)
+            if counts.ndim == 1:
+                counts = counts.unsqueeze(0)
+            if counts.shape[0] != batch_size:
+                raise ValueError(
+                    f"counts_vector batch {counts.shape[0]} does not match batch_size={batch_size}"
+                )
+            num_elements = int(self.cfg.model.num_elements)
+            if counts.shape[-1] < num_elements:
+                raise ValueError(
+                    f"counts_vector dim {counts.shape[-1]} < num_elements {num_elements}"
+                )
+            counts = counts[..., :num_elements].long().clamp_min(0)
+            if torch.any(counts.sum(dim=-1) != int(num_atoms)):
+                raise ValueError("counts_vector sum must match num_atoms when provided.")
+            remaining_counts = counts.clone()
+
         def sample_z(logits: torch.Tensor) -> torch.Tensor:
             logits = logits.clone()
             logits[..., 0] = float("-inf")
@@ -535,6 +554,19 @@ class AtomDenoiser(nn.Module):
                 choice = torch.multinomial(probs, num_samples=1).squeeze(-1)
                 return sorted_idx.gather(-1, choice.unsqueeze(-1)).squeeze(-1)
             raise ValueError(f"Unknown z sampling method: {z_sampling}")
+
+        def sample_z_constrained(logits_1d: torch.Tensor, remaining: torch.Tensor) -> torch.Tensor:
+            allowed = remaining > 0
+            if not torch.any(allowed):
+                return torch.zeros((), dtype=torch.long, device=logits_1d.device)
+            logits = logits_1d.clone()
+            logits[0] = float("-inf")
+            logits[1:] = torch.where(allowed, logits[1:], torch.tensor(float("-inf"), device=logits.device, dtype=logits.dtype))
+            if not torch.isfinite(logits).any():
+                pick = torch.nonzero(allowed, as_tuple=False).flatten()[0]
+                return pick + 1
+            return sample_z(logits.unsqueeze(0)).squeeze(0)
+
         for i in range(steps):
             t = t_schedule[i].expand(batch_size)
             t_next = t_schedule[i + 1].expand(batch_size)
@@ -598,8 +630,15 @@ class AtomDenoiser(nn.Module):
                 scores = probs[masked_idx]
                 _, order = torch.topk(scores, k=masked_idx.numel() - keep, largest=True)
                 reveal_idx = masked_idx[order]
-                z_pred = sample_z(logits[reveal_idx])
-                z[b, reveal_idx] = z_pred
+                if remaining_counts is None:
+                    z_pred = sample_z(logits[reveal_idx])
+                    z[b, reveal_idx] = z_pred
+                else:
+                    for idx in reveal_idx.tolist():
+                        token = sample_z_constrained(logits[idx], remaining_counts[b])
+                        if token.item() > 0:
+                            remaining_counts[b, token.item() - 1] -= 1
+                        z[b, idx] = token
 
         frac = frac - torch.floor(frac)
         frac_pre = frac.clone()

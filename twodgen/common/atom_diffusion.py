@@ -28,6 +28,8 @@ class AtomDiffusionConfig:
     noise_scale_zn: float = 1.0
     noise_scale_lat: float = 1.0
     noise_scale_t: float = 1.0
+    lambda_comp: float = 1.0
+    comp_loss_mode: str = "l1"  # l1 | cosine
     use_uncertainty_weighting: bool = True
     mode: str = "diffusion"  # diffusion | flow
     cell_rep: str = "gram6"  # gram6 | cholesky6
@@ -67,6 +69,27 @@ class AtomVelocityLoss(nn.Module):
             self.s_zn = nn.Parameter(torch.zeros(()))
             self.s_lat = nn.Parameter(torch.zeros(()))
             self.s_t = nn.Parameter(torch.zeros(()))
+            self.s_comp = nn.Parameter(torch.zeros(()))
+
+    @staticmethod
+    def _counts_from_z(
+        z: torch.Tensor,
+        mask: torch.Tensor,
+        num_elements: int,
+    ) -> torch.Tensor:
+        counts = torch.zeros(z.shape[0], num_elements, device=z.device, dtype=torch.float32)
+        valid = (mask > 0.5) & (z > 0) & (z <= num_elements)
+        if not valid.any():
+            return counts
+        z_valid = z[valid].long()
+        batch_idx = torch.arange(z.shape[0], device=z.device).unsqueeze(1).expand_as(valid)[valid]
+        elem_idx = z_valid - 1
+        counts.index_put_(
+            (batch_idx, elem_idx),
+            torch.ones_like(elem_idx, dtype=counts.dtype),
+            accumulate=True,
+        )
+        return counts
 
     def forward(
         self,
@@ -293,6 +316,38 @@ class AtomVelocityLoss(nn.Module):
         else:
             loss_z = torch.tensor(0.0, device=device)
 
+        loss_comp = torch.tensor(0.0, device=device)
+        if (counts_vector is not None) or masked_pos.any():
+            num_elements = int(logits_z.shape[-1] - 1)
+            if counts_vector is None:
+                target_counts = self._counts_from_z(z, atom_mask, num_elements)
+            else:
+                target = counts_vector.float()
+                if target.ndim == 1:
+                    target = target.unsqueeze(0)
+                if target.shape[-1] < num_elements:
+                    raise ValueError(
+                        f"counts_vector dim {target.shape[-1]} < num_elements {num_elements}"
+                    )
+                target_counts = target[..., :num_elements]
+
+            atom_valid = atom_mask > 0.5
+            unmasked = atom_valid & (~masked_pos)
+            known_counts = self._counts_from_z(z, unmasked.float(), num_elements)
+            remaining = (target_counts - known_counts).clamp_min(0.0)
+
+            if masked_pos.any():
+                probs = torch.softmax(logits_z, dim=-1)[..., 1 : num_elements + 1]
+                expected = (probs * masked_pos.float().unsqueeze(-1)).sum(dim=1)
+                denom = remaining.sum(dim=-1).clamp_min(1.0)
+                mode = str(self.cfg.comp_loss_mode).lower()
+                if mode == "cosine":
+                    exp_norm = expected / expected.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+                    tgt_norm = remaining / remaining.norm(dim=-1, keepdim=True).clamp_min(1e-8)
+                    loss_comp = (1.0 - (exp_norm * tgt_norm).sum(dim=-1)).mean()
+                else:
+                    loss_comp = (expected - remaining).abs().sum(dim=-1).div(denom).mean()
+
         if self.cfg.use_uncertainty_weighting:
             loss = torch.exp(-self.s_f) * loss_f + self.s_f + torch.exp(-self.s_g) * loss_g + self.s_g
             if masked_pos.any():
@@ -305,6 +360,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_lat) * loss_lat + self.s_lat
             if slab_t is not None:
                 loss = loss + torch.exp(-self.s_t) * loss_t + self.s_t
+            if loss_comp is not None and self.cfg.lambda_comp > 0.0:
+                loss = loss + torch.exp(-self.s_comp) * loss_comp + self.s_comp
         else:
             loss = loss_f + self.cfg.lambda_z * loss_z + self.cfg.lambda_g * loss_g
             if uv_angle is not None:
@@ -315,6 +372,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_lat * loss_lat
             if slab_t is not None:
                 loss = loss + self.cfg.lambda_t * loss_t
+            if self.cfg.lambda_comp > 0.0:
+                loss = loss + self.cfg.lambda_comp * loss_comp
         metrics = {
             "loss_f": loss_f.detach(),
             "loss_g": loss_g.detach(),
@@ -323,6 +382,7 @@ class AtomVelocityLoss(nn.Module):
             "loss_zn": loss_zn.detach(),
             "loss_lat": loss_lat.detach(),
             "loss_t": loss_t.detach(),
+            "loss_comp": loss_comp.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),
@@ -338,6 +398,7 @@ class AtomVelocityLoss(nn.Module):
                     "s_zn": self.s_zn.detach(),
                     "s_lat": self.s_lat.detach(),
                     "s_t": self.s_t.detach(),
+                    "s_comp": self.s_comp.detach(),
                 }
             )
         return loss, pred_v_f, pred_v_g, logits_z, metrics

@@ -87,6 +87,19 @@ def parse_args() -> argparse.Namespace:
         default=1.5,
         help="Threshold (Angstrom) to classify collision-risk samples for curriculum.",
     )
+    parser.add_argument(
+        "--comp-loss-weight",
+        type=float,
+        default=1.0,
+        help="Weight for composition consistency loss (counts_vector vs predicted counts).",
+    )
+    parser.add_argument(
+        "--comp-loss-mode",
+        type=str,
+        default="l1",
+        choices=["l1", "cosine"],
+        help="Composition loss mode.",
+    )
 
     parser.set_defaults(
         deterministic=False,
@@ -712,6 +725,8 @@ def train_one_epoch(
             counts_vector = batch.get("counts_vector")
             if counts_vector is not None:
                 counts_vector = counts_vector.to(device, non_blocking=True)
+            else:
+                counts_vector = _counts_from_z(z, atom_mask, num_elements).to(device)
 
         lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
         optimizer.zero_grad(set_to_none=True)
@@ -759,6 +774,8 @@ def train_one_epoch(
                 msg += f" loss_t={metrics['loss_t'].item():.4f}"
             if "loss_min_dist" in metrics:
                 msg += f" loss_min_dist={metrics['loss_min_dist'].item():.4f}"
+            if "loss_comp" in metrics:
+                msg += f" loss_comp={metrics['loss_comp'].item():.4f}"
             msg += f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f} collision_rate={collision_rate:.3f}"
             if "s_f" in metrics:
                 msg += (
@@ -774,6 +791,8 @@ def train_one_epoch(
                     )
                 if use_thickness:
                     msg += f" s_t={metrics['s_t'].item():.3f}"
+                if "s_comp" in metrics:
+                    msg += f" s_comp={metrics['s_comp'].item():.3f}"
             print(msg)
             if metrics_log_path is not None:
                 payload = {
@@ -782,6 +801,7 @@ def train_one_epoch(
                     "loss_f": float(metrics["loss_f"].item()),
                     "loss_g": float(metrics["loss_g"].item()),
                     "loss_z": float(metrics["loss_z"].item()),
+                    "loss_comp": float(metrics.get("loss_comp", torch.tensor(0.0)).item()),
                     "lr": float(lr),
                     "min_dist_mean": min_dist_mean,
                     "min_dist_p10": min_dist_p10,
@@ -1075,6 +1095,8 @@ def main() -> None:
     denoiser_cfg.diffusion.cell_rep = args.cell_rep
     denoiser_cfg.diffusion.chol_log_min = args.chol_log_min
     denoiser_cfg.diffusion.chol_log_max = args.chol_log_max
+    denoiser_cfg.diffusion.lambda_comp = float(args.comp_loss_weight)
+    denoiser_cfg.diffusion.comp_loss_mode = str(args.comp_loss_mode)
     denoiser_cfg.diffusion.cell_init = args.cell_init
     denoiser_cfg.diffusion.cell_init_scale = args.cell_init_scale
     denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise

@@ -743,6 +743,29 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "min_dist_repulsion_iter": int(min_dist_iter),
         "min_dist_repulsion_strength": float(min_dist_strength),
     }
+    if cond_counts_vector is not None:
+        num_elements = int(cond_counts_vector.shape[-1])
+        gen_counts = np.zeros((args.num_samples, num_elements), dtype=np.int64)
+        valid_atoms = (mask_np > 0.5) & (z_np > 0)
+        for i in range(args.num_samples):
+            zs = z_np[i][valid_atoms[i]].astype(int)
+            if zs.size == 0:
+                continue
+            idx = zs - 1
+            idx = idx[(idx >= 0) & (idx < num_elements)]
+            if idx.size:
+                np.add.at(gen_counts[i], idx, 1)
+        target_counts = cond_counts_vector.astype(np.int64)
+        l1 = np.abs(gen_counts - target_counts).sum(axis=-1)
+        denom = np.linalg.norm(gen_counts, axis=-1) * np.linalg.norm(target_counts, axis=-1)
+        denom = np.maximum(denom, 1e-12)
+        cos = (gen_counts * target_counts).sum(axis=-1) / denom
+        sampling_config["composition"] = {
+            "hit_rate": float(np.mean(l1 == 0)),
+            "l1_mean": float(np.mean(l1)),
+            "l1_median": float(np.median(l1)),
+            "cos_mean": float(np.mean(cos)),
+        }
     (args.out_dir / "sampling_config.json").write_text(
         json.dumps(sampling_config, indent=2, ensure_ascii=True),
         encoding="utf-8",
