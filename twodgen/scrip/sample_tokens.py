@@ -67,6 +67,18 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/samples_tokens"))
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument(
+        "--vacuum-min",
+        type=float,
+        default=None,
+        help="If set, mark samples invalid when vacuum thickness (Angstrom) is below this threshold.",
+    )
+    parser.add_argument(
+        "--reject-cross-vacuum",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, mark samples invalid when a bond crosses the vacuum axis under 3D PBC.",
+    )
 
     parser.set_defaults(
         deterministic=False,
@@ -111,6 +123,8 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         eval_v_min=None,
         eval_v_max=None,
         eval_pbc_mask=None,
+        vacuum_min=None,
+        reject_cross_vacuum=False,
     )
     return parser.parse_args(argv)
 
@@ -558,6 +572,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
     mask_np = np.zeros((args.num_samples, args.max_atoms), dtype=np.float32)
     min_dist_pre_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
     min_dist_post_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+    thickness_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+    vacuum_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+    cross_vacuum_np = np.zeros((args.num_samples,), dtype=np.int8)
     lattice_param_np = None
     slab_t_np = None
 
@@ -648,6 +665,28 @@ def run_sampling(args: argparse.Namespace) -> Path:
         lattice_np[i] = lattice_mat
         frac_np[i][mask] = coords_np
 
+        lengths = np.linalg.norm(lattice_mat, axis=1)
+        c_idx = int(np.argmax(lengths)) if np.all(np.isfinite(lengths)) else 2
+        c_len = float(lengths[c_idx]) if np.all(np.isfinite(lengths)) else float("nan")
+        thickness, vacuum = eval_samples_mod._thickness_vacuum(coords_np[:, c_idx], c_len)
+        thickness_np[i] = float(thickness)
+        vacuum_np[i] = float(vacuum)
+        if args.reject_cross_vacuum and len(zs) > 1:
+            dist_3d, shifts_3d = eval_samples_mod._min_dist_and_shifts(coords_np, lattice_mat, pbc_mask=(1, 1, 1))
+            edges = np.where(dist_3d < float(args.eval_bond_cut))
+            cross_vac = False
+            for a, b in zip(edges[0].tolist(), edges[1].tolist()):
+                if a >= b:
+                    continue
+                if abs(float(shifts_3d[a, b, c_idx])) > 0.0:
+                    cross_vac = True
+                    break
+            cross_vacuum_np[i] = int(cross_vac)
+            if cross_vac:
+                is_valid = False
+        if args.vacuum_min is not None and np.isfinite(vacuum) and float(vacuum) < float(args.vacuum_min):
+            is_valid = False
+
         if v_min is not None and v_max is not None:
             vol = abs(np.linalg.det(lattice_mat))
             if vol < v_min or vol > v_max:
@@ -715,6 +754,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "valid_rate": np.array(valid_rate, dtype=np.float32),
         "min_dist_pre": min_dist_pre_np,
         "min_dist_post": min_dist_post_np,
+        "thickness": thickness_np,
+        "vacuum": vacuum_np,
+        "cross_vacuum_bond": cross_vacuum_np,
     }
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np

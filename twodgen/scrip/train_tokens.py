@@ -100,6 +100,24 @@ def parse_args() -> argparse.Namespace:
         choices=["l1", "cosine"],
         help="Composition loss mode.",
     )
+    parser.add_argument(
+        "--vacuum-loss-weight",
+        type=float,
+        default=0.0,
+        help="Weight for 2D vacuum loss (0 disables).",
+    )
+    parser.add_argument(
+        "--vacuum-min",
+        type=float,
+        default=15.0,
+        help="Minimum vacuum thickness (Angstrom) for vacuum loss.",
+    )
+    parser.add_argument(
+        "--vacuum-loss-power",
+        type=int,
+        default=2,
+        help="Power for vacuum loss: 1=linear, 2=squared, ...",
+    )
 
     parser.set_defaults(
         deterministic=False,
@@ -776,6 +794,8 @@ def train_one_epoch(
                 msg += f" loss_min_dist={metrics['loss_min_dist'].item():.4f}"
             if "loss_comp" in metrics:
                 msg += f" loss_comp={metrics['loss_comp'].item():.4f}"
+            if "loss_vacuum" in metrics:
+                msg += f" loss_vac={metrics['loss_vacuum'].item():.4f}"
             msg += f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f} collision_rate={collision_rate:.3f}"
             if "s_f" in metrics:
                 msg += (
@@ -793,6 +813,8 @@ def train_one_epoch(
                     msg += f" s_t={metrics['s_t'].item():.3f}"
                 if "s_comp" in metrics:
                     msg += f" s_comp={metrics['s_comp'].item():.3f}"
+                if "s_vacuum" in metrics:
+                    msg += f" s_vac={metrics['s_vacuum'].item():.3f}"
             print(msg)
             if metrics_log_path is not None:
                 payload = {
@@ -802,6 +824,7 @@ def train_one_epoch(
                     "loss_g": float(metrics["loss_g"].item()),
                     "loss_z": float(metrics["loss_z"].item()),
                     "loss_comp": float(metrics.get("loss_comp", torch.tensor(0.0)).item()),
+                    "loss_vacuum": float(metrics.get("loss_vacuum", torch.tensor(0.0)).item()),
                     "lr": float(lr),
                     "min_dist_mean": min_dist_mean,
                     "min_dist_p10": min_dist_p10,
@@ -1097,6 +1120,9 @@ def main() -> None:
     denoiser_cfg.diffusion.chol_log_max = args.chol_log_max
     denoiser_cfg.diffusion.lambda_comp = float(args.comp_loss_weight)
     denoiser_cfg.diffusion.comp_loss_mode = str(args.comp_loss_mode)
+    denoiser_cfg.diffusion.lambda_vacuum = float(args.vacuum_loss_weight)
+    denoiser_cfg.diffusion.vacuum_min = float(args.vacuum_min)
+    denoiser_cfg.diffusion.vacuum_loss_power = int(args.vacuum_loss_power)
     denoiser_cfg.diffusion.cell_init = args.cell_init
     denoiser_cfg.diffusion.cell_init_scale = args.cell_init_scale
     denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
