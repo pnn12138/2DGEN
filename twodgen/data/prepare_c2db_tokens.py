@@ -45,6 +45,46 @@ def _wrap01_array(x: np.ndarray) -> np.ndarray:
     return x - np.floor(x)
 
 
+def _thickness_vacuum(frac_1d: np.ndarray, c_len: float) -> Tuple[float, float]:
+    frac_1d = _wrap01_array(frac_1d.astype(float))
+    if frac_1d.size == 0:
+        return float("nan"), float("nan")
+    coords = np.sort(frac_1d)
+    if coords.size == 1:
+        thickness = 0.0
+        return thickness, float(c_len - thickness)
+    gaps = np.diff(coords, axis=0).flatten().tolist()
+    gaps.append(1.0 - (coords[-1] - coords[0]))
+    max_gap = float(max(gaps))
+    thickness = (1.0 - max_gap) * float(c_len)
+    vacuum = float(c_len) - thickness
+    return float(thickness), float(vacuum)
+
+
+def _choose_vacuum_axis(lattice: np.ndarray) -> Tuple[int, float]:
+    lengths = np.linalg.norm(lattice.astype(float), axis=1)
+    if not np.all(np.isfinite(lengths)) or np.any(lengths <= 0.0):
+        return 2, float("nan")
+    c_idx = int(np.argmax(lengths))
+    return c_idx, float(lengths[c_idx])
+
+
+def _cross_vacuum_bond(frac: np.ndarray, lattice: np.ndarray, bond_cut: float) -> bool:
+    c_idx, _ = _choose_vacuum_axis(lattice)
+    if frac.shape[0] < 2:
+        return False
+    dist_3d, shifts_3d = _mic_dist_and_shifts(frac.astype(float), lattice.astype(float), pbc_mask=(1, 1, 1))
+    edges = np.where(dist_3d < float(bond_cut))
+    if edges[0].size == 0:
+        return False
+    for a, b in zip(edges[0].tolist(), edges[1].tolist()):
+        if a >= b:
+            continue
+        if abs(float(shifts_3d[a, b, c_idx])) > 0.0:
+            return True
+    return False
+
+
 def _lattice_to_gram6(lattice: np.ndarray) -> np.ndarray:
     # Convention: lattice basis vectors are stored in rows (cart = frac @ lattice).
     gram = lattice @ lattice.T
@@ -77,6 +117,8 @@ def row_to_tokens(
     preprocess_cfg: PreprocessConfig,
     min_dist_cut: float,
     pbc_mask: Tuple[int, int, int],
+    vacuum_min: float,
+    bond_cut: float,
 ) -> Optional[Dict[str, np.ndarray]]:
     structure = Structure.from_str(cif_str, fmt="cif")
     num_atoms = len(structure)
@@ -105,6 +147,10 @@ def row_to_tokens(
     else:
         min_dist = float("inf")
     collision_risk = float(min_dist < float(min_dist_cut))
+    c_idx, c_len = _choose_vacuum_axis(lattice)
+    thickness, vacuum = _thickness_vacuum(frac_coords[:, c_idx], c_len)
+    low_vacuum_risk = bool(np.isfinite(vacuum) and vacuum < float(vacuum_min))
+    cross_vacuum_bond = _cross_vacuum_bond(frac_coords, lattice, bond_cut=bond_cut)
     payload = {
         "z": padded_numbers,
         "f": padded_coords,
@@ -114,6 +160,10 @@ def row_to_tokens(
         "min_dist": np.asarray(min_dist, dtype=np.float32),
         "collision_risk": np.asarray(collision_risk, dtype=np.float32),
         "counts_vector": _counts_vector(atomic_numbers).astype(np.int64),
+        "slab_thickness": np.asarray(thickness, dtype=np.float32),
+        "slab_vacuum": np.asarray(vacuum, dtype=np.float32),
+        "low_vacuum_risk": np.asarray(int(low_vacuum_risk), dtype=np.int64),
+        "cross_vacuum_bond": np.asarray(int(cross_vacuum_bond), dtype=np.int64),
     }
 
     if preprocess_v3 and num_atoms > 0:
@@ -189,6 +239,8 @@ def build_dataset(
     preprocess_cfg: PreprocessConfig,
     min_dist_cut: float,
     pbc_mask: Tuple[int, int, int],
+    vacuum_min: float,
+    bond_cut: float,
     verbose: bool = False,
 ) -> Tuple[
     np.ndarray,
@@ -237,6 +289,10 @@ def build_dataset(
     material_ids: List[str] = []
     min_dist_list: List[np.ndarray] = []
     collision_risk_list: List[np.ndarray] = []
+    thickness_list: List[np.ndarray] = []
+    vacuum_list: List[np.ndarray] = []
+    low_vacuum_list: List[np.ndarray] = []
+    cross_vacuum_list: List[np.ndarray] = []
 
     error_examples: List[str] = []
     for row in df.itertuples(index=False):
@@ -256,6 +312,8 @@ def build_dataset(
                 preprocess_cfg=preprocess_cfg,
                 min_dist_cut=min_dist_cut,
                 pbc_mask=pbc_mask,
+                vacuum_min=vacuum_min,
+                bond_cut=bond_cut,
             )
         except Exception as exc:
             stats["skipped_parse"] += 1
@@ -273,6 +331,10 @@ def build_dataset(
         min_dist_list.append(result["min_dist"])
         collision_risk_list.append(result["collision_risk"])
         counts_list.append(result["counts_vector"])
+        thickness_list.append(result["slab_thickness"])
+        vacuum_list.append(result["slab_vacuum"])
+        low_vacuum_list.append(result["low_vacuum_risk"])
+        cross_vacuum_list.append(result["cross_vacuum_bond"])
         if preprocess_v3 and "z_canon" in result:
             z_canon_list.append(result["z_canon"])
             if "f_canon" in result:
@@ -316,6 +378,10 @@ def build_dataset(
         "min_dist": np.stack(min_dist_list, axis=0).astype(np.float32),
         "collision_risk": np.stack(collision_risk_list, axis=0).astype(np.float32),
         "counts_vector": np.stack(counts_list, axis=0).astype(np.int64),
+        "slab_thickness": np.stack(thickness_list, axis=0).astype(np.float32),
+        "slab_vacuum": np.stack(vacuum_list, axis=0).astype(np.float32),
+        "low_vacuum_risk": np.stack(low_vacuum_list, axis=0).astype(np.int64),
+        "cross_vacuum_bond": np.stack(cross_vacuum_list, axis=0).astype(np.int64),
     }
     if preprocess_v3 and z_canon_list:
         extras.update(
@@ -377,6 +443,18 @@ def parse_args() -> argparse.Namespace:
         default="1,1,0",
         help="Periodic dimensions for min_dist computation, e.g. 1,1,0 for 2D slab MIC.",
     )
+    parser.add_argument(
+        "--vacuum-min",
+        type=float,
+        default=15.0,
+        help="Minimum vacuum thickness (Angstrom) used to tag low_vacuum_risk in the cache.",
+    )
+    parser.add_argument(
+        "--bond-cut",
+        type=float,
+        default=3.0,
+        help="Bond cutoff (Angstrom) used to detect cross_vacuum_bond under 3D PBC.",
+    )
     parser.add_argument("--verbose", action="store_true", help="Print sample errors during preprocessing.")
     return parser.parse_args()
 
@@ -412,6 +490,8 @@ def main() -> None:
         preprocess_cfg=preprocess_cfg,
         min_dist_cut=args.min_dist_cut,
         pbc_mask=pbc_mask,
+        vacuum_min=args.vacuum_min,
+        bond_cut=args.bond_cut,
         verbose=args.verbose,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -432,6 +512,8 @@ def main() -> None:
         "coord_frame": np.array("raw"),
         "min_dist_cut": np.asarray(args.min_dist_cut, dtype=np.float32),
         "min_dist_pbc_mask": np.asarray(pbc_mask, dtype=np.int64),
+        "vacuum_min": np.asarray(args.vacuum_min, dtype=np.float32),
+        "bond_cut": np.asarray(args.bond_cut, dtype=np.float32),
     }
     if args.preprocess_v3 and extras:
         payload.update(

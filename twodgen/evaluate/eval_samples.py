@@ -27,6 +27,7 @@ def build_eval_params(
     min_dist_cut: float,
     bond_cut: float,
     dup_eps: float,
+    vacuum_min: Optional[float],
     v_min: Optional[float],
     v_max: Optional[float],
     pbc_mask: Tuple[int, int, int],
@@ -35,6 +36,7 @@ def build_eval_params(
         "min_dist_cut": float(min_dist_cut),
         "bond_cut": float(bond_cut),
         "dup_eps": float(dup_eps),
+        "vacuum_min": float(vacuum_min) if vacuum_min is not None else None,
         "v_min": float(v_min) if v_min is not None else None,
         "v_max": float(v_max) if v_max is not None else None,
         "pbc_mask": pbc_mask,
@@ -191,6 +193,7 @@ def _eval_samples(
     bond_cut: float,
     dup_eps: float,
     pbc_mask: Tuple[int, int, int],
+    vacuum_min: Optional[float] = None,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, Any]]:
     z = samples["z"]
     frac = samples["frac"]
@@ -243,6 +246,7 @@ def _eval_samples(
     thicknesses: List[float] = []
     vacuums: List[float] = []
     cross_vacuum_flags: List[int] = []
+    vacuum_ok_flags: List[int] = []
     gcc_ratios: List[float] = []
     anisotropies: List[float] = []
 
@@ -366,6 +370,8 @@ def _eval_samples(
         thicknesses.append(thickness)
         vacuums.append(vacuum)
         cross_vacuum_flags.append(int(cross_vacuum))
+        if vacuum_min is not None and np.isfinite(vacuum):
+            vacuum_ok_flags.append(int(float(vacuum) >= float(vacuum_min)))
         gcc_ratios.append(gcc_ratio)
         anisotropies.append(anisotropy)
         valid_flags.append(int(valid))
@@ -432,6 +438,7 @@ def _eval_samples(
         "valid_2d_rate": float(np.mean(valid_2d_flags)) if valid_2d_flags else 0.0,
         "thickness": _summary_stats(thicknesses),
         "vacuum": _summary_stats(vacuums),
+        "vacuum_ok_rate": float(np.mean(vacuum_ok_flags)) if vacuum_ok_flags else None,
         "cross_vacuum_rate": float(np.mean(cross_vacuum_flags)) if cross_vacuum_flags else 0.0,
         "gcc_ratio": _summary_stats(gcc_ratios),
         "anisotropy": _summary_stats(anisotropies),
@@ -445,6 +452,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples", type=Path, required=True, help="Path to samples.npz")
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument("--stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
+    parser.add_argument(
+        "--vacuum-min",
+        type=float,
+        default=None,
+        help="If set, report vacuum_ok_rate = P(vacuum >= vacuum_min).",
+    )
     parser.set_defaults(
         min_dist=1.5,
         eval_min_dist=None,
@@ -526,11 +539,13 @@ def main() -> None:
         bond_cut=args.bond_cut,
         dup_eps=args.dup_eps,
         pbc_mask=pbc_mask,
+        vacuum_min=args.vacuum_min,
     )
     eval_params = build_eval_params(
         min_dist_cut=float(args.min_dist),
         bond_cut=float(args.bond_cut),
         dup_eps=float(args.dup_eps),
+        vacuum_min=args.vacuum_min,
         v_min=v_min,
         v_max=v_max,
         pbc_mask=pbc_mask,

@@ -8,6 +8,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from twodgen.common.crystal import gram6_to_cholesky6
+from twodgen.common.crystal import cholesky6_to_gram6, gram6_to_lattice
 
 @dataclass
 class AtomDiffusionConfig:
@@ -30,6 +31,9 @@ class AtomDiffusionConfig:
     noise_scale_t: float = 1.0
     lambda_comp: float = 1.0
     comp_loss_mode: str = "l1"  # l1 | cosine
+    lambda_vacuum: float = 0.0
+    vacuum_min: float = 15.0
+    vacuum_loss_power: int = 2
     use_uncertainty_weighting: bool = True
     mode: str = "diffusion"  # diffusion | flow
     cell_rep: str = "gram6"  # gram6 | cholesky6
@@ -70,6 +74,7 @@ class AtomVelocityLoss(nn.Module):
             self.s_lat = nn.Parameter(torch.zeros(()))
             self.s_t = nn.Parameter(torch.zeros(()))
             self.s_comp = nn.Parameter(torch.zeros(()))
+            self.s_vacuum = nn.Parameter(torch.zeros(()))
 
     @staticmethod
     def _counts_from_z(
@@ -348,6 +353,42 @@ class AtomVelocityLoss(nn.Module):
                 else:
                     loss_comp = (expected - remaining).abs().sum(dim=-1).div(denom).mean()
 
+        loss_vacuum = torch.tensor(0.0, device=device)
+        if self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0:
+            g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
+            if self.cfg.cell_rep == "cholesky6":
+                gram6_pred = cholesky6_to_gram6(pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
+            else:
+                gram6_pred = pred_x0_g
+            lattice = gram6_to_lattice(gram6_pred * float(g_scale))
+            lengths = torch.linalg.norm(lattice, dim=-1)
+            c_idx = torch.argmax(lengths, dim=-1)
+            c_len = lengths.gather(1, c_idx.unsqueeze(1)).squeeze(1)
+            frac_wrap = frac - torch.floor(frac)
+            idx = c_idx.view(-1, 1, 1).expand(-1, frac_wrap.shape[1], 1)
+            frac_c = torch.take_along_dim(frac_wrap, idx, dim=2).squeeze(2)
+            vacuums = torch.empty((bsz,), device=device, dtype=frac.dtype)
+            for b in range(bsz):
+                vals = frac_c[b][atom_mask[b] > 0.5]
+                if vals.numel() == 0 or not torch.isfinite(c_len[b]):
+                    vacuums[b] = torch.tensor(float("nan"), device=device, dtype=frac.dtype)
+                    continue
+                vals, _ = torch.sort(vals)
+                if vals.numel() == 1:
+                    max_gap = torch.tensor(1.0, device=device, dtype=frac.dtype)
+                else:
+                    gaps = vals[1:] - vals[:-1]
+                    wrap_gap = 1.0 - (vals[-1] - vals[0])
+                    max_gap = torch.max(torch.max(gaps), wrap_gap)
+                vacuums[b] = max_gap * c_len[b]
+            vac_min = float(self.cfg.vacuum_min)
+            delta = (vac_min - vacuums).clamp_min(0.0)
+            power = int(self.cfg.vacuum_loss_power)
+            if power <= 1:
+                loss_vacuum = torch.nanmean(delta / max(vac_min, 1e-8))
+            else:
+                loss_vacuum = torch.nanmean((delta / max(vac_min, 1e-8)) ** power)
+
         if self.cfg.use_uncertainty_weighting:
             loss = torch.exp(-self.s_f) * loss_f + self.s_f + torch.exp(-self.s_g) * loss_g + self.s_g
             if masked_pos.any():
@@ -362,6 +403,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_t) * loss_t + self.s_t
             if loss_comp is not None and self.cfg.lambda_comp > 0.0:
                 loss = loss + torch.exp(-self.s_comp) * loss_comp + self.s_comp
+            if self.cfg.lambda_vacuum > 0.0:
+                loss = loss + torch.exp(-self.s_vacuum) * loss_vacuum + self.s_vacuum
         else:
             loss = loss_f + self.cfg.lambda_z * loss_z + self.cfg.lambda_g * loss_g
             if uv_angle is not None:
@@ -374,6 +417,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_t * loss_t
             if self.cfg.lambda_comp > 0.0:
                 loss = loss + self.cfg.lambda_comp * loss_comp
+            if self.cfg.lambda_vacuum > 0.0:
+                loss = loss + self.cfg.lambda_vacuum * loss_vacuum
         metrics = {
             "loss_f": loss_f.detach(),
             "loss_g": loss_g.detach(),
@@ -383,6 +428,7 @@ class AtomVelocityLoss(nn.Module):
             "loss_lat": loss_lat.detach(),
             "loss_t": loss_t.detach(),
             "loss_comp": loss_comp.detach(),
+            "loss_vacuum": loss_vacuum.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),
@@ -399,6 +445,7 @@ class AtomVelocityLoss(nn.Module):
                     "s_lat": self.s_lat.detach(),
                     "s_t": self.s_t.detach(),
                     "s_comp": self.s_comp.detach(),
+                    "s_vacuum": self.s_vacuum.detach(),
                 }
             )
         return loss, pred_v_f, pred_v_g, logits_z, metrics

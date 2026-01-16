@@ -51,6 +51,10 @@ def test_forward() -> None:
     z_norm = torch.randn(bsz, max_atoms, device=device)
     lattice_param = torch.randn(bsz, 3, device=device)
     slab_t = torch.rand(bsz, device=device) + 0.5
+    counts_vector = torch.zeros(bsz, 118, dtype=torch.long, device=device)
+    counts_vector[0, 0] = 3
+    counts_vector[0, 7] = 3
+    counts_vector[1, 5] = 6
 
     model_cfg = AtomTransformerConfig(
         num_elements=118,
@@ -63,6 +67,9 @@ def test_forward() -> None:
         pbc_mask=(1, 1, 0),
     )
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
+    denoiser_cfg.diffusion.lambda_comp = 1.0
+    denoiser_cfg.diffusion.lambda_vacuum = 1.0
+    denoiser_cfg.diffusion.vacuum_min = 100.0
     model = AtomDenoiser(denoiser_cfg).to(device)
 
     loss, _, _, _, metrics = model(
@@ -70,6 +77,7 @@ def test_forward() -> None:
         frac,
         atom_mask,
         gram6,
+        counts_vector=counts_vector,
         uv_angle=uv_angle,
         z_norm=z_norm,
         lattice_param=lattice_param,
@@ -77,6 +85,9 @@ def test_forward() -> None:
     )
     loss.backward()
     for key in ("loss_uv", "loss_zn", "loss_lat", "loss_t"):
+        if key not in metrics:
+            raise AssertionError(f"Missing metric {key}")
+    for key in ("loss_comp", "loss_vacuum"):
         if key not in metrics:
             raise AssertionError(f"Missing metric {key}")
     print("forward: ok")
