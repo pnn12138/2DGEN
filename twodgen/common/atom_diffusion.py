@@ -310,9 +310,13 @@ class AtomVelocityLoss(nn.Module):
                 t_pred_x0 = geom_preds["t"]
                 if self.cfg.mode == "flow":
                     denom_t = t_expand_t.clamp_min(self.cfg.t_eps)
+                    if denom_t.ndim > 1:
+                        denom_t = denom_t.squeeze(-1)
                     t_pred = (slab_t_t - t_pred_x0) / denom_t
                 else:
                     denom_t = (1.0 - t_expand_t).clamp_min(self.cfg.t_eps)
+                    if denom_t.ndim > 1:
+                        denom_t = denom_t.squeeze(-1)
                     t_pred = (t_pred_x0 - slab_t_t) / denom_t
                 loss_t = F.mse_loss(t_pred, v_t)
 

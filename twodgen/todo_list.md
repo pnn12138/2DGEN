@@ -1,26 +1,38 @@
-# twodgen 未来规划待做项（plan.md 对齐）
+# twodgen Phase 3 评估方案（未落地部分）
 
-## A) 结构合法率优先改进
-- 明确并统一最小距离约束：训练 penalty、采样 repulsion、评估阈值三者对齐并记录到样本/日志。
-- 引入采样期投影策略评估：比较 `project_each_step` 开/关对碰撞率的影响。
-- 统计并约束晶胞尺度分布：基于数据分布设置 `cell_init`/`chol_log_min/max` 的硬范围或软约束。
+> 目标：完成 plan.md 的分层评估链路（CIF → 条件 → MatterSim → 形成能 → 性质预测 → 报告合并），并补齐消融与论文级图表。
 
-## B) 条件与几何一致性
-- coord_frame 失配时处理策略：回退 raw 时禁用几何头或切换到 raw 对齐的几何字段。
-- 梳理 `counts_vector` 的元素映射：在数据侧保存 `element_ids` 并注入模型，避免压缩元素表错位。
-- 评估 `frac.z` 与 `z_norm/t` 双表征冲突：补充一致性约束或明确只保留一种几何表征路径。
+## P0：评估链路主闭环（优先）
+- 增加 CIF 入口评估脚本 `twodgen/evaluate/eval_tier0_cif.py`：
+  - 解析 CIF（ASE/Pymatgen），输出 min_dist/碰撞/真空/2D 判定字段。
+  - 支持 `vacuum_ratio` 判据与 `is_2d_flag`。
+- 增加条件校验脚本 `twodgen/evaluate/check_conditions.py`：
+  - 配方/元素集合/空间群匹配检查。
+  - 输出 `cond_match` 和失败原因统计。
+- 增加 MatterSim 能量评估 `twodgen/evaluate/mattersim_energy.py`：
+  - CIF → ASE → 能量（可选 relax）。
+  - 输出 `total_energy` / `energy_per_atom` / `composition`。
+- 增加形成能计算 `twodgen/evaluate/formation_energy.py`：
+  - 读取元素参考能表，输出 `formation_energy_per_atom` 与通过率。
+- 增加报告合并 `twodgen/evaluate/merge_reports.py`：
+  - 合并 Tier-0/条件/能量/形成能输出到统一 `per_sample.jsonl` + `report.json`。
+- 增加一键 pipeline `twodgen/evaluate/run_pipeline.py`：
+  - 串联上述步骤，支持 `--pipeline-steps` 部分执行。
 
-## C) 架构与局部几何建模增强
-- 对称性/空间群先验可行性调研：是否引入空间群条件或 Wyckoff 位置生成。
-- 局部几何补强：评估 dual-graph + wrap embedding 是否足够，否则考虑局部图消息传递模块。
+## P1：Tier-2 性质预测（可占位）
+- 增加 `twodgen/evaluate/property_predict.py`：
+  - 先提供 `--mock-predict`（常数/随机值）打通流程。
+  - 后续替换为真实性质模型（带隙/模量/磁矩）。
 
-## D) 采样与筛选策略
-- 多样采样 + 合法性筛选：为同一条件多采样并筛掉碰撞样本，统计通过率与成本。
-- 可选引导采样：探索基于简单能量代理或最小距离梯度的引导。
-- 采样后轻量几何松弛（可选）：在 CIF 导出前进行快速推斥修正。
+## P2：输出规范与文档
+- 更新 `twodgen/evaluate/tier_definitions.md`：
+  - 明确 CIF 入口字段、合并报告 schema、字段版本号。
 
-## E) 评估与指标闭环
-- 明确合法率、min_dist 分布、重复率、组成匹配的标准输出格式与保存路径。
-- 评估脚本补充“去重/新颖性”统计（若成本可控）。
+## P3：统计与图表（论文级）
+- 形成能分布图脚本 `twodgen/evaluate/plot_forme_distribution.py`。
+- 评估结果对比脚本 `twodgen/evaluate/compare_scenarios.py`。
+- SUN 指标统计 `twodgen/evaluate/sun_metrics.py`（先用简单 unique/novel）。
 
-> 新增条目后请同步更新 `process.md` 与 `history.md`（按项目要求）。
+## P4：消融实验支持
+- 消融矩阵配置（JSON）与运行脚本（如 `run_ablation.py`）。
+- 生成对比表：valid/cond_match/formation_pass 率。

@@ -13,89 +13,56 @@
 - 训练/采样默认使用 canonical 坐标系，并通过 `order_idx` 对齐 per-atom 字段。
 - 评估脚本去除了采样循环依赖；`plot_compare` 默认使用精确 MIC。
 
-## 数据预处理（Token 默认）
-1. 准备原始 CSV：`data/C2DB/c2db_summary.csv`（已包含 CIF 文本）。
-2. 生成 token 缓存 npz（默认启用 A++ v3 预处理并写入 canonical slab 特征）：
-  ```bash
-  uv run python -m twodgen.data.prepare_c2db_tokens \
-    --csv data/C2DB/c2db_summary.csv \
-    --out data/C2DB/cache/c2db_tokens_2d_based.npz \
-    --max-atoms 24 \
-    --g-scale 100
-  ```
-  - 约定：`lattice` 为“行向量基矢”，笛卡尔坐标满足 `cart = frac @ lattice`；对应 Gram6 使用 `G = lattice @ lattice^T`（并写入 `gram6_convention=row_lattice`）。
-  - 旧版 `.npz` 缺少 `gram6_convention` 时需重新预处理或迁移：
-    `uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
-  - `--max-atoms`：最多保留的原子数（超出则跳过该行）。
-  - `--g-scale`：Gram6 缩放（训练中会乘回去恢复晶胞）。
-  - `--niggli-reduce`：对晶胞做 Niggli 规约（可选，较慢）。
-  - `--preprocess-v3/--no-preprocess-v3`：写入 A++ v3 预处理字段（默认启用）。
-3. 训练（邻居基于扩散状态在线构建）：
-  ```bash
-  uv run python -m twodgen.scrip.train_tokens \
-    --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-    --epochs 100 \
-    --batch-size 256 \
-    --lr 1e-4 \
-    --model-size base \
-    --seed 0 \
-    --save-dir outputs/checkpoints
-  ```
-  - 完整评估需完成至少一轮完整训练（例如 100 epochs）；短跑仅用于链路健康检查，不具备可比的有效率指标。
-  也可用 CLI：`twodgen-train --npz ...`
-  - 训练脚本已固定为推荐默认值（`coord_frame=canon`、`align_atoms=True`、`cell_rep=cholesky6`、`cell_init=iso`、`use_geometry_fields=True`、`use_condition=True`）。
-  - 条件字段默认 `counts_vector,lattice_param,t`，并对 `lattice_param,t` 做归一化。
+## 快速开始（Token 路线）
+1) 预处理（生成 token npz）：
+```bash
+uv run python -m twodgen.data.prepare_c2db_tokens \
+  --csv data/C2DB/c2db_summary.csv \
+  --out data/C2DB/cache/c2db_tokens_2d_based.npz \
+  --max-atoms 24 \
+  --g-scale 100
+```
+说明：
+- `lattice` 为行向量基矢，`cart = frac @ lattice`；Gram6 为 `G = lattice @ lattice^T`。
+- 旧版 `.npz` 缺少 `gram6_convention` 时需迁移：
+  `uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
 
-## Token 版扩散（默认）
-基于 `(Z, F, g)` token 表示的 Transformer 扩散模型（默认路线）：
-
-训练：
+2) 训练：
 ```bash
 uv run python -m twodgen.scrip.train_tokens \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --epochs 100 --batch-size 256 --lr 1e-4 \
+  --epochs 100 \
+  --batch-size 256 \
+  --lr 1e-4 \
   --model-size base \
   --seed 0 \
   --save-dir outputs/checkpoints
 ```
-脚本其余参数已固定为推荐默认值；如需调整请直接修改脚本中的默认设置。
 
-采样与导出：
+3) 采样：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
-  --num-samples 10 --steps 50 --method heun \
-  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --out-dir outputs/samples_tokens \
-  --seed 0
-```
-也可用 CLI：`twodgen-sample --checkpoint ...`
-采样脚本已固定为推荐默认值（`coord_frame=canon`、`project_geometry=True`、`use_ema=True`、`min_dist_project=True` 等）。
-
-推荐采样参数（更稳的晶胞先验）：
-```bash
-uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
-  --num-samples 10 --steps 50 --method heun \
+  --num-samples 200 \
+  --steps 50 \
+  --method heun \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --out-dir outputs/samples_tokens \
   --seed 0
 ```
 
-## 网格版扩散（Legacy）
-旧版网格路线已移除。
+## 评估（samples.npz）
+```bash
+uv run python -m twodgen.evaluate.eval_samples \
+  --samples outputs/samples_tokens/samples.npz \
+  --out-dir outputs/samples_tokens/eval
+```
 
 ## 快速自测
 Token 路线：
 ```bash
 uv run python -m twodgen.scrip.test_tokens
 ```
-
-评估（已有 samples.npz）：
-```bash
-uv run python -m twodgen.evaluate.eval_samples --samples outputs/samples_tokens/samples.npz
-```
-也可用 CLI：`twodgen-eval --samples ...`
 
 ### Baseline 评估（`eval_run_001`）
 为保证可复现与 train/held-out 指标显式区分，推荐使用：
@@ -132,39 +99,16 @@ uv run python -m twodgen.evaluate.eval_samples --samples outputs/samples_tokens/
     --out outputs/samples_tokens/eval/compare_violin.png
   ```
 
-## 端到端示例（预处理 → 训练 → 采样 → 评估）
+## CIF 评估流水线（Phase 3）
 ```bash
-# 1) 预处理
-uv run python -m twodgen.data.prepare_c2db_tokens \
-  --csv data/C2DB/c2db_summary.csv \
-  --out data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --max-atoms 24 \
-  --g-scale 100
-
-# 2) 训练
-uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --epochs 100 \
-  --batch-size 256 \
-  --lr 1e-4 \
-  --model-size base \
-  --seed 0 \
-  --save-dir outputs/checkpoints
-
-# 3) 采样
-uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
-  --num-samples 200 \
-  --steps 50 \
-  --method heun \
-  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --out-dir outputs/samples_tokens \
-  --seed 0
-
-# 4) 评估
-uv run python -m twodgen.evaluate.eval_samples \
-  --samples outputs/samples_tokens/samples.npz \
-  --out-dir outputs/samples_tokens/eval
+uv run python -m twodgen.evaluate.run_pipeline \
+  --cif-dir data/CIF_INPUTS \
+  --out-dir outputs/cif_eval \
+  --ref-energies data/ref_energies.json \
+  --vacuum-min 15.0 \
+  --vacuum-ratio-min 3.0 \
+  --target-elements C,O \
+  --formation-max 0.0
 ```
 
 ## 模型规模切换

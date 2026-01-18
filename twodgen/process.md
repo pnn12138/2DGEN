@@ -96,3 +96,32 @@
 ### 5.2 可视化
 - `evaluate/plot_eval.py`：分布直方图与散点图。
 - `evaluate/plot_compare.py`：与真实数据分布对比（精确 MIC）。
+
+### 5.3 CIF 评估闭环（Phase 3）
+- Tier-0 CIF 入口：`evaluate/eval_tier0_cif.py`。
+- 条件校验：`evaluate/check_conditions.py`（formula/elements/spacegroup）。
+- MatterSim 能量：`evaluate/mattersim_energy.py`（可选 relax）。
+- 形成能计算：`evaluate/formation_energy.py`（参考能表）。
+- 合并报告：`evaluate/merge_reports.py`。
+- 统一入口：`evaluate/run_pipeline.py`（支持分步执行）。
+
+---
+
+## 6) Phase 0-3 进度对齐（基于当前实现）
+### Phase 0：现状基线与评估规范化
+- T0.1 固化 baseline 配置与指标格式：已落地 `twodgen/baselines/eval_run_001.md` 与 `twodgen/evaluate/eval_run_001.py`；评估产物固定为 `tier0_metrics.json`/`tier1_2d_metrics.json`/`per_sample.jsonl`，`valid_rate` 统一为 `tier0_metrics.json:valid_rate_eval`（不同于采样阶段 quick check）。
+- T0.2 训练/验证集划分：已落地 `twodgen/data/create_c2db_split.py`（按 `n_atoms/t_bin/top_elem` 分层，输出分布差异检查），评估脚本通过 `cond_split=train|heldout` 区分统计。
+
+### Phase 1：数据集治理与预处理
+- T1.1 硬过滤规则：已落地 `twodgen/data/clean_c2db_2d.py`（原子数上限/真空层/跨真空成键），输出 `c2db_clean_report.json` 统计报告。
+- T1.2 质量标签分桶：已落地 `clean_c2db_2d.py` 的 `quality_tags`/`quality_bucket` 与 `c2db_quality.jsonl`。
+- T1.3 exp/theo 分桶：已落地 `clean_c2db_2d.py` 的 `source_bucket`（exp/theo/unknown）。
+
+### Phase 2：生成有效率与物理合理性提升
+- T2.1 几何可行性强化：已落地 `twodgen/scrip/train_tokens.py` 的 `min_dist` 训练惩罚 + collision curriculum（`--curriculum-collision`），采样端记录 pre/post collision 统计。
+- T2.2 条件可控性修复：已落地 composition encoder + 成分一致性损失（`--comp-loss-weight`，`--comp-loss-mode=l1|cosine`），`counts_vector` 作为强条件注入。
+- T2.3 二维物理合理性：已落地 cross-vacuum 检测与评估（token cache + `eval_samples`），采样支持 `--reject-cross-vacuum` 过滤；训练侧显式惩罚仍待补齐。
+
+### Phase 3：评估体系完善
+- T3.1 分层评估指标固化：已落地 `twodgen/evaluate/tier_definitions.md` + Tier-0/1 脚本；Tier-2 预留 `property_predict.py`（mock 或真实模型）。
+- T3.2 消融实验设计：已提供 `twodgen/evaluate/ablation_matrix.json` + `run_ablation.py`，尚需实际运行与结果表整理。

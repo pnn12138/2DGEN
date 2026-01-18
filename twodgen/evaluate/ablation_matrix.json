@@ -1,0 +1,34 @@
+{
+  "experiments": [
+    {
+      "name": "full_pipeline",
+      "description": "Tier-0 + conditions + energy + formation.",
+      "flags": {
+        "use_tier0": true,
+        "use_conditions": true,
+        "use_energy": true,
+        "use_formation": true
+      }
+    },
+    {
+      "name": "no_conditions",
+      "description": "Skip condition matching.",
+      "flags": {
+        "use_tier0": true,
+        "use_conditions": false,
+        "use_energy": true,
+        "use_formation": true
+      }
+    },
+    {
+      "name": "no_energy",
+      "description": "Skip MatterSim energy and formation.",
+      "flags": {
+        "use_tier0": true,
+        "use_conditions": true,
+        "use_energy": false,
+        "use_formation": false
+      }
+    }
+  ]
+}
