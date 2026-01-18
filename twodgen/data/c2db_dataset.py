@@ -388,7 +388,10 @@ class C2DBTokenNPZDataset(Dataset):
         for key in data.files:
             if key in known:
                 continue
-            self.extra[key] = torch.from_numpy(data[key])
+            value = np.asarray(data[key])
+            if value.ndim == 0 or value.shape[0] != self.z.shape[0]:
+                continue
+            self.extra[key] = torch.from_numpy(value)
 
     def __len__(self) -> int:
         return self.z.shape[0]

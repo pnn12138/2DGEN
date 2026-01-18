@@ -41,6 +41,7 @@
     --seed 0 \
     --save-dir outputs/checkpoints
   ```
+  - 完整评估需完成至少一轮完整训练（例如 100 epochs）；短跑仅用于链路健康检查，不具备可比的有效率指标。
   也可用 CLI：`twodgen-train --npz ...`
   - 训练脚本已固定为推荐默认值（`coord_frame=canon`、`align_atoms=True`、`cell_rep=cholesky6`、`cell_init=iso`、`use_geometry_fields=True`、`use_condition=True`）。
   - 条件字段默认 `counts_vector,lattice_param,t`，并对 `lattice_param,t` 做归一化。
