@@ -68,6 +68,12 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/samples_tokens"))
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--project-each-step",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, project fractional coords and clip lattice every sampling step.",
+    )
+    parser.add_argument(
         "--vacuum-min",
         type=float,
         default=None,
@@ -672,7 +678,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
         thickness_np[i] = float(thickness)
         vacuum_np[i] = float(vacuum)
         if args.reject_cross_vacuum and len(zs) > 1:
-            dist_3d, shifts_3d = eval_samples_mod._min_dist_and_shifts(coords_np, lattice_mat, pbc_mask=(1, 1, 1))
+            dist_3d, _, shifts_3d = eval_samples_mod._min_dist_and_shifts(
+                coords_np, lattice_mat, pbc_mask=(1, 1, 1)
+            )
+            if np.ndim(dist_3d) == 0:
+                cross_vacuum_np[i] = 0
+                continue
             edges = np.where(dist_3d < float(args.eval_bond_cut))
             cross_vac = False
             for a, b in zip(edges[0].tolist(), edges[1].tolist()):
@@ -855,11 +866,13 @@ def run_sampling(args: argparse.Namespace) -> Path:
             bond_cut=args.eval_bond_cut,
             dup_eps=args.eval_dup_eps,
             pbc_mask=eval_pbc_mask,
+            vacuum_min=args.vacuum_min,
         )
         eval_params = eval_samples_mod.build_eval_params(
             min_dist_cut=float(args.eval_min_dist),
             bond_cut=float(args.eval_bond_cut),
             dup_eps=float(args.eval_dup_eps),
+            vacuum_min=args.vacuum_min,
             v_min=v_min,
             v_max=v_max,
             pbc_mask=eval_pbc_mask,
