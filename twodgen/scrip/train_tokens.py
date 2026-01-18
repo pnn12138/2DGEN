@@ -91,7 +91,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--quality-jsonl",
         type=Path,
-        default=None,
+        default=Path("data/C2DB/c2db_quality.jsonl"),
         help="Path to `c2db_quality.jsonl` produced by `clean_c2db_2d.py` for filtering training rows.",
     )
     parser.add_argument(
@@ -136,6 +136,42 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=2,
         help="Power for vacuum loss: 1=linear, 2=squared, ...",
+    )
+    parser.add_argument(
+        "--angle-loss-weight",
+        type=float,
+        default=0.1,
+        help="Weight for angle constraint loss during training.",
+    )
+    parser.add_argument(
+        "--angle-min",
+        type=float,
+        default=30.0,
+        help="Minimum allowed lattice angle (degrees) for angle loss.",
+    )
+    parser.add_argument(
+        "--angle-max",
+        type=float,
+        default=150.0,
+        help="Maximum allowed lattice angle (degrees) for angle loss.",
+    )
+    parser.add_argument(
+        "--cond-loss-weight",
+        type=float,
+        default=0.01,
+        help="Weight for Gram condition penalty during training.",
+    )
+    parser.add_argument(
+        "--cond-max",
+        type=float,
+        default=1e3,
+        help="Maximum allowed Gram condition number for cond loss.",
+    )
+    parser.add_argument(
+        "--noise-scale-zn",
+        type=float,
+        default=0.3,
+        help="Noise scale for z_norm diffusion target.",
     )
 
     parser.set_defaults(
@@ -759,6 +795,7 @@ def _compute_cond_stats(
     cond_fields: list[str],
     normalize_fields: list[str],
     indices: list[int] | None = None,
+    t_stats: tuple[float, float] | None = None,
 ) -> dict:
     stats: dict[str, torch.Tensor] = {}
     if not isinstance(dataset, C2DBTokenNPZDataset):
@@ -768,6 +805,10 @@ def _compute_cond_stats(
         if field in ("counts", "counts_vector"):
             continue
         if field not in cond_fields:
+            continue
+        if field == "t" and t_stats is not None:
+            stats["t_mean"] = torch.tensor(t_stats[0])
+            stats["t_std"] = torch.tensor(t_stats[1])
             continue
         value = getattr(dataset, field, None)
         if value is None:
@@ -905,6 +946,14 @@ def train_one_epoch(
                 msg += f" loss_comp={metrics['loss_comp'].item():.4f}"
             if "loss_vacuum" in metrics:
                 msg += f" loss_vac={metrics['loss_vacuum'].item():.4f}"
+            if "loss_angle" in metrics:
+                msg += f" loss_angle={metrics['loss_angle'].item():.4f}"
+            if "loss_cond" in metrics:
+                msg += f" loss_cond={metrics['loss_cond'].item():.4f}"
+            if "pred_angle_out_rate" in metrics:
+                msg += f" angle_out={metrics['pred_angle_out_rate'].item():.3f}"
+            if "pred_cond_mean" in metrics:
+                msg += f" cond_mean={metrics['pred_cond_mean'].item():.1f}"
             msg += f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f} collision_rate={collision_rate:.3f}"
             if "s_f" in metrics:
                 msg += (
@@ -951,6 +1000,14 @@ def train_one_epoch(
                     payload["loss_t"] = float(metrics["loss_t"].item())
                 if "loss_min_dist" in metrics:
                     payload["loss_min_dist"] = float(metrics["loss_min_dist"].item())
+                if "loss_angle" in metrics:
+                    payload["loss_angle"] = float(metrics["loss_angle"].item())
+                if "loss_cond" in metrics:
+                    payload["loss_cond"] = float(metrics["loss_cond"].item())
+                if "pred_angle_out_rate" in metrics:
+                    payload["pred_angle_out_rate"] = float(metrics["pred_angle_out_rate"].item())
+                if "pred_cond_mean" in metrics:
+                    payload["pred_cond_mean"] = float(metrics["pred_cond_mean"].item())
                 if "pred_x0_f_mean" in metrics:
                     payload.update(
                         {
@@ -978,6 +1035,10 @@ def train_one_epoch(
                         )
                     if use_thickness:
                         payload["s_t"] = float(metrics["s_t"].item())
+                    if "s_angle" in metrics:
+                        payload["s_angle"] = float(metrics["s_angle"].item())
+                    if "s_cond" in metrics:
+                        payload["s_cond"] = float(metrics["s_cond"].item())
                 with metrics_log_path.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
@@ -1080,6 +1141,10 @@ def main() -> None:
         g_scale = args.g_scale
 
     quality_map: dict[str, dict[str, Any]] | None = None
+    quality_filter_summary: dict[str, Any] | None = None
+    if args.quality_jsonl is not None and not args.quality_jsonl.exists():
+        print(f"[warn] quality-jsonl not found at {args.quality_jsonl}; skipping quality filter.")
+        args.quality_jsonl = None
     if args.quality_jsonl is not None:
         quality_map = _load_quality_map(args.quality_jsonl)
         if not quality_map:
@@ -1106,6 +1171,15 @@ def main() -> None:
         if not filtered_indices:
             raise ValueError("Quality filter removed all usable training samples.")
         base_indices = filtered_indices
+        quality_filter_summary = {
+            "kept": len(filtered_indices),
+            "total": before,
+            "missing": missing,
+            "filtered_out": filtered_out,
+            "buckets": buckets,
+            "hard_pass_only": args.quality_hard_pass_only,
+            "quality_jsonl": str(args.quality_jsonl),
+        }
     min_dist_all: torch.Tensor | None = None
     needs_min_dist = args.curriculum_collision or (args.filter_min_dist_below is not None)
     if needs_min_dist:
@@ -1147,6 +1221,15 @@ def main() -> None:
             "[warn] dataset coord_frame_actual=%r != 'canon'; disabling geometry heads."
             % coord_frame_actual
         )
+    if args.use_geometry_fields and coord_frame_actual == "canon":
+        coord_frame_meta = getattr(dataset, "coord_frame", None)
+        if coord_frame_meta is not None and str(coord_frame_meta) != "canon":
+            print(
+                "[warn] dataset coord_frame=%r != 'canon' while coord_frame_actual is 'canon'; "
+                "disabling geometry heads to avoid mixed frames."
+                % coord_frame_meta
+            )
+            use_geometry_fields = False
     if (
         use_geometry_fields
         and isinstance(dataset, C2DBTokenNPZDataset)
@@ -1165,7 +1248,12 @@ def main() -> None:
     if use_thickness:
         t_values = getattr(dataset, "t", None)
         if t_values is not None:
-            if getattr(dataset, "cond_t_mean", None) is not None and getattr(dataset, "cond_t_std", None) is not None:
+            use_dataset_stats = (
+                split_indices is None
+                and getattr(dataset, "cond_t_mean", None) is not None
+                and getattr(dataset, "cond_t_std", None) is not None
+            )
+            if use_dataset_stats:
                 t_mean = float(dataset.cond_t_mean.reshape(-1)[0])
                 t_std = float(dataset.cond_t_std.reshape(-1)[0])
             else:
@@ -1188,7 +1276,9 @@ def main() -> None:
     if use_condition:
         sample = dataset[split_indices[0]] if split_indices is not None else dataset[0]
         cond_dim = _infer_cond_dim(sample, cond_fields, num_elements=118)
-        cond_stats = _compute_cond_stats(dataset, cond_fields, normalize_fields, indices=split_indices)
+        cond_stats = _compute_cond_stats(
+            dataset, cond_fields, normalize_fields, indices=split_indices, t_stats=t_stats
+        )
 
     if args.cell_rep == "cholesky6":
         s10, s50, s90, log_std = _estimate_scube_stats(dataset, g_scale, indices=split_indices)
@@ -1263,6 +1353,12 @@ def main() -> None:
     denoiser_cfg.diffusion.lambda_vacuum = float(args.vacuum_loss_weight)
     denoiser_cfg.diffusion.vacuum_min = float(args.vacuum_min)
     denoiser_cfg.diffusion.vacuum_loss_power = int(args.vacuum_loss_power)
+    denoiser_cfg.diffusion.lambda_angle = float(args.angle_loss_weight)
+    denoiser_cfg.diffusion.angle_min = float(args.angle_min)
+    denoiser_cfg.diffusion.angle_max = float(args.angle_max)
+    denoiser_cfg.diffusion.lambda_cond = float(args.cond_loss_weight)
+    denoiser_cfg.diffusion.cond_max = float(args.cond_max)
+    denoiser_cfg.diffusion.noise_scale_zn = float(args.noise_scale_zn)
     denoiser_cfg.diffusion.cell_init = args.cell_init
     denoiser_cfg.diffusion.cell_init_scale = args.cell_init_scale
     denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
@@ -1327,6 +1423,10 @@ def main() -> None:
             "split_json": str(args.split_json) if args.split_json is not None else None,
             "split": str(args.split),
             "pbc_mask": pbc_mask,
+            "quality_jsonl": str(args.quality_jsonl) if args.quality_jsonl is not None else None,
+            "quality_buckets": _parse_quality_buckets(args.quality_buckets),
+            "quality_hard_pass_only": bool(args.quality_hard_pass_only),
+            "quality_filter_summary": quality_filter_summary,
         },
     }
     with (run_dir / "config.json").open("w", encoding="utf-8") as f:

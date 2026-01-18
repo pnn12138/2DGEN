@@ -29,14 +29,7 @@ uv run python -m twodgen.data.prepare_c2db_tokens \
 
 2) 训练：
 ```bash
-uv run python -m twodgen.scrip.train_tokens \
-  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
-  --epochs 100 \
-  --batch-size 256 \
-  --lr 1e-4 \
-  --model-size base \
-  --seed 0 \
-  --save-dir outputs/checkpoints
+
 ```
 说明：
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  

@@ -56,6 +56,11 @@
 - geometry heads 可选（`uv_angle/z_norm/lattice_param/t`）。
 - 训练附加 `min_dist` penalty（`min_dist_train_weight`）。
 - 训练日志包含 `min_dist` 分布与 collision rate。
+- 训练新增角度/Gram-condition 约束（`loss_angle`/`loss_cond`），并在日志中记录 angle_out_rate/cond_mean。
+- 厚度 `t` 的归一化在使用 split 时改为基于训练子集统计，避免数据泄漏。
+- `z_norm` 默认噪声尺度下调以缓解 `loss_zn` 量级失衡（可通过 CLI 覆盖）。
+- 当 `coord_frame` 元数据不一致时自动禁用 geometry heads，避免混用 raw/canon。
+- 训练默认尝试加载 `c2db_quality.jsonl` 进行过滤，缺失时降级为不过滤。
 
 ---
 

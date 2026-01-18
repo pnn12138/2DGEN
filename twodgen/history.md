@@ -11,3 +11,9 @@
 - Added training min_dist penalty to discourage collisions.
 - Added training min_dist/collision monitoring in logs.
 - Added sampling consistency warnings for coord_frame and checkpoint config.
+- Enabled lattice projection per sampling step by default to stabilize lattice scale/angles (project_each_step).
+- Added angle/condition penalties to training loss and logged predicted angle/cond metrics.
+- Normalized thickness `t` using split-only stats to avoid leakage and align cond/geometry scaling.
+- Added z_norm noise scale CLI control and lowered default to reduce loss imbalance.
+- Added coord_frame metadata guard to disable geometry heads when raw/canon mismatch.
+- Defaulted to c2db_quality.jsonl filtering when available and persisted filter summary in run config.

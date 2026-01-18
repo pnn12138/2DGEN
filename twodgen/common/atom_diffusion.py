@@ -26,7 +26,7 @@ class AtomDiffusionConfig:
     lambda_lat: float = 0.5
     lambda_t: float = 0.5
     noise_scale_uv: float = 1.0
-    noise_scale_zn: float = 1.0
+    noise_scale_zn: float = 0.3
     noise_scale_lat: float = 1.0
     noise_scale_t: float = 1.0
     lambda_comp: float = 1.0
@@ -34,6 +34,11 @@ class AtomDiffusionConfig:
     lambda_vacuum: float = 0.0
     vacuum_min: float = 15.0
     vacuum_loss_power: int = 2
+    lambda_angle: float = 0.1
+    angle_min: float = 30.0
+    angle_max: float = 150.0
+    lambda_cond: float = 0.01
+    cond_max: float = 1e3
     use_uncertainty_weighting: bool = True
     mode: str = "diffusion"  # diffusion | flow
     cell_rep: str = "gram6"  # gram6 | cholesky6
@@ -75,6 +80,8 @@ class AtomVelocityLoss(nn.Module):
             self.s_t = nn.Parameter(torch.zeros(()))
             self.s_comp = nn.Parameter(torch.zeros(()))
             self.s_vacuum = nn.Parameter(torch.zeros(()))
+            self.s_angle = nn.Parameter(torch.zeros(()))
+            self.s_cond = nn.Parameter(torch.zeros(()))
 
     @staticmethod
     def _counts_from_z(
@@ -393,6 +400,66 @@ class AtomVelocityLoss(nn.Module):
             else:
                 loss_vacuum = torch.nanmean((delta / max(vac_min, 1e-8)) ** power)
 
+        loss_angle = torch.tensor(0.0, device=device)
+        loss_cond = torch.tensor(0.0, device=device)
+        angle_out_rate = torch.tensor(float("nan"), device=device)
+        cond_mean = torch.tensor(float("nan"), device=device)
+        if self.cfg.lambda_angle > 0.0 or self.cfg.lambda_cond > 0.0:
+            g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
+            if self.cfg.cell_rep == "cholesky6":
+                gram6_pred = cholesky6_to_gram6(
+                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                )
+            else:
+                gram6_pred = pred_x0_g
+            lattice = gram6_to_lattice(gram6_pred * float(g_scale))
+            lengths = torch.linalg.norm(lattice, dim=-1)
+            valid = torch.isfinite(lengths).all(dim=-1) & (lengths > 0).all(dim=-1)
+            if valid.any():
+                a_vec = lattice[valid, 0]
+                b_vec = lattice[valid, 1]
+                c_vec = lattice[valid, 2]
+                cos_alpha = (b_vec * c_vec).sum(dim=-1) / (
+                    b_vec.norm(dim=-1) * c_vec.norm(dim=-1)
+                ).clamp_min(1e-8)
+                cos_beta = (a_vec * c_vec).sum(dim=-1) / (
+                    a_vec.norm(dim=-1) * c_vec.norm(dim=-1)
+                ).clamp_min(1e-8)
+                cos_gamma = (a_vec * b_vec).sum(dim=-1) / (
+                    a_vec.norm(dim=-1) * b_vec.norm(dim=-1)
+                ).clamp_min(1e-8)
+                cos_alpha = cos_alpha.clamp(-1.0, 1.0)
+                cos_beta = cos_beta.clamp(-1.0, 1.0)
+                cos_gamma = cos_gamma.clamp(-1.0, 1.0)
+                alpha = torch.rad2deg(torch.acos(cos_alpha))
+                beta = torch.rad2deg(torch.acos(cos_beta))
+                gamma = torch.rad2deg(torch.acos(cos_gamma))
+                angle_min = float(self.cfg.angle_min)
+                angle_max = float(self.cfg.angle_max)
+                viol = torch.stack(
+                    [
+                        (angle_min - alpha).clamp_min(0.0),
+                        (alpha - angle_max).clamp_min(0.0),
+                        (angle_min - beta).clamp_min(0.0),
+                        (beta - angle_max).clamp_min(0.0),
+                        (angle_min - gamma).clamp_min(0.0),
+                        (gamma - angle_max).clamp_min(0.0),
+                    ],
+                    dim=-1,
+                )
+                if self.cfg.lambda_angle > 0.0:
+                    loss_angle = (viol ** 2).mean()
+                angle_out_rate = (viol.max(dim=-1).values > 0).float().mean()
+
+                if self.cfg.lambda_cond > 0.0:
+                    gram = lattice[valid] @ lattice[valid].transpose(-1, -2)
+                    eigvals = torch.linalg.eigvalsh(gram)
+                    cond = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
+                    cond_mean = cond.mean()
+                    cond_max = float(self.cfg.cond_max)
+                    cond_violation = (cond - cond_max).clamp_min(0.0) / max(cond_max, 1e-8)
+                    loss_cond = (cond_violation ** 2).mean()
+
         if self.cfg.use_uncertainty_weighting:
             loss = torch.exp(-self.s_f) * loss_f + self.s_f + torch.exp(-self.s_g) * loss_g + self.s_g
             if masked_pos.any():
@@ -409,6 +476,10 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_comp) * loss_comp + self.s_comp
             if self.cfg.lambda_vacuum > 0.0:
                 loss = loss + torch.exp(-self.s_vacuum) * loss_vacuum + self.s_vacuum
+            if self.cfg.lambda_angle > 0.0:
+                loss = loss + torch.exp(-self.s_angle) * loss_angle + self.s_angle
+            if self.cfg.lambda_cond > 0.0:
+                loss = loss + torch.exp(-self.s_cond) * loss_cond + self.s_cond
         else:
             loss = loss_f + self.cfg.lambda_z * loss_z + self.cfg.lambda_g * loss_g
             if uv_angle is not None:
@@ -423,6 +494,10 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_comp * loss_comp
             if self.cfg.lambda_vacuum > 0.0:
                 loss = loss + self.cfg.lambda_vacuum * loss_vacuum
+            if self.cfg.lambda_angle > 0.0:
+                loss = loss + self.cfg.lambda_angle * loss_angle
+            if self.cfg.lambda_cond > 0.0:
+                loss = loss + self.cfg.lambda_cond * loss_cond
         metrics = {
             "loss_f": loss_f.detach(),
             "loss_g": loss_g.detach(),
@@ -433,6 +508,10 @@ class AtomVelocityLoss(nn.Module):
             "loss_t": loss_t.detach(),
             "loss_comp": loss_comp.detach(),
             "loss_vacuum": loss_vacuum.detach(),
+            "loss_angle": loss_angle.detach(),
+            "loss_cond": loss_cond.detach(),
+            "pred_angle_out_rate": angle_out_rate.detach(),
+            "pred_cond_mean": cond_mean.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),
@@ -450,6 +529,8 @@ class AtomVelocityLoss(nn.Module):
                     "s_t": self.s_t.detach(),
                     "s_comp": self.s_comp.detach(),
                     "s_vacuum": self.s_vacuum.detach(),
+                    "s_angle": self.s_angle.detach(),
+                    "s_cond": self.s_cond.detach(),
                 }
             )
         return loss, pred_v_f, pred_v_g, logits_z, metrics

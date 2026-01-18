@@ -1,0 +1,134 @@
+{
+  "valid_rate_eval": 0.0,
+  "fail_reason_counts": {
+    "angle_out_of_range": 200,
+    "non_spd": 20,
+    "collision": 1,
+    "low_atoms": 1
+  },
+  "min_dist": {
+    "count": 200,
+    "mean": 90.5652451553513,
+    "median": 66.00681091933993,
+    "p10": 15.651848114620796,
+    "p90": 197.19661874390246
+  },
+  "min_dist_collision": {
+    "count": 1,
+    "mean": 0.9556758407552535,
+    "median": 0.9556758407552535,
+    "p10": 0.9556758407552535,
+    "p90": 0.9556758407552535
+  },
+  "min_dist_same_elem": {
+    "count": 187,
+    "mean": 173.4462836555264,
+    "median": 124.61345969045757,
+    "p10": 30.192264292356775,
+    "p90": 375.1965603074505
+  },
+  "volume": {
+    "count": 200,
+    "mean": 12238.80873413086,
+    "median": 3756.96044921875,
+    "p10": 599.6358886718751,
+    "p90": 25387.2265625
+  },
+  "cond": {
+    "count": 180,
+    "mean": 2462091182596.799,
+    "median": 43503519744.0,
+    "p10": 206281030.40000007,
+    "p90": 4221357549158.393
+  },
+  "spd_rate": 0.9,
+  "angle_alpha": {
+    "count": 200,
+    "mean": 97.21686952754773,
+    "median": 102.55657337185417,
+    "p10": 22.126267701879943,
+    "p90": 154.17010420888428
+  },
+  "angle_beta": {
+    "count": 200,
+    "mean": 81.58208492777014,
+    "median": 76.07270019571484,
+    "p10": 24.395866613059308,
+    "p90": 155.8373902145873
+  },
+  "angle_gamma": {
+    "count": 200,
+    "mean": 154.77280673376026,
+    "median": 178.7791486090107,
+    "p10": 9.283803648361063,
+    "p90": 179.50795494753388
+  },
+  "angle_out_of_range_rate": 1.0,
+  "n_atoms": {
+    "count": 200,
+    "mean": 8.985,
+    "median": 8.0,
+    "p10": 4.0,
+    "p90": 18.0
+  },
+  "element_counts": {},
+  "total_samples": 200,
+  "cond_match": {
+    "exact_match_rate": 1.0,
+    "l1_count_error": {
+      "count": 200,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "l1_count_error_norm": {
+      "count": 200,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_l1": {
+      "count": 200,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_cosine": {
+      "count": 200,
+      "mean": 1.0,
+      "median": 1.0,
+      "p10": 0.9999999999999998,
+      "p90": 1.0000000000000002
+    }
+  },
+  "schema_version": "eval_samples_v1",
+  "valid_criteria": [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "lattice Gram matrix is SPD",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees"
+  ],
+  "eval_params": {
+    "min_dist_cut": 1.5,
+    "bond_cut": 3.0,
+    "dup_eps": 0.001,
+    "vacuum_min": null,
+    "v_min": null,
+    "v_max": null,
+    "pbc_mask": [
+      1,
+      1,
+      0
+    ]
+  },
+  "run_context": {
+    "source": "eval_samples",
+    "samples": "outputs/samples_tokens/samples.npz"
+  }
+}
