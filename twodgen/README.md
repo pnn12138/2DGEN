@@ -38,6 +38,9 @@ uv run python -m twodgen.scrip.train_tokens \
   --seed 0 \
   --save-dir outputs/checkpoints
 ```
+说明：
+- 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
+- 若前置质量筛选已产出 `data/C2DB/clean/c2db_quality.jsonl`，可用 `--quality-jsonl`/`--quality-buckets`/`--quality-hard-pass-only` 只取 `good`/`risk`、`hard_pass` 行；clean 脚本详见 `twodgen/data/clean_c2db_2d.py`。
 
 3) 采样：
 ```bash
@@ -110,6 +113,17 @@ uv run python -m twodgen.evaluate.run_pipeline \
   --target-elements C,O \
   --formation-max 0.0
 ```
+
+## Tier-2 性质预测（Phase 3）
+默认使用 `twodgen.evaluate.property_predict` 的启发式模型（vacuum/thickness/min_dist 线性组合 + cross-vacuum penalty + valid bonus）来填充 Tier-2 指标：
+```bash
+uv run python -m twodgen.evaluate.property_predict \
+  --per-sample outputs/samples_tokens/eval/per_sample.jsonl \
+  --out-dir outputs/samples_tokens/eval/property \
+  --property-key band_gap
+```
+- 如果希望调整预测，可以通过 `--vacuum-weight`/`--thickness-weight`/`--min-dist-weight`/`--cross-vacuum-penalty`/`--valid-bonus` 控制加权；`--mode` 支持 `heuristic`（默认）、`constant` 与 `random`，`--mock-predict` 仍强制随机。  
+- 预测结果会写入 `per_sample_property.jsonl` 与 `property_metrics.json`，可串接到 `twodgen/evaluate/merge_reports.py` 做后续合并。
 
 ## 模型规模切换
 模型规模配置集中在 `twodgen/model/model_sizes.py`，默认使用 `base`。

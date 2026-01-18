@@ -7,12 +7,13 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 import sys
+from typing import Any
 
 import math
 import numpy as np
 import torch
 from torch import nn, optim
-from torch.utils.data import DataLoader, Sampler
+from torch.utils.data import DataLoader, Dataset, Sampler
 
 from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
@@ -60,19 +61,19 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-dist-train-weight",
         type=float,
-        default=0.02,
+        default=0.08,
         help="Weight for collision penalty during training (0 disables).",
     )
     parser.add_argument(
         "--filter-min-dist-below",
         type=float,
-        default=None,
+        default=1.35,
         help="Optionally drop extreme-collision training samples with min_dist below this value.",
     )
     parser.add_argument(
         "--curriculum-collision",
         action=argparse.BooleanOptionalAction,
-        default=False,
+        default=True,
         help="Curriculum learning: start with non-collision samples and gradually introduce collision-risk samples.",
     )
     parser.add_argument(
@@ -86,6 +87,24 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.5,
         help="Threshold (Angstrom) to classify collision-risk samples for curriculum.",
+    )
+    parser.add_argument(
+        "--quality-jsonl",
+        type=Path,
+        default=None,
+        help="Path to `c2db_quality.jsonl` produced by `clean_c2db_2d.py` for filtering training rows.",
+    )
+    parser.add_argument(
+        "--quality-buckets",
+        type=str,
+        default="good,risk",
+        help="Comma-separated list of quality buckets to keep when `--quality-jsonl` is provided.",
+    )
+    parser.add_argument(
+        "--quality-hard-pass-only",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="When using `--quality-jsonl`, drop rows flagged as hard fails.",
     )
     parser.add_argument(
         "--comp-loss-weight",
@@ -211,6 +230,96 @@ def _parse_element_ids(value: Optional[str]) -> Optional[list[int]]:
     if any(elem <= 0 for elem in ids):
         raise ValueError("--element-ids must be positive integers (Z).")
     return ids
+
+
+_VALID_QUALITY_BUCKETS = {"good", "risk", "bad"}
+_DEFAULT_QUALITY_BUCKETS = ("good", "risk")
+
+
+def _parse_quality_buckets(value: Optional[str]) -> list[str]:
+    if value is None:
+        return list(_DEFAULT_QUALITY_BUCKETS)
+    buckets = [item.strip().lower() for item in value.split(",") if item.strip()]
+    if not buckets:
+        return list(_DEFAULT_QUALITY_BUCKETS)
+    invalid = [bucket for bucket in buckets if bucket not in _VALID_QUALITY_BUCKETS]
+    if invalid:
+        raise ValueError(
+            "--quality-buckets contains unknown buckets "
+            f"{invalid!r} (supported: {_VALID_QUALITY_BUCKETS})"
+        )
+    # Preserve order while deduplicating
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for bucket in buckets:
+        if bucket in seen:
+            continue
+        seen.add(bucket)
+        ordered.append(bucket)
+    return ordered
+
+
+def _load_quality_map(path: Path) -> dict[str, dict[str, Any]]:
+    mapping: dict[str, dict[str, Any]] = {}
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            row = json.loads(line)
+            material_id = str(row.get("material_id", "")).strip()
+            if not material_id:
+                continue
+            quality_bucket = str(row.get("quality_bucket", "")).lower()
+            mapping[material_id] = {
+                "quality_bucket": quality_bucket,
+                "hard_pass": bool(row.get("hard_pass")),
+            }
+    return mapping
+
+
+def _material_id_for(dataset: Dataset, idx: int) -> str | None:
+    if isinstance(dataset, C2DBTokenNPZDataset):
+        if dataset.material_ids is None:
+            return None
+        return dataset.material_ids[idx]
+    if isinstance(dataset, C2DBAtomDataset):
+        try:
+            return dataset.base.get_metadata(idx).material_id
+        except IndexError:
+            return None
+    return None
+
+
+def _filter_indices_by_quality(
+    dataset: Dataset,
+    indices: list[int],
+    quality_map: dict[str, dict[str, Any]],
+    allowed_buckets: list[str],
+    require_hard_pass: bool,
+) -> tuple[list[int], int, int]:
+    allowed: set[str] | None = set(allowed_buckets) if allowed_buckets else None
+    kept: list[int] = []
+    missing = 0
+    filtered = 0
+    for idx in indices:
+        material_id = _material_id_for(dataset, idx)
+        if material_id is None:
+            missing += 1
+            continue
+        entry = quality_map.get(material_id)
+        if entry is None:
+            missing += 1
+            continue
+        bucket = entry.get("quality_bucket") or ""
+        if allowed is not None and bucket not in allowed:
+            filtered += 1
+            continue
+        if require_hard_pass and not entry.get("hard_pass", False):
+            filtered += 1
+            continue
+        kept.append(idx)
+    return kept, missing, filtered
 
 
 def _parse_betas(value: str) -> tuple[float, float]:
@@ -970,7 +1079,33 @@ def main() -> None:
         )
         g_scale = args.g_scale
 
+    quality_map: dict[str, dict[str, Any]] | None = None
+    if args.quality_jsonl is not None:
+        quality_map = _load_quality_map(args.quality_jsonl)
+        if not quality_map:
+            raise ValueError(f"No quality records found in {args.quality_jsonl}")
+    coord_frame_actual = getattr(dataset, "coord_frame_actual", args.coord_frame)
+
     base_indices: list[int] | None = split_indices
+    if quality_map is not None:
+        indices = base_indices if base_indices is not None else list(range(len(dataset)))
+        buckets = _parse_quality_buckets(args.quality_buckets)
+        filtered_indices, missing, filtered_out = _filter_indices_by_quality(
+            dataset=dataset,
+            indices=indices,
+            quality_map=quality_map,
+            allowed_buckets=buckets,
+            require_hard_pass=args.quality_hard_pass_only,
+        )
+        before = len(indices)
+        print(
+            "[info] quality filter: "
+            f"kept {len(filtered_indices)}/{before} rows "
+            f"(missing={missing}, filtered={filtered_out})"
+        )
+        if not filtered_indices:
+            raise ValueError("Quality filter removed all usable training samples.")
+        base_indices = filtered_indices
     min_dist_all: torch.Tensor | None = None
     needs_min_dist = args.curriculum_collision or (args.filter_min_dist_below is not None)
     if needs_min_dist:
@@ -1004,8 +1139,16 @@ def main() -> None:
     geom_available = all(
         getattr(dataset, name, None) is not None for name in ("uv_angle", "z_norm", "lattice_param")
     )
+    use_geometry_fields = args.use_geometry_fields and geom_available and coord_frame_actual == "canon"
+    if args.use_geometry_fields and not geom_available:
+        print("[warn] geometry fields not found in dataset; disabling geometry heads.")
+    if args.use_geometry_fields and coord_frame_actual != "canon":
+        print(
+            "[warn] dataset coord_frame_actual=%r != 'canon'; disabling geometry heads."
+            % coord_frame_actual
+        )
     if (
-        args.use_geometry_fields
+        use_geometry_fields
         and isinstance(dataset, C2DBTokenNPZDataset)
         and getattr(dataset, "order_idx", None) is not None
         and not dataset.align_atoms
@@ -1015,9 +1158,6 @@ def main() -> None:
             "Set --align-atoms or disable geometry heads."
         )
     t_available = getattr(dataset, "t", None) is not None
-    use_geometry_fields = args.use_geometry_fields and geom_available
-    if args.use_geometry_fields and not geom_available:
-        print("[warn] geometry fields not found in dataset; disabling geometry heads.")
     use_thickness = use_geometry_fields and t_available
     if use_geometry_fields and not t_available:
         print("[warn] thickness field not found in dataset; disabling t head.")

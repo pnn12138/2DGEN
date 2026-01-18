@@ -23,6 +23,7 @@ P_TASK/data/
 # Allow tracking curated sample data under repo `data/C2DB`
 !data/C2DB/
 !data/C2DB/**
+!data/ref_energies.json
 
 # Generated C2DB cleaning outputs
 data/C2DB/clean/
