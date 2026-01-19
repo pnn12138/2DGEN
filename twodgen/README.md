@@ -26,6 +26,7 @@ uv run python -m twodgen.data.prepare_c2db_tokens \
 - `lattice` 为行向量基矢，`cart = frac @ lattice`；Gram6 为 `G = lattice @ lattice^T`。
 - 旧版 `.npz` 缺少 `gram6_convention` 时需迁移：
   `uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
+- 生成 canonical 字段后会自动把 `coord_frame=canon` 写入 metadata，有条件重新跑一次预处理即可让 downstream 确认 geometry heads 可用。
 
 2) 生成 train/heldout 划分（供训练/采样使用）：
 ```bash
@@ -42,7 +43,7 @@ uv run python -m twodgen.scrip.train_tokens \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --split-json data/C2DB/cache/c2db_tokens_split.json \
   --split train \
-  --epochs 2000 \
+  --epochs 10 \
   --batch-size 256 \
   --lr 1e-4 \
   --save-dir outputs/checkpoints
@@ -54,7 +55,7 @@ uv run python -m twodgen.scrip.train_tokens \
 4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
+  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260119_190814/atomdenoiser_best.pt \
   --num-samples 200 \
   --steps 50 \
   --method heun \
@@ -63,6 +64,7 @@ uv run python -m twodgen.scrip.sample_tokens \
   --seed 0 \
   --cond-split-json data/C2DB/cache/c2db_tokens_split.json \
   --cond-split heldout
+* 如果训练/采样要启用 geometry/project-geometry，请先用最新的 `.npz` 重新预处理（含 canonical 字段）并重新训练，避免旧 `coord_frame=raw` metadata 使 geometry heads 被关闭。
 ```
 
 ## 评估（samples.npz）

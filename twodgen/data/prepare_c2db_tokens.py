@@ -495,6 +495,8 @@ def main() -> None:
         verbose=args.verbose,
     )
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    has_canon = extras.get("f_canon") is not None and extras.get("gram6_canon") is not None
+    coord_frame_value = "canon" if has_canon else "raw"
     payload: Dict[str, np.ndarray] = {
         "z": z,
         "f": f,
@@ -509,7 +511,7 @@ def main() -> None:
         "preprocess_v3": np.asarray(int(args.preprocess_v3), dtype=np.int64),
         "preprocess_version": np.array("A++_v3"),
         "schema_version": np.array("v4"),
-        "coord_frame": np.array("raw"),
+        "coord_frame": np.array(coord_frame_value),
         "min_dist_cut": np.asarray(args.min_dist_cut, dtype=np.float32),
         "min_dist_pbc_mask": np.asarray(pbc_mask, dtype=np.int64),
         "vacuum_min": np.asarray(args.vacuum_min, dtype=np.float32),
