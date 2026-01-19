@@ -59,9 +59,14 @@ def write_eval_outputs(
     if run_context is not None:
         tier0["run_context"] = run_context
 
-    with (out_dir / "per_sample.jsonl").open("w", encoding="utf-8") as f:
+    per_sample_path = out_dir / "per_sample.jsonl"
+    with per_sample_path.open("w", encoding="utf-8") as f:
         for row in per_sample:
             f.write(json.dumps(row, ensure_ascii=True) + "\n")
+    typo_path = out_dir / "per_sanmple.jsonl"
+    if typo_path.exists():
+        typo_backup = out_dir / "per_sanmple.jsonl.bak"
+        typo_path.replace(typo_backup)
     with (out_dir / "tier0_metrics.json").open("w", encoding="utf-8") as f:
         json.dump(tier0, f, indent=2, ensure_ascii=True)
     with (out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
@@ -90,8 +95,8 @@ def _load_npz_stats(npz_path: Path) -> Optional[Tuple[float, float]]:
 
 
 def _summary_stats(values: List[float]) -> Dict[str, Any]:
-    arr = np.asarray(values, dtype=float)
-    arr = arr[np.isfinite(arr)]
+    clean = [v for v in values if v is not None and np.isfinite(v)]
+    arr = np.asarray(clean, dtype=float)
     if arr.size == 0:
         return {"count": 0}
     return {
@@ -292,9 +297,9 @@ def _eval_samples(
                     same_dist = np.where(same_mask, dist, np.inf)
                     same_elem_min_dists.append(float(np.min(same_dist)))
                 else:
-                    same_elem_min_dists.append(float("nan"))
+                    same_elem_min_dists.append(None)
             else:
-                same_elem_min_dists.append(float("nan"))
+                same_elem_min_dists.append(None)
 
             quant = np.round(frac_i / dup_eps)
             uniq = np.unique(quant, axis=0)
@@ -306,7 +311,7 @@ def _eval_samples(
             dist = np.zeros((0, 0))
             shifts = np.zeros((0, 0, 3))
             dup_ratio = float("nan")
-            same_elem_min_dists.append(float("nan"))
+            same_elem_min_dists.append(None)
 
         lengths = np.linalg.norm(lattice_i, axis=1)
         if np.all(lengths > 0):
@@ -455,7 +460,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vacuum-min",
         type=float,
-        default=None,
+        default=15.0,
         help="If set, report vacuum_ok_rate = P(vacuum >= vacuum_min).",
     )
     parser.set_defaults(

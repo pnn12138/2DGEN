@@ -57,6 +57,7 @@
 - 训练附加 `min_dist` penalty（`min_dist_train_weight`）。
 - 训练日志包含 `min_dist` 分布与 collision rate。
 - 训练新增角度/Gram-condition 约束（`loss_angle`/`loss_cond`），并在日志中记录 angle_out_rate/cond_mean。
+- 训练默认启用 vacuum loss（`vacuum_loss_weight>0`），以强化 2D 真空约束。
 - 厚度 `t` 的归一化在使用 split 时改为基于训练子集统计，避免数据泄漏。
 - `z_norm` 默认噪声尺度下调以缓解 `loss_zn` 量级失衡（可通过 CLI 覆盖）。
 - 当 `coord_frame` 元数据不一致时自动禁用 geometry heads，避免混用 raw/canon。
@@ -97,6 +98,7 @@
 - `evaluate/eval_samples.py`：合法性（min_dist/体积/重复）、2D 统计（thickness/vacuum）。
 - 条件匹配：exact match、L1 计数误差、组成相似度。
 - 输出：`per_sample.jsonl` + `tier0_metrics.json` + `tier1_2d_metrics.json`。
+- `vacuum_min` 默认 15.0，用于输出 `vacuum_ok_rate`；同元素最小距离缺失时写 `null` 以避免 NaN。
 
 ### 5.2 可视化
 - `evaluate/plot_eval.py`：分布直方图与散点图。
@@ -130,3 +132,12 @@
 ### Phase 3：评估体系完善
 - T3.1 分层评估指标固化：已落地 `twodgen/evaluate/tier_definitions.md` + Tier-0/1 脚本；Tier-2 预留 `property_predict.py`（mock 或真实模型）。
 - T3.2 消融实验设计：已提供 `twodgen/evaluate/ablation_matrix.json` + `run_ablation.py`，尚需实际运行与结果表整理。
+
+---
+
+## 7) 当前瓶颈与待解决问题（基于 200 epoch 指标）
+- 2D 真空约束未真正生效：训练默认 `--vacuum-loss-weight=0.0`，导致 `valid_2d_rate` 极低、`cross_vacuum_rate` 偏高，需要在训练/采样/评估链路显式启用并对齐 `vacuum_min`。
+- 晶格体积/角度分布塌缩：采样体积近似常数、角度集中在 90 度附近，需排查 lattice/Gram 是否被 `cell_init` 或条件常量覆盖，确认模型输出是否真正参与采样。
+- 结构碰撞率高：Tier‑0 `valid_rate_eval` 仅 ~0.1，`min_dist` 低于阈值；需加强训练惩罚与采样 repulsion 并对齐 `eval_min_dist`。
+- 训练日志存在 `min_dist_mean=Infinity`：需在训练统计中识别空邻接/异常 batch，记录样本索引以定位根因。
+- 评估输出存在 NaN 字段与命名不一致：`min_dist_same_elem` 在无同元素样本时为 NaN，`per_sample.jsonl` 与实际产物命名需统一，避免下游统计失真。

@@ -1,21 +1,21 @@
 {
-  "created_at": "20260119_005336",
+  "created_at": "20260119_201859",
   "run_metadata": {
-    "created_at_utc": "2026-01-18T16:53:36+00:00",
+    "created_at_utc": "2026-01-19T12:18:59+00:00",
     "argv": [
       "/home/pnn/2DGEN/twodgen/scrip/train_tokens.py",
       "--npz",
       "data/C2DB/cache/c2db_tokens_2d_based.npz",
+      "--split-json",
+      "data/C2DB/cache/c2db_tokens_split.json",
+      "--split",
+      "train",
       "--epochs",
-      "2000",
+      "1000",
       "--batch-size",
-      "256",
+      "1024",
       "--lr",
       "1e-4",
-      "--model-size",
-      "base",
-      "--seed",
-      "0",
       "--save-dir",
       "outputs/checkpoints"
     ],
@@ -26,7 +26,7 @@
       "machine": "x86_64"
     },
     "git": {
-      "commit": "5486e9c4703b3866a3dac7293eb4c569be81f796",
+      "commit": "57f315acea0f767758f5678afa3433aa5836948a",
       "dirty": true
     },
     "numpy": "2.3.4",
@@ -35,10 +35,10 @@
   },
   "args": {
     "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
-    "split_json": null,
-    "split": "all",
-    "epochs": 2000,
-    "batch_size": 256,
+    "split_json": "data/C2DB/cache/c2db_tokens_split.json",
+    "split": "train",
+    "epochs": 1000,
+    "batch_size": 1024,
     "lr": 0.0001,
     "model_size": "base",
     "save_dir": "outputs/checkpoints",
@@ -98,10 +98,10 @@
     "no_uncertainty_weighting": false,
     "drop_last": true,
     "cell_rep": "cholesky6",
-    "chol_log_min": -0.8806597184559519,
-    "chol_log_max": 1.0710352722510559,
+    "chol_log_min": -0.8805823162510577,
+    "chol_log_max": 1.071000244913645,
     "cell_init": "iso",
-    "cell_init_scale": 1.2172760367393494,
+    "cell_init_scale": 1.2165981531143188,
     "cell_init_noise": 0.2,
     "cell_init_scale_factor": 1.5,
     "cell_log_min_factor": 0.7,
@@ -153,8 +153,8 @@
     "edge_type_gating": true,
     "wrap_embed_dim": 0,
     "cell_rep": "cholesky6",
-    "chol_log_min": -0.8806597184559519,
-    "chol_log_max": 1.0710352722510559,
+    "chol_log_min": -0.8805823162510577,
+    "chol_log_max": 1.071000244913645,
     "cond_dim": 122,
     "use_comp_encoder": true,
     "comp_embed_dim": 64,
@@ -198,10 +198,10 @@
     "use_uncertainty_weighting": true,
     "mode": "diffusion",
     "cell_rep": "cholesky6",
-    "chol_log_min": -0.8806597184559519,
-    "chol_log_max": 1.0710352722510559,
+    "chol_log_min": -0.8805823162510577,
+    "chol_log_max": 1.071000244913645,
     "cell_init": "iso",
-    "cell_init_scale": 1.2172760367393494,
+    "cell_init_scale": 1.2165981531143188,
     "cell_init_noise": 0.2,
     "cond_drop_prob": 0.1
   },
@@ -236,38 +236,38 @@
     ],
     "cond_stats": {
       "lattice_param_mean": [
-        3.116534948348999,
-        -0.06173224374651909,
-        0.11246062815189362
+        3.1179609298706055,
+        -0.062295958399772644,
+        0.11280227452516556
       ],
       "lattice_param_std": [
-        0.6035251021385193,
-        0.16818486154079437,
-        0.3420441746711731
+        0.6051676273345947,
+        0.1684812754392624,
+        0.34211936593055725
       ],
-      "t_mean": 5.0752668380737305,
-      "t_std": 2.5360708236694336
+      "t_mean": 5.058640480041504,
+      "t_std": 2.5209667682647705
     }
   },
   "geometry_config": {
-    "use_geometry_fields": false,
+    "use_geometry_fields": true,
     "geom_fields": [
       "uv_angle",
       "z_norm",
       "lattice_param",
       "t"
     ],
-    "use_thickness": false,
-    "t_normalize": false,
-    "t_mean": null,
-    "t_std": null
+    "use_thickness": true,
+    "t_normalize": true,
+    "t_mean": 5.058640480041504,
+    "t_std": 2.5209667682647705
   },
   "dataset": {
     "type": "C2DBTokenNPZDataset",
     "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
     "csv": null,
-    "split_json": null,
-    "split": "all",
+    "split_json": "data/C2DB/cache/c2db_tokens_split.json",
+    "split": "train",
     "pbc_mask": [
       1,
       1,

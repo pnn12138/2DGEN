@@ -35,6 +35,12 @@ uv run python -m twodgen.scrip.train_tokens \
   --save-dir outputs/checkpoints
 ```
 
+建议显式指定 vacuum 约束参数以保持 baseline 可读性（尽管默认已启用）：
+```
+  --vacuum-loss-weight 0.1 \
+  --vacuum-min 15.0
+```
+
 每次训练都会在 `outputs/checkpoints/<RUN_STAMP>/` 写入：
 - `config.json`：完整训练配置 + `run_metadata`（含 git commit / argv / 版本）
 - `train_metrics.jsonl`：训练过程指标（jsonl）
@@ -58,6 +64,8 @@ uv run python -m twodgen.evaluate.eval_run_001 \
   --seed 0
 ```
 
+评估阶段也明确传入 `--vacuum-min 15.0`（脚本默认同样生效）以确保 Tier-1 统计中的 `vacuum_ok_rate` 与 `cross_vacuum_rate` 有效。
+
 输出目录结构：
 - `outputs/eval_run_001/report.json`：两类评估的汇总报告（含 tier0/tier1）
 - `outputs/eval_run_001/condition_reconstruction_train/eval/`：训练集条件重构的 `per_sample.jsonl` / `tier0_metrics.json` / `tier1_2d_metrics.json`
@@ -71,4 +79,3 @@ baseline 使用 `tier0_metrics.json` 中的 `valid_rate_eval`：
 - 任务划分：train split（condition reconstruction）与 held-out split（conditional generation）分开统计
 
 注意：`samples.npz` 中的 `valid_rate` 是采样导出阶段的快速检查（基于 min_dist/volume 等），不等价于 `valid_rate_eval`。
-

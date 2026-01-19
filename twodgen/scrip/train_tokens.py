@@ -122,7 +122,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vacuum-loss-weight",
         type=float,
-        default=0.0,
+        default=0.1,
         help="Weight for 2D vacuum loss (0 disables).",
     )
     parser.add_argument(
@@ -922,9 +922,21 @@ def train_one_epoch(
                 lattice = gram6_to_lattice(gram6 * model.cfg.model.g_scale)
                 dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=model.cfg.model.pbc_mask)
                 min_dist_batch = dist.amin(dim=(1, 2)).detach().cpu().numpy()
-                min_dist_mean = float(np.mean(min_dist_batch)) if min_dist_batch.size else float("nan")
-                min_dist_p10 = float(np.percentile(min_dist_batch, 10.0)) if min_dist_batch.size else float("nan")
-                collision_rate = float(np.mean(min_dist_batch < model.cfg.min_dist_train_cut)) if min_dist_batch.size else 0.0
+                atom_counts = atom_mask.sum(dim=1).detach().cpu().numpy()
+                valid_mask = (atom_counts >= 2) & np.isfinite(min_dist_batch)
+                min_dist_mean = (
+                    float(np.mean(min_dist_batch[valid_mask])) if valid_mask.any() else float("nan")
+                )
+                min_dist_p10 = (
+                    float(np.percentile(min_dist_batch[valid_mask], 10.0)) if valid_mask.any() else float("nan")
+                )
+                collision_rate = (
+                    float(np.mean(min_dist_batch[valid_mask] < model.cfg.min_dist_train_cut))
+                    if valid_mask.any()
+                    else 0.0
+                )
+                min_dist_inf = int(np.sum(~np.isfinite(min_dist_batch)))
+                min_dist_low_atoms = int(np.sum(atom_counts < 2))
             msg = (
                 f"[step {global_step}] loss={loss.item():.4f} "
                 f"loss_f={metrics['loss_f'].item():.4f} "
@@ -954,7 +966,11 @@ def train_one_epoch(
                 msg += f" angle_out={metrics['pred_angle_out_rate'].item():.3f}"
             if "pred_cond_mean" in metrics:
                 msg += f" cond_mean={metrics['pred_cond_mean'].item():.1f}"
-            msg += f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f} collision_rate={collision_rate:.3f}"
+            msg += (
+                f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f}"
+                f" collision_rate={collision_rate:.3f} min_dist_inf={min_dist_inf}"
+                f" low_atoms={min_dist_low_atoms}"
+            )
             if "s_f" in metrics:
                 msg += (
                     f" s_f={metrics['s_f'].item():.3f}"
@@ -987,6 +1003,8 @@ def train_one_epoch(
                     "min_dist_mean": min_dist_mean,
                     "min_dist_p10": min_dist_p10,
                     "collision_rate": collision_rate,
+                    "min_dist_inf": min_dist_inf,
+                    "min_dist_low_atoms": min_dist_low_atoms,
                 }
                 if use_geometry_fields:
                     payload.update(

@@ -76,7 +76,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--vacuum-min",
         type=float,
-        default=None,
+        default=15.0,
         help="If set, mark samples invalid when vacuum thickness (Angstrom) is below this threshold.",
     )
     parser.add_argument(

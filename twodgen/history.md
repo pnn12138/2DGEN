@@ -19,3 +19,7 @@
 - Defaulted to c2db_quality.jsonl filtering when available and persisted filter summary in run config.
 - Ensured preprocess writes `coord_frame=canon` whenever canonical fields are cached so geometry heads can activate end-to-end.
 - Problem list cleanup: confirmed angle/cond loss hooks, split-only t stats, z_norm noise scale default, coord_frame guard, and quality filter default in code.
+- Enabled vacuum loss by default and aligned sampling/eval to use a default `vacuum_min=15.0`.
+- Hardened train min_dist logging with inf/low-atom counters for anomaly tracing.
+- Wrote `min_dist_same_elem=null` instead of NaN when no repeated elements exist in eval outputs.
+- Normalized eval output naming by backing up any `per_sanmple.jsonl` typo files.
