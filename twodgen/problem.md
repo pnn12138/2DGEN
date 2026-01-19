@@ -3,15 +3,14 @@
 
 
 ## P0（阻断级 / Must-fix now）
-- 训练目标与评估口径严重不一致：`train_metrics/tier0_metric.jsonl:1` 的 valid_rate_eval=0、angle_out_of_range_rate=1.0，说明所有样本在角度判据上失效；训练 loss 仅对 `loss_g` 做 MSE 拟合，没有任何角度/condition 约束，因此训练 loss 下降并不能改善 valid_rate，评估结论失真（`twodgen/evaluate/eval_samples.py:326`）。已在训练 loss 中新增 angle/cond 约束与监控，但需复跑确认有效率修复。
-- t 归一化存在潜在数据泄漏：`slab_t` 的归一化优先读 npz 中 `cond_t_mean/cond_t_std`（`twodgen/scrip/train_tokens.py:1170-1180`），而它们通常由全量数据生成（`twodgen/data/prepare_c2db_tokens.py:540-541`）。当使用 `--split-json` 时，相当于用全数据统计量标准化训练子集，满足“标准化用到了全数据统计量”的 P0 判据。已改为 split-only 统计，但需复跑验证。
+- geometry 约束根本没生效：`train_metrics/config.jsonl:36-264` 显示 `geometry_config.use_geometry_fields=false`，`train_metrics/train_metrics.jsonl:3-20` 的 `loss_angle/loss_cond` 终究是 0，`pred_angle_out_rate` 挂 0，但 `train_metrics/tier0_metric.jsonl:1-27` 仍然在 valid_rate_eval=0.11、177 次 collision；根源是 `prepare_c2db_tokens.py:498-514` 彻底把缓存的 `coord_frame` 写成 `"raw"`，即便 `f_canon/gram6_canon/uv_angle` 都在，`train_tokens.py:1212-1233` 仍因 `coord_frame_meta != 'canon'` 把 `use_geometry_fields` 关掉。也就是说 geometry heads 连入口都没打开，导致新增的角度/condition loss 无法约束结构，collisions 依旧。需要让预处理在生成 canonical 缓存时把 `coord_frame` 标记为 `"canon"` 或修改 gating 逻辑，使得 `coord_frame_actual` 为 canonical 时 geometry 仍能运行。
 
 ## P1（高优先级）
-- geometry loss 量级失衡：`train_metrics/train_metrics.jsonl` 中 `loss_zn` 常年 100~200，而 `loss_f/loss_g/loss_z` 基本 <5；已下调 `noise_scale_zn` 默认值并加入 CLI 控制（`twodgen/common/atom_diffusion.py:29`、`twodgen/scrip/train_tokens.py:149`），但仍需复跑验证是否缓解。
-- coord_frame 回退时仍可能混用 canonical geometry：当 `coord_frame_actual` 回退到 `"raw"`（`twodgen/data/c2db_dataset.py:333`），但 `uv_angle/z_norm/lattice_param` 仍存在时，geometry heads 会根据字段存在与否被启用（`twodgen/scrip/train_tokens.py:1140-1142`）；已加入 `coord_frame` 元数据一致性检查并在不一致时禁用几何头，但需要复跑确认。
+- 2D 真空维度约束缺失：`train_metrics/tier1_2d_metrics.jsonl` 显示 `valid_2d_rate=0.045`、`cross_vacuum_rate=0.81`，且 `vacuum.mean=1.486` 远低于 `vacuum_min=15` 的目标；同时 `train_metrics/config.jsonl` 中 `vacuum_loss_weight=0.0`，导致模型没有学习保持足够真空区，2D 评估大幅失效。
+- 晶格体积/角度分布塌缩：`train_metrics/tier0_metric.jsonl` 的 `volume.p10/p90` 全等，`per_sanmple.jsonl` 中 200 个样本体积几乎常数（~71.220），角度也集中在 90 度附近，说明 lattice/Gram 预测或条件应用被固定，采样无法反映真实尺度分布。
 
 ## P2（中优先级）
-- 清洗/标签产物未接入训练：`c2db_quality.jsonl` 等标注未进入 `train_tokens` 的默认流程（`rg -n c2db_quality` 仅见文档），导致数据质量控制无法作用于实际训练与评估，影响效率与可维护性。
+- 训练统计异常：`train_metrics/train_metrics.jsonl` 在 step 9900 出现 `min_dist_mean=Infinity`，同时 `collision_rate` 波动较大，可能存在 NaN/Inf 结构或 min_dist 计算回退到默认值，训练/日志需要增加异常捕获与样本溯源。
 
 ## P3（低优先级）
 - 评估链路依赖缺失/占位：`property_predict.py` 仍为 mock（`twodgen/evaluate/property_predict.py:1-80`），形成能评估依赖的 `ref_energies.json` 无生成路径（`twodgen/evaluate/formation_energy.py:30-60`），影响评估完整性但不直接阻断训练。

@@ -1,13 +1,13 @@
 {
-  "created_at": "20260118_230455",
+  "created_at": "20260119_005336",
   "run_metadata": {
-    "created_at_utc": "2026-01-18T15:04:55+00:00",
+    "created_at_utc": "2026-01-18T16:53:36+00:00",
     "argv": [
       "/home/pnn/2DGEN/twodgen/scrip/train_tokens.py",
       "--npz",
       "data/C2DB/cache/c2db_tokens_2d_based.npz",
       "--epochs",
-      "100",
+      "2000",
       "--batch-size",
       "256",
       "--lr",
@@ -26,7 +26,7 @@
       "machine": "x86_64"
     },
     "git": {
-      "commit": "3aa039fa81a5fd12a4d10733f89d7d2373a00566",
+      "commit": "5486e9c4703b3866a3dac7293eb4c569be81f796",
       "dirty": true
     },
     "numpy": "2.3.4",
@@ -37,7 +37,7 @@
     "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
     "split_json": null,
     "split": "all",
-    "epochs": 100,
+    "epochs": 2000,
     "batch_size": 256,
     "lr": 0.0001,
     "model_size": "base",
@@ -57,6 +57,12 @@
     "vacuum_loss_weight": 0.0,
     "vacuum_min": 15.0,
     "vacuum_loss_power": 2,
+    "angle_loss_weight": 0.1,
+    "angle_min": 30.0,
+    "angle_max": 150.0,
+    "cond_loss_weight": 0.01,
+    "cond_max": 1000.0,
+    "noise_scale_zn": 0.3,
     "deterministic": false,
     "embed_dim": null,
     "depth": null,
@@ -176,7 +182,7 @@
     "lambda_lat": 0.5,
     "lambda_t": 0.5,
     "noise_scale_uv": 1.0,
-    "noise_scale_zn": 1.0,
+    "noise_scale_zn": 0.3,
     "noise_scale_lat": 1.0,
     "noise_scale_t": 1.0,
     "lambda_comp": 1.0,
@@ -184,6 +190,11 @@
     "lambda_vacuum": 0.0,
     "vacuum_min": 15.0,
     "vacuum_loss_power": 2,
+    "lambda_angle": 0.1,
+    "angle_min": 30.0,
+    "angle_max": 150.0,
+    "lambda_cond": 0.01,
+    "cond_max": 1000.0,
     "use_uncertainty_weighting": true,
     "mode": "diffusion",
     "cell_rep": "cholesky6",
@@ -239,17 +250,17 @@
     }
   },
   "geometry_config": {
-    "use_geometry_fields": true,
+    "use_geometry_fields": false,
     "geom_fields": [
       "uv_angle",
       "z_norm",
       "lattice_param",
       "t"
     ],
-    "use_thickness": true,
-    "t_normalize": true,
-    "t_mean": 5.0752668380737305,
-    "t_std": 2.5360708236694336
+    "use_thickness": false,
+    "t_normalize": false,
+    "t_mean": null,
+    "t_std": null
   },
   "dataset": {
     "type": "C2DBTokenNPZDataset",
@@ -261,6 +272,13 @@
       1,
       1,
       0
-    ]
+    ],
+    "quality_jsonl": null,
+    "quality_buckets": [
+      "good",
+      "risk"
+    ],
+    "quality_hard_pass_only": true,
+    "quality_filter_summary": null
   }
 }

@@ -17,3 +17,4 @@
 - Added z_norm noise scale CLI control and lowered default to reduce loss imbalance.
 - Added coord_frame metadata guard to disable geometry heads when raw/canon mismatch.
 - Defaulted to c2db_quality.jsonl filtering when available and persisted filter summary in run config.
+- Problem list cleanup: confirmed angle/cond loss hooks, split-only t stats, z_norm noise scale default, coord_frame guard, and quality filter default in code.

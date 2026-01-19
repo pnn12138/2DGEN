@@ -27,15 +27,31 @@ uv run python -m twodgen.data.prepare_c2db_tokens \
 - 旧版 `.npz` 缺少 `gram6_convention` 时需迁移：
   `uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
 
-2) 训练：
+2) 生成 train/heldout 划分（供训练/采样使用）：
 ```bash
+uv run python -m twodgen.data.create_c2db_split \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
+  --out data/C2DB/cache/c2db_tokens_split.json \
+  --heldout-fraction 0.1 \
+  --t-bins 10
+```
 
+3) 训练（默认使用 train split）：
+```bash
+uv run python -m twodgen.scrip.train_tokens \
+  --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
+  --split-json data/C2DB/cache/c2db_tokens_split.json \
+  --split train \
+  --epochs 2000 \
+  --batch-size 256 \
+  --lr 1e-4 \
+  --save-dir outputs/checkpoints
 ```
 说明：
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
 - 若前置质量筛选已产出 `data/C2DB/clean/c2db_quality.jsonl`，可用 `--quality-jsonl`/`--quality-buckets`/`--quality-hard-pass-only` 只取 `good`/`risk`、`hard_pass` 行；clean 脚本详见 `twodgen/data/clean_c2db_2d.py`。
 
-3) 采样：
+4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
   --checkpoint /home/pnn/2dgen/outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
@@ -44,7 +60,9 @@ uv run python -m twodgen.scrip.sample_tokens \
   --method heun \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --out-dir outputs/samples_tokens \
-  --seed 0
+  --seed 0 \
+  --cond-split-json data/C2DB/cache/c2db_tokens_split.json \
+  --cond-split heldout
 ```
 
 ## 评估（samples.npz）
