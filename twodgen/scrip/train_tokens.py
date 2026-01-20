@@ -54,6 +54,12 @@ class IndexedDataset(Dataset):
         return out
 
 
+def _unwrap_indexed_dataset(dataset: Dataset) -> Dataset:
+    while isinstance(dataset, IndexedDataset):
+        dataset = dataset.base
+    return dataset
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
     parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
@@ -351,7 +357,7 @@ def _load_quality_map(path: Path) -> dict[str, dict[str, Any]]:
 
 
 def _material_id_for(dataset: Dataset, idx: int) -> str | None:
-    if isinstance(dataset, C2DBTokenNPZDataset):
+    if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
         if dataset.material_ids is None:
             return None
         return dataset.material_ids[idx]
@@ -439,7 +445,7 @@ class BucketBatchSampler(Sampler[list[int]]):
 
 
 def _atom_counts(dataset: C2DBAtomDataset | C2DBTokenNPZDataset) -> torch.Tensor:
-    if isinstance(dataset, C2DBTokenNPZDataset):
+    if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
         return dataset.atom_mask.sum(dim=1)
     counts = []
     for i in range(len(dataset)):
@@ -571,24 +577,26 @@ def _compute_dataset_min_dist(
     g_scale: float,
     batch_size: int = 256,
 ) -> torch.Tensor:
-    if isinstance(dataset, C2DBTokenNPZDataset):
-        cached = dataset.extra.get("min_dist")
+    dataset_for_iter = _unwrap_indexed_dataset(dataset)
+
+    if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
+        cached = dataset_for_iter.extra.get("min_dist")
         if cached is not None:
             return cached.float().reshape(-1).cpu()
-        use_canon = getattr(dataset, "coord_frame_actual", "raw") == "canon"
-        frac = dataset.f_canon if use_canon and dataset.f_canon is not None else dataset.f
+        use_canon = getattr(dataset_for_iter, "coord_frame_actual", "raw") == "canon"
+        frac = dataset_for_iter.f_canon if use_canon and dataset_for_iter.f_canon is not None else dataset_for_iter.f
         mask = (
-            dataset.atom_mask_canon
-            if use_canon and dataset.atom_mask_canon is not None
-            else dataset.atom_mask
+            dataset_for_iter.atom_mask_canon
+            if use_canon and dataset_for_iter.atom_mask_canon is not None
+            else dataset_for_iter.atom_mask
         )
         lattice = None
-        if use_canon and dataset.lattice_canon is not None:
-            lattice = dataset.lattice_canon
-        elif dataset.lattice is not None:
-            lattice = dataset.lattice
+        if use_canon and dataset_for_iter.lattice_canon is not None:
+            lattice = dataset_for_iter.lattice_canon
+        elif dataset_for_iter.lattice is not None:
+            lattice = dataset_for_iter.lattice
         if lattice is None:
-            gram6 = dataset.gram6_canon if use_canon and dataset.gram6_canon is not None else dataset.gram6
+            gram6 = dataset_for_iter.gram6_canon if use_canon and dataset_for_iter.gram6_canon is not None else dataset_for_iter.gram6
             lattice = gram6_to_lattice(gram6 * g_scale)
 
         n = frac.shape[0]
@@ -605,7 +613,7 @@ def _compute_dataset_min_dist(
         return out
 
     loader = DataLoader(
-        dataset,
+        dataset_for_iter,
         batch_size=batch_size,
         shuffle=False,
         num_workers=0,
