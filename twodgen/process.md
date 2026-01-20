@@ -27,6 +27,7 @@
 - canonical 附加：`f_canon, lattice_canon, gram6_canon, order_idx/order_inv`。
 - 几何字段：`uv_angle, z_norm, t, lattice_param, counts_vector` 等。
 - 约定：`gram6_convention="row_lattice"`，`cart = frac @ lattice`。
+- 当写入了 canonical 字段时，缓存元数据会记录 `coord_frame="canon"`，用于训练侧启用 geometry heads。
 
 ### 1.3 Dataset 读取
 - `C2DBTokenNPZDataset`：读取 npz，按 `coord_frame` 选择 raw/canon。
@@ -57,7 +58,8 @@
 - 训练附加 `min_dist` penalty（`min_dist_train_weight`）。
 - 训练日志包含 `min_dist` 分布与 collision rate。
 - 训练新增角度/Gram-condition 约束（`loss_angle`/`loss_cond`），并在日志中记录 angle_out_rate/cond_mean。
-- 训练默认启用 vacuum loss（`vacuum_loss_weight>0`），以强化 2D 真空约束。
+- 训练默认启用 vacuum loss（`vacuum_loss_weight=0.1`），采样/评估入口同步传入 `vacuum_min` 以强化 2D 真空约束。
+- 训练日志新增 `chol_log_clamp_rate` 与 `z_norm` 统计，便于诊断晶格触边与几何尺度对齐。
 - 厚度 `t` 的归一化在使用 split 时改为基于训练子集统计，避免数据泄漏。
 - `z_norm` 默认噪声尺度下调以缓解 `loss_zn` 量级失衡（可通过 CLI 覆盖）。
 - 当 `coord_frame` 元数据不一致时自动禁用 geometry heads，避免混用 raw/canon。
@@ -86,9 +88,11 @@
 - 支持 `euler/heun`；`Z` 可 `temperature/topk/topp` 采样。
 - `project_geometry` 只投影 `uv_angle/z_norm`；`project_each_step` 可额外投影 `frac/gram6`。
 - 采样末尾做 min_dist repulsion，输出 pre/post 统计。
+- 可选采样修正：`--expand-vacuum`、`--expand-on-collision`、`--lattice-jitter`。
 
 ### 4.3 采样输出
 - `samples.npz`（含 `z/frac/lattice/atom_mask`，以及条件记录）。
+- `samples.npz` 记录 `chol_log_clamp_rate`（若使用 cholesky6 且设置了 log bounds），用于监控晶格触边比例。
 - 可选导出 CIF（`--save-cif`），默认写入评估目录。
 
 ---

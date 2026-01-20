@@ -42,6 +42,7 @@ class AtomDenoiserConfig:
     min_dist_cut: float = 1.5
     min_dist_train_cut: float = 1.5
     min_dist_train_weight: float = 0.02
+    chol_log_relax: float = 0.0
 
 
 class AtomDenoiser(nn.Module):
@@ -95,6 +96,18 @@ class AtomDenoiser(nn.Module):
             loss = loss + self.cfg.min_dist_train_weight * penalty
             metrics["loss_min_dist"] = penalty.detach()
         return loss, pred_v_f, pred_v_g, logits_z, metrics
+
+    def _relaxed_chol_bounds(self) -> tuple[Optional[float], Optional[float]]:
+        min_val = self.cfg.model.chol_log_min
+        max_val = self.cfg.model.chol_log_max
+        relax = float(self.cfg.chol_log_relax)
+        if relax <= 0.0:
+            return min_val, max_val
+        if min_val is not None:
+            min_val = float(min_val) - relax
+        if max_val is not None:
+            max_val = float(max_val) + relax
+        return min_val, max_val
 
     def _predict_velocity(
         self,
@@ -270,17 +283,16 @@ class AtomDenoiser(nn.Module):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         frac = frac - torch.floor(frac)
         if self.cfg.diffusion.cell_rep == "cholesky6":
-            if self.cfg.model.chol_log_min is not None or self.cfg.model.chol_log_max is not None:
+            chol_min, chol_max = self._relaxed_chol_bounds()
+            if chol_min is not None or chol_max is not None:
                 cell = cell.clone()
-                cell[:, :3] = torch.clamp(
-                    cell[:, :3], min=self.cfg.model.chol_log_min, max=self.cfg.model.chol_log_max
-                )
+                cell[:, :3] = torch.clamp(cell[:, :3], min=chol_min, max=chol_max)
             lattice = cholesky6_to_lattice(
-                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+                cell, log_min=chol_min, log_max=chol_max
             )
             lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
             gram6 = lattice_to_gram6(lattice)
-            cell = gram6_to_cholesky6(gram6, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max)
+            cell = gram6_to_cholesky6(gram6, log_min=chol_min, log_max=chol_max)
             return frac, cell
         lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
         lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
@@ -643,8 +655,9 @@ class AtomDenoiser(nn.Module):
         frac = frac - torch.floor(frac)
         frac_pre = frac.clone()
         if self.cfg.diffusion.cell_rep == "cholesky6":
+            chol_min, chol_max = self._relaxed_chol_bounds()
             gram6 = cholesky6_to_gram6(
-                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+                cell, log_min=chol_min, log_max=chol_max
             )
         else:
             gram6 = cell
@@ -656,8 +669,9 @@ class AtomDenoiser(nn.Module):
         dist_post = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
         min_dist_post = dist_post.amin(dim=(1, 2))
         if self.cfg.diffusion.cell_rep == "cholesky6":
+            chol_min, chol_max = self._relaxed_chol_bounds()
             gram6 = cholesky6_to_gram6(
-                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+                cell, log_min=chol_min, log_max=chol_max
             )
         else:
             gram6 = cell

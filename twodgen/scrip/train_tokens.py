@@ -17,11 +17,41 @@ from torch.utils.data import DataLoader, Dataset, Sampler
 
 from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
-from twodgen.common.crystal import gram6_to_lattice, frac_mic_dist
+from twodgen.common.crystal import gram6_to_lattice, gram6_to_cholesky6, frac_mic_dist
 from twodgen.common.run_metadata import collect_run_metadata
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 from twodgen.model.model_sizes import resolve_model_hparams
+
+
+class IndexedDataset(Dataset):
+    def __init__(self, base: Dataset) -> None:
+        self.base = base
+
+    def __len__(self) -> int:
+        return len(self.base)
+
+    def __getitem__(self, idx: int) -> dict:
+        sample = self.base[idx]
+        if isinstance(sample, dict):
+            out = dict(sample)
+            out["index"] = idx
+            return out
+        raise TypeError("Expected dataset to return a dict for training.")
+
+    def __getattr__(self, name: str):
+        return getattr(self.base, name)
+
+    @staticmethod
+    def collate_fn(batch: list[dict]) -> dict:
+        keys = batch[0].keys()
+        out = {}
+        for key in keys:
+            if key == "index":
+                out[key] = torch.tensor([b[key] for b in batch], dtype=torch.long)
+            else:
+                out[key] = torch.stack([b[key] for b in batch], dim=0)
+        return out
 
 
 def parse_args() -> argparse.Namespace:
@@ -61,7 +91,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-dist-train-weight",
         type=float,
-        default=0.08,
+        default=0.12,
         help="Weight for collision penalty during training (0 disables).",
     )
     parser.add_argument(
@@ -166,6 +196,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1e3,
         help="Maximum allowed Gram condition number for cond loss.",
+    )
+    parser.add_argument(
+        "--chol-log-relax",
+        type=float,
+        default=0.15,
+        help="Relaxation margin added to chol_log_min/max during projection and sampling.",
     )
     parser.add_argument(
         "--noise-scale-zn",
@@ -858,6 +894,7 @@ def train_one_epoch(
         frac = batch["frac_coords"].to(device, non_blocking=True)
         atom_mask = batch["atom_mask"].to(device, non_blocking=True)
         gram6 = batch["gram6"].to(device, non_blocking=True)
+        batch_indices = batch.get("index")
         uv_angle = None
         z_norm = None
         lattice_param = None
@@ -937,6 +974,29 @@ def train_one_epoch(
                 )
                 min_dist_inf = int(np.sum(~np.isfinite(min_dist_batch)))
                 min_dist_low_atoms = int(np.sum(atom_counts < 2))
+                min_dist_inf_indices = None
+                min_dist_low_atoms_indices = None
+                if batch_indices is not None:
+                    idx_np = batch_indices.detach().cpu().numpy().tolist()
+                    if min_dist_inf > 0:
+                        bad = np.where(~np.isfinite(min_dist_batch))[0].tolist()
+                        min_dist_inf_indices = [idx_np[i] for i in bad[:10]]
+                    if min_dist_low_atoms > 0:
+                        bad = np.where(atom_counts < 2)[0].tolist()
+                        min_dist_low_atoms_indices = [idx_np[i] for i in bad[:10]]
+                chol_log_clamp_rate = None
+                if model.cfg.model.cell_rep == "cholesky6" and (
+                    model.cfg.model.chol_log_min is not None
+                    or model.cfg.model.chol_log_max is not None
+                ):
+                    diag = gram6_to_cholesky6(gram6, log_min=None, log_max=None)[:, :3]
+                    diag_np = diag.detach().cpu().numpy()
+                    hit = np.zeros((diag_np.shape[0],), dtype=bool)
+                    if model.cfg.model.chol_log_min is not None:
+                        hit |= diag_np.min(axis=1) <= float(model.cfg.model.chol_log_min) + 1e-4
+                    if model.cfg.model.chol_log_max is not None:
+                        hit |= diag_np.max(axis=1) >= float(model.cfg.model.chol_log_max) - 1e-4
+                    chol_log_clamp_rate = float(np.mean(hit)) if hit.size else 0.0
             msg = (
                 f"[step {global_step}] loss={loss.item():.4f} "
                 f"loss_f={metrics['loss_f'].item():.4f} "
@@ -971,6 +1031,8 @@ def train_one_epoch(
                 f" collision_rate={collision_rate:.3f} min_dist_inf={min_dist_inf}"
                 f" low_atoms={min_dist_low_atoms}"
             )
+            if chol_log_clamp_rate is not None:
+                msg += f" chol_log_clamp={chol_log_clamp_rate:.3f}"
             if "s_f" in metrics:
                 msg += (
                     f" s_f={metrics['s_f'].item():.3f}"
@@ -1006,6 +1068,12 @@ def train_one_epoch(
                     "min_dist_inf": min_dist_inf,
                     "min_dist_low_atoms": min_dist_low_atoms,
                 }
+                if min_dist_inf_indices is not None:
+                    payload["min_dist_inf_indices"] = min_dist_inf_indices
+                if min_dist_low_atoms_indices is not None:
+                    payload["min_dist_low_atoms_indices"] = min_dist_low_atoms_indices
+                if chol_log_clamp_rate is not None:
+                    payload["chol_log_clamp_rate"] = float(chol_log_clamp_rate)
                 if use_geometry_fields:
                     payload.update(
                         {
@@ -1157,6 +1225,7 @@ def main() -> None:
             niggli_reduce=args.niggli_reduce,
         )
         g_scale = args.g_scale
+    dataset = IndexedDataset(dataset)
 
     quality_map: dict[str, dict[str, Any]] | None = None
     quality_filter_summary: dict[str, Any] | None = None
@@ -1285,6 +1354,18 @@ def main() -> None:
             t_stats = (t_mean, t_std)
         else:
             print("[warn] thickness field missing for normalization; using raw t.")
+    z_norm_stats = None
+    if use_geometry_fields:
+        z_norm_values = getattr(dataset, "z_norm", None)
+        if z_norm_values is not None:
+            z_norm_float = z_norm_values.float()
+            if split_indices is not None:
+                z_norm_float = z_norm_float.index_select(
+                    0, torch.as_tensor(split_indices, dtype=torch.long)
+                )
+            z_mean = float(z_norm_float.mean().item())
+            z_std = float(z_norm_float.std(unbiased=False).clamp_min(1e-6).item())
+            z_norm_stats = (z_mean, z_std)
     cond_max_atoms = int(getattr(dataset, "max_atoms", args.max_atoms))
     cond_dim = 0
     cond_stats = {}
@@ -1298,6 +1379,7 @@ def main() -> None:
             dataset, cond_fields, normalize_fields, indices=split_indices, t_stats=t_stats
         )
 
+    lattice_stats = None
     if args.cell_rep == "cholesky6":
         s10, s50, s90, log_std = _estimate_scube_stats(dataset, g_scale, indices=split_indices)
         if args.cell_init == "iso" and args.cell_init_scale is None:
@@ -1308,6 +1390,33 @@ def main() -> None:
             args.chol_log_min = float(np.log(max(args.cell_log_min_factor * s10, 1e-6)))
         if args.chol_log_max is None:
             args.chol_log_max = float(np.log(max(args.cell_log_max_factor * s90, 1e-6)))
+        side_min = None
+        side_max = None
+        if args.chol_log_min is not None:
+            side_min = math.exp(float(args.chol_log_min)) * math.sqrt(g_scale)
+        if args.chol_log_max is not None:
+            side_max = math.exp(float(args.chol_log_max)) * math.sqrt(g_scale)
+        print(
+            "[info] scube stats "
+            f"s10={s10:.4f} s50={s50:.4f} s90={s90:.4f} log_std={log_std:.4f}"
+        )
+        print(
+            "[info] chol_log bounds "
+            f"min={args.chol_log_min:.4f} max={args.chol_log_max:.4f} "
+            f"side_min={side_min:.3f} side_max={side_max:.3f}"
+        )
+        lattice_stats = {
+            "scube_p10": float(s10),
+            "scube_p50": float(s50),
+            "scube_p90": float(s90),
+            "scube_log_std": float(log_std),
+            "chol_log_min": float(args.chol_log_min),
+            "chol_log_max": float(args.chol_log_max),
+            "side_min": float(side_min) if side_min is not None else None,
+            "side_max": float(side_max) if side_max is not None else None,
+            "volume_min": float(side_min**3) if side_min is not None else None,
+            "volume_max": float(side_max**3) if side_max is not None else None,
+        }
 
     if args.dual_graph and args.edge_type_dim == 0:
         args.edge_type_dim = 4
@@ -1385,6 +1494,7 @@ def main() -> None:
     denoiser_cfg.diffusion.use_uncertainty_weighting = not args.no_uncertainty_weighting
     denoiser_cfg.min_dist_train_cut = float(args.min_dist_train_cut)
     denoiser_cfg.min_dist_train_weight = float(args.min_dist_train_weight)
+    denoiser_cfg.chol_log_relax = float(args.chol_log_relax)
     model = AtomDenoiser(denoiser_cfg).to(device)
     n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     print(f"Trainable parameters: {n_params / 1e6:.3f}M (model_size={args.model_size})")
@@ -1417,6 +1527,9 @@ def main() -> None:
             "ema": args.ema,
             "ema_decay": args.ema_decay,
         },
+        "denoiser_config": {
+            "chol_log_relax": float(denoiser_cfg.chol_log_relax),
+        },
         "cond_config": {
             "use_condition": use_condition,
             "cond_dim": cond_dim,
@@ -1433,7 +1546,10 @@ def main() -> None:
             "t_normalize": t_stats is not None,
             "t_mean": t_stats[0] if t_stats is not None else None,
             "t_std": t_stats[1] if t_stats is not None else None,
+            "z_norm_mean": z_norm_stats[0] if z_norm_stats is not None else None,
+            "z_norm_std": z_norm_stats[1] if z_norm_stats is not None else None,
         },
+        "lattice_stats": lattice_stats,
         "dataset": {
             "type": "C2DBTokenNPZDataset" if args.npz is not None else "C2DBAtomDataset",
             "npz": str(args.npz) if args.npz is not None else None,

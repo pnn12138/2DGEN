@@ -12,7 +12,7 @@ import torch
 from pymatgen.core import Element, Structure
 from pymatgen.io.cif import CifWriter
 
-from twodgen.common.crystal import frac_mic_dist
+from twodgen.common.crystal import frac_mic_dist, gram6_to_cholesky6
 from twodgen.evaluate import eval_samples as eval_samples_mod
 from twodgen.common.run_metadata import collect_run_metadata
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
@@ -20,6 +20,81 @@ from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.common.atom_diffusion import AtomDiffusionConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 
+
+_VALID_QUALITY_BUCKETS = {"good", "risk", "bad"}
+_DEFAULT_QUALITY_BUCKETS = ("good", "risk")
+
+
+def _parse_quality_buckets(value: Optional[str]) -> list[str]:
+    if value is None:
+        return list(_DEFAULT_QUALITY_BUCKETS)
+    buckets = [item.strip().lower() for item in value.split(",") if item.strip()]
+    if not buckets:
+        return list(_DEFAULT_QUALITY_BUCKETS)
+    invalid = [bucket for bucket in buckets if bucket not in _VALID_QUALITY_BUCKETS]
+    if invalid:
+        raise ValueError(
+            "--quality-buckets contains unknown buckets "
+            f"{invalid!r} (supported: {_VALID_QUALITY_BUCKETS})"
+        )
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for bucket in buckets:
+        if bucket in seen:
+            continue
+        seen.add(bucket)
+        ordered.append(bucket)
+    return ordered
+
+
+def _load_quality_map(path: Path) -> dict[str, dict[str, Any]]:
+    mapping: dict[str, dict[str, Any]] = {}
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            row = json.loads(line)
+            material_id = str(row.get("material_id", "")).strip()
+            if not material_id:
+                continue
+            quality_bucket = str(row.get("quality_bucket", "")).lower()
+            mapping[material_id] = {
+                "quality_bucket": quality_bucket,
+                "hard_pass": bool(row.get("hard_pass")),
+            }
+    return mapping
+
+
+def _filter_indices_by_quality(
+    indices: list[int],
+    material_ids: list[str],
+    quality_map: dict[str, dict[str, Any]],
+    allowed_buckets: list[str],
+    require_hard_pass: bool,
+) -> tuple[list[int], int, int]:
+    allowed = set(allowed_buckets) if allowed_buckets else None
+    kept: list[int] = []
+    missing = 0
+    filtered = 0
+    for idx in indices:
+        if idx < 0 or idx >= len(material_ids):
+            missing += 1
+            continue
+        material_id = str(material_ids[idx])
+        entry = quality_map.get(material_id)
+        if entry is None:
+            missing += 1
+            continue
+        bucket = entry.get("quality_bucket") or ""
+        if allowed is not None and bucket not in allowed:
+            filtered += 1
+            continue
+        if require_hard_pass and not entry.get("hard_pass", False):
+            filtered += 1
+            continue
+        kept.append(idx)
+    return kept, missing, filtered
 
 def _install_checkpoint_legacy_shims() -> None:
     """
@@ -62,6 +137,24 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         choices=["all", "train", "heldout"],
         help="Which subset to draw conditioning rows from when --cond-split-json is set.",
     )
+    parser.add_argument(
+        "--quality-jsonl",
+        type=Path,
+        default=None,
+        help="Optional quality jsonl to filter conditioning rows.",
+    )
+    parser.add_argument(
+        "--quality-buckets",
+        type=str,
+        default="good,risk",
+        help="Comma-separated list of quality buckets to keep when --quality-jsonl is provided.",
+    )
+    parser.add_argument(
+        "--quality-hard-pass-only",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="When using --quality-jsonl, keep only rows marked as hard pass.",
+    )
     parser.add_argument("--num-samples", type=int, default=10)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
@@ -85,6 +178,24 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         default=False,
         help="If set, mark samples invalid when a bond crosses the vacuum axis under 3D PBC.",
     )
+    parser.add_argument(
+        "--expand-vacuum",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, scale the vacuum axis to reach vacuum_min before validity checks.",
+    )
+    parser.add_argument(
+        "--expand-on-collision",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, isotropically expand the lattice when min_dist falls below min_dist_cut.",
+    )
+    parser.add_argument(
+        "--lattice-jitter",
+        type=float,
+        default=0.02,
+        help="Log-normal isotropic jitter applied to lattice scale (0 disables).",
+    )
 
     parser.set_defaults(
         deterministic=False,
@@ -94,8 +205,8 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         g_scale=100.0,
         min_dist=None,
         min_dist_project=True,
-        min_dist_iter=8,
-        min_dist_strength=0.03,
+        min_dist_iter=12,
+        min_dist_strength=0.05,
         min_dist_cut=None,
         neighbor_update_steps=1,
         reduce_lattice=False,
@@ -107,6 +218,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         cell_init=None,
         cell_init_scale=None,
         cell_init_noise=None,
+        chol_log_relax=0.15,
         coord_frame="canon",
         pbc_mask=None,
         project_each_step=True,
@@ -129,7 +241,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         eval_v_min=None,
         eval_v_max=None,
         eval_pbc_mask=None,
-        vacuum_min=None,
+        vacuum_min=15.0,
         reject_cross_vacuum=False,
     )
     return parser.parse_args(argv)
@@ -380,6 +492,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
     denoiser_cfg.min_dist_iter = min_dist_iter if min_dist_project else 0
     denoiser_cfg.min_dist_strength = min_dist_strength
     denoiser_cfg.min_dist_cut = min_dist_repulsion_cut
+    denoiser_cfg.chol_log_relax = float(getattr(args, "chol_log_relax", 0.0))
     if diff_cfg is not None:
         if isinstance(diff_cfg, dict):
             denoiser_cfg.diffusion = AtomDiffusionConfig(**diff_cfg)
@@ -491,6 +604,15 @@ def run_sampling(args: argparse.Namespace) -> Path:
         num_rows = data["counts_vector"].shape[0] if "counts_vector" in data else 0
         if num_rows == 0:
             raise ValueError("cond npz has no counts_vector rows.")
+        quality_map = None
+        quality_summary = None
+        if args.quality_jsonl is not None:
+            if not args.quality_jsonl.exists():
+                print(f"[warn] quality-jsonl not found at {args.quality_jsonl}; skipping quality filter.")
+            else:
+                quality_map = _load_quality_map(args.quality_jsonl)
+                if not quality_map:
+                    raise ValueError(f"No quality records found in {args.quality_jsonl}")
         pool_indices: Optional[list[int]] = None
         pool_set: Optional[set[int]] = None
         if args.cond_split_json is not None and args.cond_split != "all":
@@ -503,6 +625,34 @@ def run_sampling(args: argparse.Namespace) -> Path:
             sampling_config["cond_pool_size"] = int(len(pool_indices))
         else:
             sampling_config["cond_pool_size"] = int(num_rows)
+        if quality_map is not None:
+            material_ids = data["material_id"].tolist() if "material_id" in data else None
+            if material_ids is None:
+                print("[warn] cond npz missing material_id; skipping quality filter.")
+            else:
+                base_indices = pool_indices if pool_indices is not None else list(range(num_rows))
+                buckets = _parse_quality_buckets(args.quality_buckets)
+                kept, missing, filtered = _filter_indices_by_quality(
+                    base_indices,
+                    material_ids,
+                    quality_map,
+                    buckets,
+                    bool(args.quality_hard_pass_only),
+                )
+                if not kept:
+                    raise ValueError("Quality filter removed all conditioning rows.")
+                pool_indices = kept
+                pool_set = set(pool_indices)
+                quality_summary = {
+                    "kept": len(kept),
+                    "total": len(base_indices),
+                    "missing": missing,
+                    "filtered": filtered,
+                    "buckets": buckets,
+                    "hard_pass_only": bool(args.quality_hard_pass_only),
+                    "quality_jsonl": str(args.quality_jsonl),
+                }
+                sampling_config["cond_quality_filter"] = quality_summary
         if args.cond_first is not None:
             if args.cond_first <= 0:
                 raise ValueError("--cond-first must be positive.")
@@ -583,6 +733,14 @@ def run_sampling(args: argparse.Namespace) -> Path:
     cross_vacuum_np = np.zeros((args.num_samples,), dtype=np.int8)
     lattice_param_np = None
     slab_t_np = None
+    chol_log_clamp_flags = None
+    chol_log_min = getattr(model_cfg, "chol_log_min", None)
+    chol_log_max = getattr(model_cfg, "chol_log_max", None)
+    if (
+        model_cfg.cell_rep == "cholesky6"
+        and (chol_log_min is not None or chol_log_max is not None)
+    ):
+        chol_log_clamp_flags = np.zeros((args.num_samples,), dtype=np.int8)
 
     for num_atoms in sorted(set(num_atoms_list)):
         idxs = [i for i, val in enumerate(num_atoms_list) if val == num_atoms]
@@ -615,6 +773,15 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 counts_vector=counts_tensor,
             )
             lattice = model.gram6_to_lattice(gram6)
+            if chol_log_clamp_flags is not None:
+                diag = gram6_to_cholesky6(gram6, log_min=None, log_max=None)[:, :3]
+                diag_np = diag.detach().cpu().numpy()
+                hit = np.zeros((diag_np.shape[0],), dtype=bool)
+                if chol_log_min is not None:
+                    hit |= np.any(diag_np <= float(chol_log_min) + 1e-4, axis=1)
+                if chol_log_max is not None:
+                    hit |= np.any(diag_np >= float(chol_log_max) - 1e-4, axis=1)
+                chol_log_clamp_flags[idxs] = hit.astype(np.int8)
         z_np[idxs] = z.cpu().numpy()
         frac_np[idxs] = frac.cpu().numpy()
         lattice_np[idxs] = lattice.cpu().numpy()
@@ -668,6 +835,24 @@ def run_sampling(args: argparse.Namespace) -> Path:
             lattice_mat, coords_np = _reduce_lattice_and_frac(lattice_mat, coords_np)
 
         coords_np = coords_np - np.floor(coords_np)
+        if args.expand_vacuum and args.vacuum_min is not None:
+            lengths = np.linalg.norm(lattice_mat, axis=1)
+            if np.all(np.isfinite(lengths)) and np.all(lengths > 0):
+                c_idx = int(np.argmax(lengths))
+                c_len = float(lengths[c_idx])
+                thickness, vacuum = eval_samples_mod._thickness_vacuum(coords_np[:, c_idx], c_len)
+                if np.isfinite(vacuum) and float(vacuum) < float(args.vacuum_min):
+                    target_len = float(thickness) + float(args.vacuum_min)
+                    scale = target_len / max(c_len, 1e-8)
+                    lattice_mat[c_idx] = lattice_mat[c_idx] * scale
+        if args.expand_on_collision and np.isfinite(min_dist_post_np[i]) and min_dist_post_np[i] < min_dist_cut:
+            scale = float(min_dist_cut) / max(float(min_dist_post_np[i]), 1e-6)
+            scale = min(scale, 2.0)
+            lattice_mat = lattice_mat * scale
+        if args.lattice_jitter > 0:
+            jitter = float(args.lattice_jitter)
+            scale = float(np.exp(np.random.normal(0.0, jitter)))
+            lattice_mat = lattice_mat * scale
         lattice_np[i] = lattice_mat
         frac_np[i][mask] = coords_np
 
@@ -708,6 +893,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
             mask_t = torch.ones(1, frac_t.shape[1], device=device)
             dist = frac_mic_dist(frac_t, lat_t, mask_t, pbc_mask=model_cfg.pbc_mask)
             min_dist = torch.min(dist[0]).item()
+            if np.isfinite(min_dist):
+                min_dist_post_np[i] = float(min_dist)
             if min_dist < min_dist_cut:
                 is_valid = False
         elements: List[Element] = [Element.from_Z(z) for z in zs]
@@ -749,6 +936,69 @@ def run_sampling(args: argparse.Namespace) -> Path:
     post_mean = float(np.nanmean(min_dist_post_np)) if min_dist_post_np.size else float("nan")
     pre_p10 = float(np.nanpercentile(min_dist_pre_np, 10.0)) if min_dist_pre_np.size else float("nan")
     post_p10 = float(np.nanpercentile(min_dist_post_np, 10.0)) if min_dist_post_np.size else float("nan")
+    lattice_stats = None
+    if lattice_np.size:
+        vols = np.abs(np.linalg.det(lattice_np))
+        vols = vols[np.isfinite(vols)]
+        if vols.size:
+            lengths = np.linalg.norm(lattice_np, axis=2)
+            valid_len = np.all(lengths > 0, axis=1)
+            alpha = []
+            beta = []
+            gamma = []
+            if np.any(valid_len):
+                lat = lattice_np[valid_len]
+                a_vec = lat[:, 0, :]
+                b_vec = lat[:, 1, :]
+                c_vec = lat[:, 2, :]
+                cos_alpha = np.sum(b_vec * c_vec, axis=1) / (
+                    np.linalg.norm(b_vec, axis=1) * np.linalg.norm(c_vec, axis=1)
+                )
+                cos_beta = np.sum(a_vec * c_vec, axis=1) / (
+                    np.linalg.norm(a_vec, axis=1) * np.linalg.norm(c_vec, axis=1)
+                )
+                cos_gamma = np.sum(a_vec * b_vec, axis=1) / (
+                    np.linalg.norm(a_vec, axis=1) * np.linalg.norm(b_vec, axis=1)
+                )
+                cos_alpha = np.clip(cos_alpha, -1.0, 1.0)
+                cos_beta = np.clip(cos_beta, -1.0, 1.0)
+                cos_gamma = np.clip(cos_gamma, -1.0, 1.0)
+                alpha = np.degrees(np.arccos(cos_alpha))
+                beta = np.degrees(np.arccos(cos_beta))
+                gamma = np.degrees(np.arccos(cos_gamma))
+
+            gram = np.matmul(lattice_np, np.transpose(lattice_np, (0, 2, 1)))
+            gram6 = np.stack(
+                [
+                    gram[:, 0, 0],
+                    gram[:, 1, 1],
+                    gram[:, 2, 2],
+                    gram[:, 0, 1],
+                    gram[:, 0, 2],
+                    gram[:, 1, 2],
+                ],
+                axis=1,
+            )
+            gram6 = gram6[np.all(np.isfinite(gram6), axis=1)]
+
+            def _stats(arr: np.ndarray) -> dict:
+                return {
+                    "mean": float(np.mean(arr)),
+                    "p10": float(np.percentile(arr, 10.0)),
+                    "p90": float(np.percentile(arr, 90.0)),
+                }
+
+            lattice_stats = {
+                "volume": _stats(vols),
+                "angle_alpha": _stats(alpha) if len(alpha) else None,
+                "angle_beta": _stats(beta) if len(beta) else None,
+                "angle_gamma": _stats(gamma) if len(gamma) else None,
+                "gram6_var": (
+                    [float(v) for v in np.var(gram6, axis=0)]
+                    if gram6.size
+                    else None
+                ),
+            }
     payload = {
         "z": z_np,
         "frac": frac_np,
@@ -769,6 +1019,22 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "vacuum": vacuum_np,
         "cross_vacuum_bond": cross_vacuum_np,
     }
+    if chol_log_clamp_flags is not None:
+        clamp_rate = float(np.mean(chol_log_clamp_flags)) if chol_log_clamp_flags.size else 0.0
+        payload.update(
+            {
+                "chol_log_clamp": chol_log_clamp_flags,
+                "chol_log_clamp_rate": np.array(clamp_rate, dtype=np.float32),
+                "chol_log_min": np.array(
+                    float(chol_log_min) if chol_log_min is not None else float("nan"),
+                    dtype=np.float32,
+                ),
+                "chol_log_max": np.array(
+                    float(chol_log_max) if chol_log_max is not None else float("nan"),
+                    dtype=np.float32,
+                ),
+            }
+        )
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np
     if slab_t_np is not None:
@@ -796,6 +1062,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "min_dist_repulsion_iter": int(min_dist_iter),
         "min_dist_repulsion_strength": float(min_dist_strength),
     }
+    if lattice_stats is not None:
+        sampling_config["export"]["lattice_stats"] = lattice_stats
+    if chol_log_clamp_flags is not None:
+        sampling_config["export"]["chol_log_clamp_rate"] = float(
+            np.mean(chol_log_clamp_flags) if chol_log_clamp_flags.size else 0.0
+        )
     if cond_counts_vector is not None:
         num_elements = int(cond_counts_vector.shape[-1])
         gen_counts = np.zeros((args.num_samples, num_elements), dtype=np.int64)

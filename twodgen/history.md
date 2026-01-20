@@ -23,3 +23,11 @@
 - Hardened train min_dist logging with inf/low-atom counters for anomaly tracing.
 - Wrote `min_dist_same_elem=null` instead of NaN when no repeated elements exist in eval outputs.
 - Normalized eval output naming by backing up any `per_sanmple.jsonl` typo files.
+- Logged `chol_log_clamp_rate` in both sampling outputs and training metrics to monitor lattice boundary hits.
+- Added sampling-side lattice stats (volume/angles/Gram6 variance) for diagnosing lattice collapse.
+- Introduced `chol_log_relax` to soften Cholesky clamp bounds during projection/sampling.
+- Added optional sampling lattice adjustments: `--expand-vacuum`, `--expand-on-collision`, and `--lattice-jitter`.
+- Recorded `z_norm` mean/std in training config for geometry scaling sanity checks.
+- Captured batch indices for min_dist inf/low-atom anomalies in training logs.
+- Enabled quality filtering for conditioning pools in sampling when `--quality-jsonl` is provided.
+- Moved completed todo items: coord_frame metadata gating, chol_log clamp monitoring, scube/volume diagnostics, sampling lattice stats, NaN/typo eval fixes, and quality-filtered conditioning.
