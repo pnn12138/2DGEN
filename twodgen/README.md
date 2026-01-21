@@ -46,11 +46,13 @@ uv run python -m twodgen.scrip.train_tokens \
   --epochs 100 \
   --batch-size 128 \
   --lr 1e-4 \
-  --save-dir outputs/checkpoints
+  --save-dir outputs/checkpoints \
+  --volume-max 1900
 ```
 说明：
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
 - 训练默认启用 `--vacuum-loss-weight 0.1`（若要关闭需显式设为 0），与评估端的 `--vacuum-min 15` 对齐以强化 2D 真空约束。
+- 推荐显式设置 `--volume-max 1900`（基于数据集 p95）以触发体积上限惩罚，避免 volume loss 恒为 0。
 - 若前置质量筛选已产出 `data/C2DB/clean/c2db_quality.jsonl`，可用 `--quality-jsonl`/`--quality-buckets`/`--quality-hard-pass-only` 只取 `good`/`risk`、`hard_pass` 行；clean 脚本详见 `twodgen/data/clean_c2db_2d.py`。
 
 4) 采样（默认对 heldout 条件生成）：

@@ -254,7 +254,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--volume-max",
         type=float,
-        default=None,
+        default=1900.0,
         help="Optional maximum lattice volume enforced by the volume penalty.",
     )
     parser.add_argument(
