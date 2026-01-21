@@ -248,7 +248,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--volume-min",
         type=float,
-        default=1.0,
+        default=131.0,
         help="Minimum lattice volume enforced by the volume penalty.",
     )
     parser.add_argument(
@@ -256,6 +256,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1900.0,
         help="Optional maximum lattice volume enforced by the volume penalty.",
+    )
+    parser.add_argument(
+        "--auto-volume-bounds",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Auto-set volume_min/volume_max from train split p1/p99 statistics.",
     )
     parser.add_argument(
         "--anisotropy-loss-weight",
@@ -929,6 +935,37 @@ def _estimate_scube_stats(
     return s10, s50, s90, log_std
 
 
+def _estimate_volume_stats(
+    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    g_scale: float,
+    indices: list[int] | None = None,
+) -> tuple[float, float, float] | None:
+    if isinstance(dataset, C2DBTokenNPZDataset) and dataset.lattice is not None:
+        lattice = dataset.lattice.float()
+        if indices is not None:
+            lattice = lattice[indices]
+        vols = torch.abs(torch.linalg.det(lattice))
+    else:
+        if isinstance(dataset, C2DBTokenNPZDataset):
+            gram6 = dataset.gram6.float()
+            if indices is not None:
+                gram6 = gram6[indices]
+        else:
+            gram6_list = []
+            if indices is None:
+                indices = list(range(len(dataset)))
+            for i in indices:
+                gram6_list.append(dataset[i]["gram6"].float())
+            gram6 = torch.stack(gram6_list, dim=0)
+        lattice = gram6_to_lattice(gram6 * float(g_scale))
+        vols = torch.abs(torch.linalg.det(lattice))
+    vols = vols[torch.isfinite(vols)]
+    if vols.numel() == 0:
+        return None
+    q = torch.quantile(vols, torch.tensor([0.01, 0.5, 0.99], device=vols.device))
+    return float(q[0]), float(q[1]), float(q[2])
+
+
 def _counts_from_z(z: torch.Tensor, atom_mask: torch.Tensor, num_elements: int) -> torch.Tensor:
     bsz, n = z.shape
     counts = torch.zeros(bsz, num_elements, device=z.device, dtype=torch.float32)
@@ -1531,6 +1568,22 @@ def main() -> None:
                 f"(cut={float(args.curriculum_min_dist_cut):.3f}, ramp_epochs={args.curriculum_epochs})"
             )
 
+    volume_stats: tuple[float, float, float] | None = None
+    if args.auto_volume_bounds:
+        dataset_raw = _unwrap_indexed_dataset(dataset)
+        volume_stats = _estimate_volume_stats(dataset_raw, g_scale, indices=base_indices)
+        if volume_stats is None:
+            print("[warn] auto-volume-bounds: unable to compute volume stats; keeping defaults.")
+        else:
+            v_min, v_med, v_max = volume_stats
+            args.volume_min = float(v_min)
+            args.volume_max = float(v_max)
+            print(
+                "[info] auto-volume-bounds: "
+                f"p1={v_min:.3f} p50={v_med:.3f} p99={v_max:.3f} "
+                f"-> volume_min={args.volume_min:.3f} volume_max={args.volume_max:.3f}"
+            )
+
     use_condition = args.use_condition
     geom_available = all(
         getattr(dataset, name, None) is not None for name in ("uv_angle", "z_norm", "lattice_param")
@@ -1809,6 +1862,11 @@ def main() -> None:
             "warmup_steps": int(args.volume_c_len_warmup_steps),
             "start_factor": float(args.volume_c_len_warmup_start),
             "end_factor": float(args.volume_c_len_warmup_end),
+        },
+        "volume_stats": {
+            "p1": float(volume_stats[0]) if volume_stats is not None else None,
+            "p50": float(volume_stats[1]) if volume_stats is not None else None,
+            "p99": float(volume_stats[2]) if volume_stats is not None else None,
         },
         "denoiser_config": {
             "chol_log_relax": float(denoiser_cfg.chol_log_relax),

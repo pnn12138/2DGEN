@@ -1,7 +1,7 @@
 {
-  "created_at": "20260120_164656",
+  "created_at": "20260121_205700",
   "run_metadata": {
-    "created_at_utc": "2026-01-20T08:46:56+00:00",
+    "created_at_utc": "2026-01-21T12:57:00+00:00",
     "argv": [
       "/home/pnn/2DGEN/twodgen/scrip/train_tokens.py",
       "--npz",
@@ -17,7 +17,9 @@
       "--lr",
       "1e-4",
       "--save-dir",
-      "outputs/checkpoints"
+      "outputs/checkpoints",
+      "--volume-max",
+      "1900"
     ],
     "python": "3.12.10",
     "platform": {
@@ -26,7 +28,7 @@
       "machine": "x86_64"
     },
     "git": {
-      "commit": "a5a76b2ba9bb7da48071979a6f451e78ef468322",
+      "commit": "60b1028abbb52fbaf52a48a1e0de45e5634b7483",
       "dirty": true
     },
     "numpy": "2.3.4",
@@ -62,6 +64,28 @@
     "angle_max": 150.0,
     "cond_loss_weight": 0.01,
     "cond_max": 1000.0,
+    "c_len_loss_weight": 0.05,
+    "c_len_min": 15.0,
+    "volume_loss_weight": 0.1,
+    "volume_min": 1.0,
+    "volume_max": 1900.0,
+    "anisotropy_loss_weight": 0.0,
+    "anisotropy_min_std": 1.0,
+    "loss_hinge": "relu",
+    "loss_softplus_beta": 10.0,
+    "chol_bound_loss_weight": 0.05,
+    "chol_bound_margin": 0.2,
+    "chol_bound_power": 2,
+    "expand_on_collision_weight": 0.05,
+    "expand_on_collision_cut": 1.5,
+    "loss_weight_warmup_steps": 15000,
+    "loss_weight_warmup_keys": "vacuum,cond,chol_bound,expand_collision",
+    "loss_weight_warmup_start": 0.0,
+    "loss_weight_warmup_end": 1.0,
+    "loss_weight_schedule": "sigmoid",
+    "volume_c_len_warmup_steps": 2000,
+    "volume_c_len_warmup_start": 0.0,
+    "volume_c_len_warmup_end": 1.0,
     "chol_log_relax": 0.15,
     "noise_scale_zn": 0.3,
     "deterministic": false,
@@ -196,6 +220,20 @@
     "angle_max": 150.0,
     "lambda_cond": 0.01,
     "cond_max": 1000.0,
+    "lambda_chol_bound": 0.05,
+    "chol_bound_margin": 0.2,
+    "chol_bound_power": 2,
+    "lambda_expand_collision": 0.05,
+    "expand_min_dist_cut": 1.5,
+    "lambda_volume": 0.1,
+    "volume_min": 1.0,
+    "volume_max": 1900.0,
+    "lambda_c_len": 0.05,
+    "c_len_min": 15.0,
+    "lambda_anisotropy": 0.0,
+    "anisotropy_min_std": 1.0,
+    "loss_hinge": "relu",
+    "loss_softplus_beta": 10.0,
     "use_uncertainty_weighting": true,
     "mode": "diffusion",
     "cell_rep": "cholesky6",
@@ -220,6 +258,23 @@
     "clip_grad": 1.0,
     "ema": true,
     "ema_decay": 0.9999
+  },
+  "loss_weight_schedule": {
+    "warmup_steps": 15000,
+    "keys": [
+      "vacuum",
+      "cond",
+      "chol_bound",
+      "expand_collision"
+    ],
+    "start_factor": 0.0,
+    "end_factor": 1.0,
+    "schedule": "sigmoid"
+  },
+  "volume_c_len_warmup": {
+    "warmup_steps": 2000,
+    "start_factor": 0.0,
+    "end_factor": 1.0
   },
   "denoiser_config": {
     "chol_log_relax": 0.15
