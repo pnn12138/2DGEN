@@ -46,8 +46,13 @@ class AtomDiffusionConfig:
     expand_min_dist_cut: float = 1.5
     lambda_volume: float = 0.0
     volume_min: float = 1.0
+    volume_max: Optional[float] = None
     lambda_c_len: float = 0.0
     c_len_min: float = 15.0
+    lambda_anisotropy: float = 0.0
+    anisotropy_min_std: float = 1.0
+    loss_hinge: str = "relu"  # relu | softplus
+    loss_softplus_beta: float = 10.0
     use_uncertainty_weighting: bool = True
     mode: str = "diffusion"  # diffusion | flow
     cell_rep: str = "gram6"  # gram6 | cholesky6
@@ -374,6 +379,9 @@ class AtomVelocityLoss(nn.Module):
                     loss_comp = (expected - remaining).abs().sum(dim=-1).div(denom).mean()
 
         loss_vacuum = torch.tensor(0.0, device=device)
+        vacuum_gap_mean = torch.tensor(float("nan"), device=device)
+        c_len_mean = torch.tensor(float("nan"), device=device)
+        thickness_gap_mean = torch.tensor(float("nan"), device=device)
         if self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
@@ -403,6 +411,11 @@ class AtomVelocityLoss(nn.Module):
                 vacuums[b] = max_gap * c_len[b]
             vac_min = float(self.cfg.vacuum_min)
             delta = (vac_min - vacuums).clamp_min(0.0)
+            vacuum_gap_mean = torch.nanmean(delta)
+            c_len_mean = torch.nanmean(c_len)
+            if slab_t is not None:
+                slab_t_vec = slab_t if slab_t.ndim == 1 else slab_t.squeeze(-1)
+                thickness_gap_mean = torch.nanmean((c_len - slab_t_vec).clamp_min(0.0))
             power = int(self.cfg.vacuum_loss_power)
             if power <= 1:
                 loss_vacuum = torch.nanmean(delta / max(vac_min, 1e-8))
@@ -415,12 +428,18 @@ class AtomVelocityLoss(nn.Module):
         loss_expand_collision = torch.tensor(0.0, device=device)
         loss_volume = torch.tensor(0.0, device=device)
         loss_c_len = torch.tensor(0.0, device=device)
+        loss_anisotropy = torch.tensor(0.0, device=device)
         angle_out_rate = torch.tensor(float("nan"), device=device)
         cond_mean = torch.tensor(float("nan"), device=device)
         chol_bound_rate = torch.tensor(float("nan"), device=device)
         min_dist_pred_mean = torch.tensor(float("nan"), device=device)
         min_dist_pred_p10 = torch.tensor(float("nan"), device=device)
-        if self.cfg.lambda_volume > 0.0 or self.cfg.lambda_c_len > 0.0:
+        lengths_std_mean = torch.tensor(float("nan"), device=device)
+        if (
+            self.cfg.lambda_volume > 0.0
+            or self.cfg.lambda_c_len > 0.0
+            or self.cfg.lambda_anisotropy > 0.0
+        ):
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
                 gram6_pred_vol = cholesky6_to_gram6(
@@ -430,18 +449,36 @@ class AtomVelocityLoss(nn.Module):
                 gram6_pred_vol = pred_x0_g
             lattice_vol = gram6_to_lattice(gram6_pred_vol * float(g_scale))
             lengths_vol = torch.linalg.norm(lattice_vol, dim=-1)
-            c_len_val = lengths_vol.max(dim=-1).values
+
+            def _hinge(delta: torch.Tensor) -> torch.Tensor:
+                if str(self.cfg.loss_hinge).lower() == "softplus":
+                    beta = float(self.cfg.loss_softplus_beta)
+                    return F.softplus(delta, beta=beta)
+                return delta.clamp_min(0.0)
+
             if self.cfg.lambda_c_len > 0.0:
+                len_a, len_b, _ = lengths_vol.unbind(dim=-1)
                 c_min = float(self.cfg.c_len_min)
-                delta_len = (c_min - c_len_val).clamp_min(0.0)
-                denom = max(c_min, 1e-8)
-                loss_c_len = torch.nanmean((delta_len / denom) ** 2)
-            if self.cfg.lambda_volume > 0.0:
+                delta_a = _hinge(c_min - len_a) / max(c_min, 1e-8)
+                delta_b = _hinge(c_min - len_b) / max(c_min, 1e-8)
+                loss_c_len = torch.nanmean(delta_a + delta_b)
+            if self.cfg.lambda_volume > 0.0 or self.cfg.lambda_anisotropy > 0.0:
                 volume = torch.abs(torch.linalg.det(lattice_vol))
-                vol_min = float(self.cfg.volume_min)
-                delta_vol = (vol_min - volume).clamp_min(0.0)
-                denom = max(vol_min, 1e-8)
-                loss_volume = torch.nanmean((delta_vol / denom) ** 2)
+                if self.cfg.lambda_volume > 0.0:
+                    vol_min = float(self.cfg.volume_min)
+                    lower = _hinge(vol_min - volume) / max(vol_min, 1e-8)
+                    vol_max = self.cfg.volume_max
+                    upper = torch.zeros_like(lower)
+                    if vol_max is not None:
+                        vol_max_val = float(vol_max)
+                        upper = _hinge(volume - vol_max_val) / max(vol_max_val, 1e-8)
+                    loss_volume = torch.nanmean(lower + upper)
+                if self.cfg.lambda_anisotropy > 0.0:
+                    lengths_std = lengths_vol.std(dim=-1, unbiased=False)
+                    lengths_std_mean = torch.nanmean(lengths_std)
+                    aniso_min = float(self.cfg.anisotropy_min_std)
+                    aniso_gap = _hinge(aniso_min - lengths_std) / max(aniso_min, 1e-8)
+                    loss_anisotropy = torch.nanmean(aniso_gap)
         if self.cfg.lambda_angle > 0.0 or self.cfg.lambda_cond > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
@@ -569,6 +606,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_volume * loss_volume
             if self.cfg.lambda_c_len > 0.0:
                 loss = loss + self.cfg.lambda_c_len * loss_c_len
+            if self.cfg.lambda_anisotropy > 0.0:
+                loss = loss + self.cfg.lambda_anisotropy * loss_anisotropy
             if self.cfg.lambda_chol_bound > 0.0:
                 loss = loss + self.cfg.lambda_chol_bound * loss_chol_bound
             if self.cfg.lambda_expand_collision > 0.0:
@@ -595,6 +634,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_volume * loss_volume
             if self.cfg.lambda_c_len > 0.0:
                 loss = loss + self.cfg.lambda_c_len * loss_c_len
+            if self.cfg.lambda_anisotropy > 0.0:
+                loss = loss + self.cfg.lambda_anisotropy * loss_anisotropy
             if self.cfg.lambda_chol_bound > 0.0:
                 loss = loss + self.cfg.lambda_chol_bound * loss_chol_bound
             if self.cfg.lambda_expand_collision > 0.0:
@@ -615,11 +656,16 @@ class AtomVelocityLoss(nn.Module):
             "loss_expand_collision": loss_expand_collision.detach(),
             "loss_volume": loss_volume.detach(),
             "loss_c_len": loss_c_len.detach(),
+            "loss_anisotropy": loss_anisotropy.detach(),
             "pred_angle_out_rate": angle_out_rate.detach(),
             "pred_cond_mean": cond_mean.detach(),
             "chol_bound_rate": chol_bound_rate.detach(),
             "min_dist_pred_mean": min_dist_pred_mean.detach(),
             "min_dist_pred_p10": min_dist_pred_p10.detach(),
+            "vacuum_gap_mean": vacuum_gap_mean.detach(),
+            "c_len_mean": c_len_mean.detach(),
+            "thickness_gap_mean": thickness_gap_mean.detach(),
+            "lengths_std_mean": lengths_std_mean.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),

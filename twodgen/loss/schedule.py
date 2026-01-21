@@ -6,11 +6,11 @@ from typing import Iterable
 
 @dataclass(frozen=True)
 class LossWeightScheduleConfig:
-    warmup_steps: int = 30000
+    warmup_steps: int = 15000
     start_factor: float = 0.0
     end_factor: float = 1.0
-    keys: tuple[str, ...] = ("vacuum", "cond", "chol_bound", "expand_collision", "volume", "c_len")
-    schedule: str = "linear"
+    keys: tuple[str, ...] = ("vacuum", "cond", "chol_bound", "expand_collision")
+    schedule: str = "sigmoid"
 
 
 class LossWeightScheduler:
