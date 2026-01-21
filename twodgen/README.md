@@ -43,8 +43,8 @@ uv run python -m twodgen.scrip.train_tokens \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --split-json data/C2DB/cache/c2db_tokens_split.json \
   --split train \
-  --epochs 10 \
-  --batch-size 256 \
+  --epochs 100 \
+  --batch-size 128 \
   --lr 1e-4 \
   --save-dir outputs/checkpoints
 ```
@@ -56,7 +56,7 @@ uv run python -m twodgen.scrip.train_tokens \
 4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260119_190814/atomdenoiser_best.pt \
+  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260121_114645/atomdenoiser_last.pt \
   --num-samples 200 \
   --steps 50 \
   --method heun \

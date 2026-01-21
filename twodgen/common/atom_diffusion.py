@@ -8,7 +8,7 @@ from torch import nn
 from torch.nn import functional as F
 
 from twodgen.common.crystal import gram6_to_cholesky6
-from twodgen.common.crystal import cholesky6_to_gram6, gram6_to_lattice
+from twodgen.common.crystal import cholesky6_to_gram6, gram6_to_lattice, frac_mic_dist
 
 @dataclass
 class AtomDiffusionConfig:
@@ -39,6 +39,15 @@ class AtomDiffusionConfig:
     angle_max: float = 150.0
     lambda_cond: float = 0.01
     cond_max: float = 1e3
+    lambda_chol_bound: float = 0.0
+    chol_bound_margin: float = 0.2
+    chol_bound_power: int = 2
+    lambda_expand_collision: float = 0.0
+    expand_min_dist_cut: float = 1.5
+    lambda_volume: float = 0.0
+    volume_min: float = 1.0
+    lambda_c_len: float = 0.0
+    c_len_min: float = 15.0
     use_uncertainty_weighting: bool = True
     mode: str = "diffusion"  # diffusion | flow
     cell_rep: str = "gram6"  # gram6 | cholesky6
@@ -402,8 +411,37 @@ class AtomVelocityLoss(nn.Module):
 
         loss_angle = torch.tensor(0.0, device=device)
         loss_cond = torch.tensor(0.0, device=device)
+        loss_chol_bound = torch.tensor(0.0, device=device)
+        loss_expand_collision = torch.tensor(0.0, device=device)
+        loss_volume = torch.tensor(0.0, device=device)
+        loss_c_len = torch.tensor(0.0, device=device)
         angle_out_rate = torch.tensor(float("nan"), device=device)
         cond_mean = torch.tensor(float("nan"), device=device)
+        chol_bound_rate = torch.tensor(float("nan"), device=device)
+        min_dist_pred_mean = torch.tensor(float("nan"), device=device)
+        min_dist_pred_p10 = torch.tensor(float("nan"), device=device)
+        if self.cfg.lambda_volume > 0.0 or self.cfg.lambda_c_len > 0.0:
+            g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
+            if self.cfg.cell_rep == "cholesky6":
+                gram6_pred_vol = cholesky6_to_gram6(
+                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                )
+            else:
+                gram6_pred_vol = pred_x0_g
+            lattice_vol = gram6_to_lattice(gram6_pred_vol * float(g_scale))
+            lengths_vol = torch.linalg.norm(lattice_vol, dim=-1)
+            c_len_val = lengths_vol.max(dim=-1).values
+            if self.cfg.lambda_c_len > 0.0:
+                c_min = float(self.cfg.c_len_min)
+                delta_len = (c_min - c_len_val).clamp_min(0.0)
+                denom = max(c_min, 1e-8)
+                loss_c_len = torch.nanmean((delta_len / denom) ** 2)
+            if self.cfg.lambda_volume > 0.0:
+                volume = torch.abs(torch.linalg.det(lattice_vol))
+                vol_min = float(self.cfg.volume_min)
+                delta_vol = (vol_min - volume).clamp_min(0.0)
+                denom = max(vol_min, 1e-8)
+                loss_volume = torch.nanmean((delta_vol / denom) ** 2)
         if self.cfg.lambda_angle > 0.0 or self.cfg.lambda_cond > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
@@ -460,6 +498,53 @@ class AtomVelocityLoss(nn.Module):
                     cond_violation = (cond - cond_max).clamp_min(0.0) / max(cond_max, 1e-8)
                     loss_cond = (cond_violation ** 2).mean()
 
+        if self.cfg.lambda_chol_bound > 0.0:
+            chol_min = self.cfg.chol_log_min
+            chol_max = self.cfg.chol_log_max
+            if chol_min is not None or chol_max is not None:
+                if self.cfg.cell_rep == "cholesky6":
+                    chol_params = pred_x0_g
+                else:
+                    chol_params = gram6_to_cholesky6(pred_x0_g, log_min=None, log_max=None)
+                diag = chol_params[:, :3]
+                margin = max(float(self.cfg.chol_bound_margin), 0.0)
+                lower = torch.zeros_like(diag)
+                upper = torch.zeros_like(diag)
+                if chol_min is not None:
+                    lower = (float(chol_min) + margin - diag).clamp_min(0.0)
+                if chol_max is not None:
+                    upper = (diag - (float(chol_max) - margin)).clamp_min(0.0)
+                violation = lower + upper
+                denom = max(margin, 1e-6)
+                if int(self.cfg.chol_bound_power) <= 1:
+                    loss_chol_bound = (violation / denom).mean()
+                else:
+                    loss_chol_bound = ((violation / denom) ** int(self.cfg.chol_bound_power)).mean()
+                chol_bound_rate = (violation > 0).any(dim=1).float().mean()
+
+        if self.cfg.lambda_expand_collision > 0.0 and self.cfg.expand_min_dist_cut > 0.0:
+            g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
+            if self.cfg.cell_rep == "cholesky6":
+                gram6_pred = cholesky6_to_gram6(
+                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                )
+            else:
+                gram6_pred = pred_x0_g
+            lattice = gram6_to_lattice(gram6_pred * float(g_scale))
+            frac_pred = pred_x0_f - torch.floor(pred_x0_f)
+            pbc_mask = getattr(getattr(model, "cfg", None), "pbc_mask", (1, 1, 1))
+            dist = frac_mic_dist(frac_pred, lattice, atom_mask, pbc_mask=pbc_mask)
+            min_dist = dist.amin(dim=(1, 2))
+            cut = float(self.cfg.expand_min_dist_cut)
+            delta = (cut - min_dist).clamp_min(0.0) / max(cut, 1e-8)
+            severity = (cut - min_dist).clamp_min(0.0)
+            severity_norm = severity / max(cut, 1e-8)
+            loss_expand_collision = torch.nanmean((delta * (1.0 + severity_norm)) ** 2)
+            valid = torch.isfinite(min_dist)
+            if valid.any():
+                min_dist_pred_mean = min_dist[valid].mean()
+                min_dist_pred_p10 = torch.quantile(min_dist[valid], 0.1)
+
         if self.cfg.use_uncertainty_weighting:
             loss = torch.exp(-self.s_f) * loss_f + self.s_f + torch.exp(-self.s_g) * loss_g + self.s_g
             if masked_pos.any():
@@ -480,6 +565,14 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_angle) * loss_angle + self.s_angle
             if self.cfg.lambda_cond > 0.0:
                 loss = loss + torch.exp(-self.s_cond) * loss_cond + self.s_cond
+            if self.cfg.lambda_volume > 0.0:
+                loss = loss + self.cfg.lambda_volume * loss_volume
+            if self.cfg.lambda_c_len > 0.0:
+                loss = loss + self.cfg.lambda_c_len * loss_c_len
+            if self.cfg.lambda_chol_bound > 0.0:
+                loss = loss + self.cfg.lambda_chol_bound * loss_chol_bound
+            if self.cfg.lambda_expand_collision > 0.0:
+                loss = loss + self.cfg.lambda_expand_collision * loss_expand_collision
         else:
             loss = loss_f + self.cfg.lambda_z * loss_z + self.cfg.lambda_g * loss_g
             if uv_angle is not None:
@@ -498,6 +591,14 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_angle * loss_angle
             if self.cfg.lambda_cond > 0.0:
                 loss = loss + self.cfg.lambda_cond * loss_cond
+            if self.cfg.lambda_volume > 0.0:
+                loss = loss + self.cfg.lambda_volume * loss_volume
+            if self.cfg.lambda_c_len > 0.0:
+                loss = loss + self.cfg.lambda_c_len * loss_c_len
+            if self.cfg.lambda_chol_bound > 0.0:
+                loss = loss + self.cfg.lambda_chol_bound * loss_chol_bound
+            if self.cfg.lambda_expand_collision > 0.0:
+                loss = loss + self.cfg.lambda_expand_collision * loss_expand_collision
         metrics = {
             "loss_f": loss_f.detach(),
             "loss_g": loss_g.detach(),
@@ -510,8 +611,15 @@ class AtomVelocityLoss(nn.Module):
             "loss_vacuum": loss_vacuum.detach(),
             "loss_angle": loss_angle.detach(),
             "loss_cond": loss_cond.detach(),
+            "loss_chol_bound": loss_chol_bound.detach(),
+            "loss_expand_collision": loss_expand_collision.detach(),
+            "loss_volume": loss_volume.detach(),
+            "loss_c_len": loss_c_len.detach(),
             "pred_angle_out_rate": angle_out_rate.detach(),
             "pred_cond_mean": cond_mean.detach(),
+            "chol_bound_rate": chol_bound_rate.detach(),
+            "min_dist_pred_mean": min_dist_pred_mean.detach(),
+            "min_dist_pred_p10": min_dist_pred_p10.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),

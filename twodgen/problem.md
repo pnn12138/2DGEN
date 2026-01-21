@@ -11,9 +11,7 @@
 - Tier‑0 有效率过低/碰撞严重：`train_metrics/tier0_metric.jsonl` 显示 `valid_rate_eval=0.08` 且 `collision=184/200`，`min_dist.median=0.971 < min_dist_cut=1.5`。在 `volume` 被压到下界后，真实笛卡尔距离整体缩小，采样末尾的 `min_dist` repulsion 只能挪 `frac`，无法把 lattice 拉大，因此碰撞很难从根上缓解。现状：未解决。
 
 ## P2（中优先级）
-- 训练曲线产物缺失/文件语义混乱：当前 `train_metrics/train_metrics.jsonl` 实际内容与 `train_metrics/config.jsonl` 一致（仅包含 config/run_metadata），文件内没有按 step 记录的 `loss/min_dist_mean/collision_rate` 等训练时间序列，导致无法从该目录直接判断“晶格触底/碰撞率高”是训练过程问题还是采样过程问题。现状：未解决。
-- 评估产物命名与当前代码不一致：该目录下为 `tier0_metric.jsonl`、`tier1_2d_metrics.jsonl`、`per_sanmple.jsonl`；但当前评估实现 `twodgen/evaluate/eval_samples.py` 会写 `tier0_metrics.json`、`tier1_2d_metrics.json`、`per_sample.jsonl`，并在发现旧的 `per_sanmple.jsonl` 时备份。说明 `train_metrics/` 更像“历史版本产物/手动拷贝产物”，容易让问题定位与自动脚本对不上。现状：未解决。
+（已核验）训练/评估产物已对齐：训练曲线按 step 写入 `outputs/checkpoints/<run>/train_metrics.jsonl`，评估写入 `tier0_metrics.json`、`tier1_2d_metrics.json`、`per_sample.jsonl`（见 `twodgen/history.md`）。本节问题已移除。
 
 ## P3（低优先级）
 - 评估链路依赖缺失/占位：`property_predict.py` 仍为 mock（`twodgen/evaluate/property_predict.py:1-80`），形成能评估依赖的 `ref_energies.json` 无生成路径（`twodgen/evaluate/formation_energy.py:30-60`），影响评估完整性但不直接阻断训练。现状：未解决。
-- 指标输出文件命名疑似拼写错误：`train_metrics/per_sanmple.jsonl` 与当前规范的 `per_sample.jsonl` 不一致，可能导致后续脚本无法自动发现指标文件。现状：未解决。

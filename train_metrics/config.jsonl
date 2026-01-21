@@ -1,7 +1,7 @@
 {
-  "created_at": "20260119_201859",
+  "created_at": "20260120_164656",
   "run_metadata": {
-    "created_at_utc": "2026-01-19T12:18:59+00:00",
+    "created_at_utc": "2026-01-20T08:46:56+00:00",
     "argv": [
       "/home/pnn/2DGEN/twodgen/scrip/train_tokens.py",
       "--npz",
@@ -11,9 +11,9 @@
       "--split",
       "train",
       "--epochs",
-      "1000",
+      "100",
       "--batch-size",
-      "1024",
+      "128",
       "--lr",
       "1e-4",
       "--save-dir",
@@ -26,7 +26,7 @@
       "machine": "x86_64"
     },
     "git": {
-      "commit": "57f315acea0f767758f5678afa3433aa5836948a",
+      "commit": "a5a76b2ba9bb7da48071979a6f451e78ef468322",
       "dirty": true
     },
     "numpy": "2.3.4",
@@ -37,14 +37,14 @@
     "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
     "split_json": "data/C2DB/cache/c2db_tokens_split.json",
     "split": "train",
-    "epochs": 1000,
-    "batch_size": 1024,
+    "epochs": 100,
+    "batch_size": 128,
     "lr": 0.0001,
     "model_size": "base",
     "save_dir": "outputs/checkpoints",
     "seed": 0,
     "min_dist_train_cut": 1.5,
-    "min_dist_train_weight": 0.08,
+    "min_dist_train_weight": 0.12,
     "filter_min_dist_below": 1.35,
     "curriculum_collision": true,
     "curriculum_epochs": 20,
@@ -54,7 +54,7 @@
     "quality_hard_pass_only": true,
     "comp_loss_weight": 1.0,
     "comp_loss_mode": "l1",
-    "vacuum_loss_weight": 0.0,
+    "vacuum_loss_weight": 0.1,
     "vacuum_min": 15.0,
     "vacuum_loss_power": 2,
     "angle_loss_weight": 0.1,
@@ -62,6 +62,7 @@
     "angle_max": 150.0,
     "cond_loss_weight": 0.01,
     "cond_max": 1000.0,
+    "chol_log_relax": 0.15,
     "noise_scale_zn": 0.3,
     "deterministic": false,
     "embed_dim": null,
@@ -187,7 +188,7 @@
     "noise_scale_t": 1.0,
     "lambda_comp": 1.0,
     "comp_loss_mode": "l1",
-    "lambda_vacuum": 0.0,
+    "lambda_vacuum": 0.1,
     "vacuum_min": 15.0,
     "vacuum_loss_power": 2,
     "lambda_angle": 0.1,
@@ -220,6 +221,9 @@
     "ema": true,
     "ema_decay": 0.9999
   },
+  "denoiser_config": {
+    "chol_log_relax": 0.15
+  },
   "cond_config": {
     "use_condition": true,
     "cond_dim": 122,
@@ -234,20 +238,7 @@
       "lattice_param",
       "t"
     ],
-    "cond_stats": {
-      "lattice_param_mean": [
-        3.1179609298706055,
-        -0.062295958399772644,
-        0.11280227452516556
-      ],
-      "lattice_param_std": [
-        0.6051676273345947,
-        0.1684812754392624,
-        0.34211936593055725
-      ],
-      "t_mean": 5.058640480041504,
-      "t_std": 2.5209667682647705
-    }
+    "cond_stats": {}
   },
   "geometry_config": {
     "use_geometry_fields": true,
@@ -260,7 +251,21 @@
     "use_thickness": true,
     "t_normalize": true,
     "t_mean": 5.058640480041504,
-    "t_std": 2.5209667682647705
+    "t_std": 2.5209667682647705,
+    "z_norm_mean": 2.900124806970439e-09,
+    "z_norm_std": 0.21032197773456573
+  },
+  "lattice_stats": {
+    "scube_p10": 0.5922020673751831,
+    "scube_p50": 0.8110654354095459,
+    "scube_p90": 1.1673188209533691,
+    "scube_log_std": 0.2532155513763428,
+    "chol_log_min": -0.8805823162510577,
+    "chol_log_max": 1.071000244913645,
+    "side_min": 4.145414471626282,
+    "side_max": 29.18297052383423,
+    "volume_min": 71.23671390335798,
+    "volume_max": 24853.553361655373
   },
   "dataset": {
     "type": "C2DBTokenNPZDataset",

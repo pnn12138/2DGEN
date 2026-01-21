@@ -1043,6 +1043,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         payload["cond_indices"] = cond_indices
     if cond_counts_vector is not None:
         payload["cond_counts_vector"] = cond_counts_vector
+        payload["cond_counts_source"] = np.array("target")
     if cond_strategy is not None:
         payload["cond_strategy"] = np.array(cond_strategy)
     if args.cond_split_json is not None:

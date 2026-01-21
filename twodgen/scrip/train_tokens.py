@@ -19,6 +19,7 @@ from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
 from twodgen.common.crystal import gram6_to_lattice, gram6_to_cholesky6, frac_mic_dist
 from twodgen.common.run_metadata import collect_run_metadata
+from twodgen.loss.schedule import LossWeightScheduleConfig, LossWeightScheduler
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 from twodgen.model.model_sizes import resolve_model_hparams
@@ -58,6 +59,20 @@ def _unwrap_indexed_dataset(dataset: Dataset) -> Dataset:
     while isinstance(dataset, IndexedDataset):
         dataset = dataset.base
     return dataset
+
+
+def _parse_loss_weight_keys(value: str) -> list[str]:
+    return [key.strip().lower() for key in value.split(",") if key.strip()]
+
+
+def _apply_loss_weights(model: AtomDenoiser, weights: dict[str, float]) -> None:
+    cfg = model.loss_fn.cfg
+    cfg.lambda_vacuum = float(weights.get("vacuum", cfg.lambda_vacuum))
+    cfg.lambda_cond = float(weights.get("cond", cfg.lambda_cond))
+    cfg.lambda_chol_bound = float(weights.get("chol_bound", cfg.lambda_chol_bound))
+    cfg.lambda_expand_collision = float(weights.get("expand_collision", cfg.lambda_expand_collision))
+    cfg.lambda_volume = float(weights.get("volume", cfg.lambda_volume))
+    cfg.lambda_c_len = float(weights.get("c_len", cfg.lambda_c_len))
 
 
 def parse_args() -> argparse.Namespace:
@@ -202,6 +217,91 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1e3,
         help="Maximum allowed Gram condition number for cond loss.",
+    )
+    parser.add_argument(
+        "--c-len-loss-weight",
+        type=float,
+        default=0.02,
+        help="Weight for c-axis length penalty during training.",
+    )
+    parser.add_argument(
+        "--c-len-min",
+        type=float,
+        default=15.0,
+        help="Minimum c-axis length enforced by the c_len penalty.",
+    )
+    parser.add_argument(
+        "--volume-loss-weight",
+        type=float,
+        default=0.02,
+        help="Weight for lattice volume penalty during training.",
+    )
+    parser.add_argument(
+        "--volume-min",
+        type=float,
+        default=1.0,
+        help="Minimum lattice volume enforced by the volume penalty.",
+    )
+    parser.add_argument(
+        "--chol-bound-loss-weight",
+        type=float,
+        default=0.05,
+        help="Weight for Cholesky boundary penalty during training (0 disables).",
+    )
+    parser.add_argument(
+        "--chol-bound-margin",
+        type=float,
+        default=0.2,
+        help="Soft margin (log space) before chol bound penalty activates.",
+    )
+    parser.add_argument(
+        "--chol-bound-power",
+        type=int,
+        default=2,
+        help="Power for chol bound penalty.",
+    )
+    parser.add_argument(
+        "--expand-on-collision-weight",
+        type=float,
+        default=0.05,
+        help="Weight for expand-on-collision loss using predicted x0 (0 disables).",
+    )
+    parser.add_argument(
+        "--expand-on-collision-cut",
+        type=float,
+        default=1.5,
+        help="Min distance cutoff (Angstrom) for expand-on-collision loss.",
+    )
+    parser.add_argument(
+        "--loss-weight-warmup-steps",
+        type=int,
+        default=30000,
+        help="Warmup steps for selected loss weights (0 disables).",
+    )
+    parser.add_argument(
+        "--loss-weight-warmup-keys",
+        type=str,
+        default="vacuum,cond,chol_bound,expand_collision,volume,c_len",
+        help="Comma-separated loss keys for warmup (vacuum,cond,chol_bound,expand_collision).",
+    )
+    parser.add_argument(
+        "--loss-weight-warmup-start",
+        type=float,
+        default=0.0,
+        help="Start factor for loss weight warmup.",
+    )
+    parser.add_argument(
+        "--loss-weight-warmup-end",
+        type=float,
+        default=1.0,
+        help="End factor for loss weight warmup.",
+    )
+    parser.add_argument(
+        "--loss-weight-schedule",
+        type=str,
+        choices=["linear", "sigmoid", "cosine"],
+        default="linear",
+        help="Schedule shape for warmup (linear/sigmoid/cosine).",
     )
     parser.add_argument(
         "--chol-log-relax",
@@ -891,6 +991,7 @@ def train_one_epoch(
     cond_fields: Optional[list[str]] = None,
     t_stats: tuple[float, float] | None = None,
     metrics_log_path: Optional[Path] = None,
+    loss_weight_scheduler: LossWeightScheduler | None = None,
 ) -> tuple[int, float]:
     model.train()
     total_loss = 0.0
@@ -942,6 +1043,10 @@ def train_one_epoch(
                 counts_vector = _counts_from_z(z, atom_mask, num_elements).to(device)
 
         lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
+        loss_weight_state = None
+        if loss_weight_scheduler is not None:
+            loss_weight_state = loss_weight_scheduler.weights(global_step)
+            _apply_loss_weights(model, loss_weight_state)
         optimizer.zero_grad(set_to_none=True)
         loss, _, _, _, metrics = model(
             z,
@@ -1030,6 +1135,14 @@ def train_one_epoch(
                 msg += f" loss_angle={metrics['loss_angle'].item():.4f}"
             if "loss_cond" in metrics:
                 msg += f" loss_cond={metrics['loss_cond'].item():.4f}"
+            if "loss_volume" in metrics:
+                msg += f" loss_vol={metrics['loss_volume'].item():.4f}"
+            if "loss_c_len" in metrics:
+                msg += f" loss_c={metrics['loss_c_len'].item():.4f}"
+            if "loss_chol_bound" in metrics:
+                msg += f" loss_chol={metrics['loss_chol_bound'].item():.4f}"
+            if "loss_expand_collision" in metrics:
+                msg += f" loss_expand={metrics['loss_expand_collision'].item():.4f}"
             if "pred_angle_out_rate" in metrics:
                 msg += f" angle_out={metrics['pred_angle_out_rate'].item():.3f}"
             if "pred_cond_mean" in metrics:
@@ -1098,10 +1211,24 @@ def train_one_epoch(
                     payload["loss_angle"] = float(metrics["loss_angle"].item())
                 if "loss_cond" in metrics:
                     payload["loss_cond"] = float(metrics["loss_cond"].item())
+                if "loss_volume" in metrics:
+                    payload["loss_volume"] = float(metrics["loss_volume"].item())
+                if "loss_c_len" in metrics:
+                    payload["loss_c_len"] = float(metrics["loss_c_len"].item())
+                if "loss_chol_bound" in metrics:
+                    payload["loss_chol_bound"] = float(metrics["loss_chol_bound"].item())
+                if "loss_expand_collision" in metrics:
+                    payload["loss_expand_collision"] = float(metrics["loss_expand_collision"].item())
                 if "pred_angle_out_rate" in metrics:
                     payload["pred_angle_out_rate"] = float(metrics["pred_angle_out_rate"].item())
                 if "pred_cond_mean" in metrics:
                     payload["pred_cond_mean"] = float(metrics["pred_cond_mean"].item())
+                if "chol_bound_rate" in metrics:
+                    payload["chol_bound_rate"] = float(metrics["chol_bound_rate"].item())
+                if "min_dist_pred_mean" in metrics:
+                    payload["min_dist_pred_mean"] = float(metrics["min_dist_pred_mean"].item())
+                if "min_dist_pred_p10" in metrics:
+                    payload["min_dist_pred_p10"] = float(metrics["min_dist_pred_p10"].item())
                 if "pred_x0_f_mean" in metrics:
                     payload.update(
                         {
@@ -1131,8 +1258,17 @@ def train_one_epoch(
                         payload["s_t"] = float(metrics["s_t"].item())
                     if "s_angle" in metrics:
                         payload["s_angle"] = float(metrics["s_angle"].item())
-                    if "s_cond" in metrics:
-                        payload["s_cond"] = float(metrics["s_cond"].item())
+                if "s_cond" in metrics:
+                    payload["s_cond"] = float(metrics["s_cond"].item())
+                if loss_weight_state is not None:
+                    payload["lambda_vacuum"] = float(loss_weight_state.get("vacuum", 0.0))
+                    payload["lambda_cond"] = float(loss_weight_state.get("cond", 0.0))
+                    payload["lambda_chol_bound"] = float(loss_weight_state.get("chol_bound", 0.0))
+                    payload["lambda_expand_collision"] = float(
+                        loss_weight_state.get("expand_collision", 0.0)
+                    )
+                    payload["lambda_volume"] = float(loss_weight_state.get("volume", 0.0))
+                    payload["lambda_c_len"] = float(loss_weight_state.get("c_len", 0.0))
                 with metrics_log_path.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(payload, ensure_ascii=True) + "\n")
 
@@ -1493,6 +1629,15 @@ def main() -> None:
     denoiser_cfg.diffusion.angle_max = float(args.angle_max)
     denoiser_cfg.diffusion.lambda_cond = float(args.cond_loss_weight)
     denoiser_cfg.diffusion.cond_max = float(args.cond_max)
+    denoiser_cfg.diffusion.lambda_volume = float(args.volume_loss_weight)
+    denoiser_cfg.diffusion.volume_min = float(args.volume_min)
+    denoiser_cfg.diffusion.lambda_c_len = float(args.c_len_loss_weight)
+    denoiser_cfg.diffusion.c_len_min = float(args.c_len_min)
+    denoiser_cfg.diffusion.lambda_chol_bound = float(args.chol_bound_loss_weight)
+    denoiser_cfg.diffusion.chol_bound_margin = float(args.chol_bound_margin)
+    denoiser_cfg.diffusion.chol_bound_power = int(args.chol_bound_power)
+    denoiser_cfg.diffusion.lambda_expand_collision = float(args.expand_on_collision_weight)
+    denoiser_cfg.diffusion.expand_min_dist_cut = float(args.expand_on_collision_cut)
     denoiser_cfg.diffusion.noise_scale_zn = float(args.noise_scale_zn)
     denoiser_cfg.diffusion.cell_init = args.cell_init
     denoiser_cfg.diffusion.cell_init_scale = args.cell_init_scale
@@ -1511,6 +1656,25 @@ def main() -> None:
     param_groups = _build_param_groups(model, args.weight_decay)
     optimizer = optim.AdamW(param_groups, lr=args.lr, betas=betas)
     ema = EMA(model, args.ema_decay) if args.ema else None
+    loss_weight_scheduler = None
+    warmup_keys = _parse_loss_weight_keys(args.loss_weight_warmup_keys)
+    if args.loss_weight_warmup_steps > 0 and warmup_keys:
+        base_weights = {
+            "vacuum": float(args.vacuum_loss_weight),
+            "cond": float(args.cond_loss_weight),
+            "chol_bound": float(args.chol_bound_loss_weight),
+            "expand_collision": float(args.expand_on_collision_weight),
+            "volume": float(args.volume_loss_weight),
+            "c_len": float(args.c_len_loss_weight),
+        }
+        schedule_cfg = LossWeightScheduleConfig(
+            warmup_steps=int(args.loss_weight_warmup_steps),
+            start_factor=float(args.loss_weight_warmup_start),
+            end_factor=float(args.loss_weight_warmup_end),
+            keys=tuple(warmup_keys),
+            schedule=str(args.loss_weight_schedule),
+        )
+        loss_weight_scheduler = LossWeightScheduler(base_weights, schedule_cfg)
 
     run_stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir = args.save_dir / run_stamp
@@ -1534,6 +1698,13 @@ def main() -> None:
             "clip_grad": args.clip_grad,
             "ema": args.ema,
             "ema_decay": args.ema_decay,
+        },
+        "loss_weight_schedule": {
+            "warmup_steps": int(args.loss_weight_warmup_steps),
+            "keys": _parse_loss_weight_keys(args.loss_weight_warmup_keys),
+            "start_factor": float(args.loss_weight_warmup_start),
+            "end_factor": float(args.loss_weight_warmup_end),
+            "schedule": str(args.loss_weight_schedule),
         },
         "denoiser_config": {
             "chol_log_relax": float(denoiser_cfg.chol_log_relax),
@@ -1620,6 +1791,7 @@ def main() -> None:
             cond_fields=cond_fields,
             t_stats=t_stats,
             metrics_log_path=metrics_log_path,
+            loss_weight_scheduler=loss_weight_scheduler,
         )
         print(f"[epoch {epoch + 1}] mean loss={epoch_loss:.4f}")
 

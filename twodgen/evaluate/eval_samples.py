@@ -205,7 +205,15 @@ def _eval_samples(
     lattice = samples["lattice"]
     atom_mask = samples["atom_mask"]
     cond_counts_vector = samples.get("cond_counts_vector")
+    cond_source = samples.get("cond_counts_source")
+    cond_source_value = None
+    if cond_source is not None:
+        try:
+            cond_source_value = str(cond_source.item())
+        except Exception:
+            cond_source_value = str(cond_source)
     cond_metrics = None
+    cond_match_suspect = False
     if cond_counts_vector is not None:
         num_elements = int(cond_counts_vector.shape[1])
         gen_counts = _counts_from_samples(z, atom_mask, num_elements=num_elements)
@@ -232,6 +240,8 @@ def _eval_samples(
             "comp_l1": comp_l1,
             "comp_cos": comp_cos,
         }
+        if cond_source_value is None and exact_match.size and np.all(exact_match) and np.all(l1 == 0):
+            cond_match_suspect = True
 
     per_sample: List[Dict[str, Any]] = []
     fail_counts: Dict[str, int] = {}
@@ -438,6 +448,8 @@ def _eval_samples(
             "l1_count_error_norm": _summary_stats(cond_metrics["l1_norm"].tolist()),
             "comp_l1": _summary_stats(cond_metrics["comp_l1"].tolist()),
             "comp_cosine": _summary_stats(cond_metrics["comp_cos"].tolist()),
+            "source": cond_source_value,
+            "suspect_all_match": bool(cond_match_suspect),
         }
     tier1 = {
         "valid_2d_rate": float(np.mean(valid_2d_flags)) if valid_2d_flags else 0.0,

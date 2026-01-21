@@ -31,3 +31,11 @@
 - Captured batch indices for min_dist inf/low-atom anomalies in training logs.
 - Enabled quality filtering for conditioning pools in sampling when `--quality-jsonl` is provided.
 - Moved completed todo items: coord_frame metadata gating, chol_log clamp monitoring, scube/volume diagnostics, sampling lattice stats, NaN/typo eval fixes, and quality-filtered conditioning.
+- Fixed `_compute_dataset_min_dist` crash when the training dataset is wrapped by `IndexedDataset` (avoid stacking the integer `index` field during DataLoader collation).
+- Verified training curve logging: `outputs/checkpoints/<run>/train_metrics.jsonl` contains per-step metrics (loss/min_dist/collision/clamp, etc.).
+- Verified eval artifacts naming: `tier0_metrics.json`, `tier1_2d_metrics.json`, and `per_sample.jsonl` are produced by the current evaluation pipeline.
+- Aligned the `train_metrics/` directory itself by renaming the legacy `tier0_metric.jsonl`, `tier1_2d_metrics.jsonl`, and `per_sanmple.jsonl` files to their canonical counterparts so archival logs match the current filenames.
+- Added training-side `loss_chol_bound` to discourage lattice collapse near Cholesky bounds and logged its rate.
+- Added training-side expand-on-collision loss on predicted x0 to push min_dist above the cutoff.
+- Introduced loss-weight warmup scheduling for vacuum/cond/chol/expand constraints and logged effective weights.
+- Tagged sampling outputs with `cond_counts_source` and added cond-match sanity flags in evaluation reports.
