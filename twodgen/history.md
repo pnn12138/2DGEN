@@ -40,3 +40,5 @@
 - Introduced loss-weight warmup scheduling for vacuum/cond/chol/expand constraints and logged effective weights.
 - Tagged sampling outputs with `cond_counts_source` and added cond-match sanity flags in evaluation reports.
 - Fixed slab lattice collapse by introducing per-dimension `chol_log_min_vec/max_vec` bounds (instead of a single scalar) and applying them consistently in training/sampling clamps and losses.
+- Fixed `sample_tokens.py` export crash when `chol_log_min/max` are per-dimension tuples (now writes `chol_log_min_vec/max_vec` arrays to `samples.npz`).
+- Fixed sampling-side lattice projection volume scaling for `cell_rep=cholesky6` (convert physical `v_min/v_max` to scaled units before `clip_lattice`).

@@ -531,7 +531,16 @@ def run_sampling(args: argparse.Namespace) -> Path:
             if model_cfg.chol_log_max is None:
                 model_cfg.chol_log_max = float(np.log(max(2.5 * s90, 1e-6)))
     if vol_bounds is not None:
-        denoiser_cfg.v_min, denoiser_cfg.v_max = vol_bounds
+        v_min, v_max = vol_bounds
+        # NOTE: for cholesky6 the internal lattice is in *scaled* length units
+        # (physical / sqrt(g_scale)), so volumes scale by g_scale^(3/2).
+        if str(denoiser_cfg.diffusion.cell_rep) == "cholesky6":
+            g_scale = float(getattr(model_cfg, "g_scale", 1.0))
+            vol_scale = max(g_scale, 1e-12) ** 1.5
+            denoiser_cfg.v_min = float(v_min) / vol_scale
+            denoiser_cfg.v_max = float(v_max) / vol_scale
+        else:
+            denoiser_cfg.v_min, denoiser_cfg.v_max = float(v_min), float(v_max)
     if args.cell_init is not None:
         denoiser_cfg.diffusion.cell_init = args.cell_init
     if args.cell_init_scale is not None:
@@ -1037,20 +1046,32 @@ def run_sampling(args: argparse.Namespace) -> Path:
     }
     if chol_log_clamp_flags is not None:
         clamp_rate = float(np.mean(chol_log_clamp_flags)) if chol_log_clamp_flags.size else 0.0
+        chol_min_payload = float("nan")
+        chol_max_payload = float("nan")
+        chol_min_vec_payload = None
+        chol_max_vec_payload = None
+        if chol_log_min is not None:
+            if isinstance(chol_log_min, (tuple, list, np.ndarray)):
+                chol_min_vec_payload = np.asarray(chol_log_min, dtype=np.float32).reshape((3,))
+            else:
+                chol_min_payload = float(chol_log_min)
+        if chol_log_max is not None:
+            if isinstance(chol_log_max, (tuple, list, np.ndarray)):
+                chol_max_vec_payload = np.asarray(chol_log_max, dtype=np.float32).reshape((3,))
+            else:
+                chol_max_payload = float(chol_log_max)
         payload.update(
             {
                 "chol_log_clamp": chol_log_clamp_flags,
                 "chol_log_clamp_rate": np.array(clamp_rate, dtype=np.float32),
-                "chol_log_min": np.array(
-                    float(chol_log_min) if chol_log_min is not None else float("nan"),
-                    dtype=np.float32,
-                ),
-                "chol_log_max": np.array(
-                    float(chol_log_max) if chol_log_max is not None else float("nan"),
-                    dtype=np.float32,
-                ),
+                "chol_log_min": np.array(chol_min_payload, dtype=np.float32),
+                "chol_log_max": np.array(chol_max_payload, dtype=np.float32),
             }
         )
+        if chol_min_vec_payload is not None:
+            payload["chol_log_min_vec"] = chol_min_vec_payload
+        if chol_max_vec_payload is not None:
+            payload["chol_log_max_vec"] = chol_max_vec_payload
     if lattice_param_np is not None:
         payload["lattice_param"] = lattice_param_np
     if slab_t_np is not None:
