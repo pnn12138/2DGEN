@@ -1,8 +1,50 @@
 from __future__ import annotations
 
-from typing import Optional, Tuple
+from typing import Optional, Sequence, Tuple, Union
 
 import torch
+
+
+_DiagBound = Union[float, torch.Tensor, Sequence[float]]
+
+
+def _as_diag_bound(
+    value: Optional[_DiagBound],
+    *,
+    device: torch.device,
+    dtype: torch.dtype,
+) -> Optional[Union[float, torch.Tensor]]:
+    if value is None:
+        return None
+    if isinstance(value, (float, int)):
+        return float(value)
+    if isinstance(value, torch.Tensor):
+        if value.numel() == 1:
+            return float(value.item())
+        if value.shape == (3,):
+            return value.to(device=device, dtype=dtype)
+        raise ValueError(f"Expected log bound tensor shape (3,) or scalar, got {tuple(value.shape)}")
+    vals = list(value)
+    if len(vals) != 3:
+        raise ValueError(f"Expected log bound sequence length 3, got {len(vals)}")
+    return torch.tensor([float(v) for v in vals], device=device, dtype=dtype)
+
+
+def _clamp_diag(
+    diag: torch.Tensor,
+    *,
+    log_min: Optional[_DiagBound],
+    log_max: Optional[_DiagBound],
+) -> torch.Tensor:
+    if log_min is None and log_max is None:
+        return diag
+    min_bound = _as_diag_bound(log_min, device=diag.device, dtype=diag.dtype)
+    max_bound = _as_diag_bound(log_max, device=diag.device, dtype=diag.dtype)
+    if min_bound is not None and max_bound is not None:
+        return torch.clamp(diag, min=min_bound, max=max_bound)
+    if min_bound is not None:
+        return torch.clamp(diag, min=min_bound)
+    return torch.clamp(diag, max=max_bound)
 
 
 
@@ -62,8 +104,8 @@ def gram6_to_cholesky6(
     jitter: float = 1e-6,
     max_tries: int = 5,
     fallback_eig: bool = True,
-    log_min: Optional[float] = None,
-    log_max: Optional[float] = None,
+    log_min: Optional[_DiagBound] = None,
+    log_max: Optional[_DiagBound] = None,
 ) -> torch.Tensor:
     """
     Convert Gram 6D vectors to Cholesky-6D parameters.
@@ -108,8 +150,7 @@ def gram6_to_cholesky6(
             L = torch.linalg.cholesky(eye * jitter)
 
         diag = torch.log(torch.diag(L))
-        if log_min is not None or log_max is not None:
-            diag = torch.clamp(diag, min=log_min, max=log_max)
+        diag = _clamp_diag(diag, log_min=log_min, log_max=log_max)
         y = torch.stack([diag[0], diag[1], diag[2], L[1, 0], L[2, 0], L[2, 1]], dim=0)
         ys.append(y)
     return torch.stack(ys, dim=0)
@@ -117,8 +158,8 @@ def gram6_to_cholesky6(
 
 def cholesky6_to_gram6(
     y: torch.Tensor,
-    log_min: Optional[float] = None,
-    log_max: Optional[float] = None,
+    log_min: Optional[_DiagBound] = None,
+    log_max: Optional[_DiagBound] = None,
 ) -> torch.Tensor:
     """
     Decode Cholesky-6D parameters to Gram 6D vector.
@@ -126,8 +167,7 @@ def cholesky6_to_gram6(
     if y.ndim != 2 or y.shape[-1] != 6:
         raise ValueError(f"Expected y shape (B,6), got {tuple(y.shape)}")
     diag = y[:, :3]
-    if log_min is not None or log_max is not None:
-        diag = torch.clamp(diag, min=log_min, max=log_max)
+    diag = _clamp_diag(diag, log_min=log_min, log_max=log_max)
     r11, r22, r33 = torch.exp(diag[:, 0]), torch.exp(diag[:, 1]), torch.exp(diag[:, 2])
     r12, r13, r23 = y[:, 3], y[:, 4], y[:, 5]
 
@@ -146,8 +186,8 @@ def cholesky6_to_gram6(
 
 def cholesky6_to_lattice(
     y: torch.Tensor,
-    log_min: Optional[float] = None,
-    log_max: Optional[float] = None,
+    log_min: Optional[_DiagBound] = None,
+    log_max: Optional[_DiagBound] = None,
 ) -> torch.Tensor:
     """
     Decode Cholesky-6D parameters to lattice matrices (lower-triangular).
@@ -155,8 +195,7 @@ def cholesky6_to_lattice(
     if y.ndim != 2 or y.shape[-1] != 6:
         raise ValueError(f"Expected y shape (B,6), got {tuple(y.shape)}")
     diag = y[:, :3]
-    if log_min is not None or log_max is not None:
-        diag = torch.clamp(diag, min=log_min, max=log_max)
+    diag = _clamp_diag(diag, log_min=log_min, log_max=log_max)
     r11, r22, r33 = torch.exp(diag[:, 0]), torch.exp(diag[:, 1]), torch.exp(diag[:, 2])
     r12, r13, r23 = y[:, 3], y[:, 4], y[:, 5]
 

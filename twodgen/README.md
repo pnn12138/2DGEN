@@ -44,7 +44,7 @@ uv run python -m twodgen.scrip.train_tokens \
   --split-json data/C2DB/cache/c2db_tokens_split.json \
   --split train \
   --epochs 100 \
-  --batch-size 128 \
+  --batch-size 32 \
   --lr 1e-4 \
   --save-dir outputs/checkpoints
 ```
@@ -52,12 +52,13 @@ uv run python -m twodgen.scrip.train_tokens \
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
 - 训练默认启用 `--vacuum-loss-weight 0.1`（若要关闭需显式设为 0），与评估端的 `--vacuum-min 15` 对齐以强化 2D 真空约束。
 - 默认启用 `--auto-volume-bounds`，会按训练 split 的体积分布 p1/p99 自动设置 `volume_min/volume_max`，避免体积阈值漏设。
+- `cell_rep=cholesky6` 时会从训练 split 的 lattice 统计按维度的 `chol_log_min_vec/max_vec` 并写入 checkpoint；采样/训练的 clamp 与相关 loss 会优先使用按维 bound（旧 checkpoint 会回退到标量 `chol_log_min/max`）。
 - 若前置质量筛选已产出 `data/C2DB/clean/c2db_quality.jsonl`，可用 `--quality-jsonl`/`--quality-buckets`/`--quality-hard-pass-only` 只取 `good`/`risk`、`hard_pass` 行；clean 脚本详见 `twodgen/data/clean_c2db_2d.py`。
 
 4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260121_114645/atomdenoiser_last.pt \
+  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260122_015332/atomdenoiser_best.pt \
   --num-samples 200 \
   --steps 50 \
   --method heun \
@@ -66,7 +67,10 @@ uv run python -m twodgen.scrip.sample_tokens \
   --seed 0 \
   --cond-split-json data/C2DB/cache/c2db_tokens_split.json \
   --cond-split heldout
-* 如果训练/采样要启用 geometry/project-geometry，请先用最新的 `.npz` 重新预处理（含 canonical 字段）并重新训练，避免旧 `coord_frame=raw` metadata 使 geometry heads 被关闭。
+```
+说明：
+- 如果训练/采样要启用 geometry/project-geometry，请先用最新的 `.npz` 重新预处理（含 canonical 字段）并重新训练，避免旧 `coord_frame=raw` metadata 使 geometry heads 被关闭。
+- 如果要启用（或验证）按维度的 `chol_log_min_vec/max_vec` 防坍缩 clamp，需要使用包含该字段的新 checkpoint（用当前代码重新训练一次即可写入）。
 ```
 
 ## 评估（samples.npz）

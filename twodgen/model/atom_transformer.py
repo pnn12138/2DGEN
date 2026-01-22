@@ -59,6 +59,8 @@ class AtomTransformerConfig:
     cell_rep: str = "gram6"  # gram6 | cholesky6
     chol_log_min: Optional[float] = None
     chol_log_max: Optional[float] = None
+    chol_log_min_vec: Optional[Tuple[float, float, float]] = None
+    chol_log_max_vec: Optional[Tuple[float, float, float]] = None
     cond_dim: int = 0
     use_comp_encoder: bool = True
     comp_embed_dim: int = 64
@@ -508,7 +510,9 @@ class AtomTransformer(nn.Module):
             dist = None
         elif not use_cache:
             if self.cfg.cell_rep == "cholesky6":
-                lattice = cholesky6_to_lattice(g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
+                lattice = cholesky6_to_lattice(g, log_min=log_min, log_max=log_max)
                 lattice = lattice * self.cfg.g_scale ** 0.5
             else:
                 lattice = gram6_to_lattice(g * self.cfg.g_scale)
@@ -577,7 +581,9 @@ class AtomTransformer(nn.Module):
             wrap_id = self._cache.get("wrap_id")
         if dist_nbr is None:
             if self.cfg.cell_rep == "cholesky6":
-                lattice = cholesky6_to_lattice(g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
+                lattice = cholesky6_to_lattice(g, log_min=log_min, log_max=log_max)
                 lattice = lattice * self.cfg.g_scale ** 0.5
             else:
                 lattice = gram6_to_lattice(g * self.cfg.g_scale)

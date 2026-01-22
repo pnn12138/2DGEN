@@ -39,3 +39,4 @@
 - Added training-side expand-on-collision loss on predicted x0 to push min_dist above the cutoff.
 - Introduced loss-weight warmup scheduling for vacuum/cond/chol/expand constraints and logged effective weights.
 - Tagged sampling outputs with `cond_counts_source` and added cond-match sanity flags in evaluation reports.
+- Fixed slab lattice collapse by introducing per-dimension `chol_log_min_vec/max_vec` bounds (instead of a single scalar) and applying them consistently in training/sampling clamps and losses.

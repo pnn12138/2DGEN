@@ -455,6 +455,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
             model_cfg.chol_log_min = None
         if not hasattr(model_cfg, "chol_log_max"):
             model_cfg.chol_log_max = None
+        if not hasattr(model_cfg, "chol_log_min_vec"):
+            model_cfg.chol_log_min_vec = None
+        if not hasattr(model_cfg, "chol_log_max_vec"):
+            model_cfg.chol_log_max_vec = None
         if not hasattr(model_cfg, "cond_dim"):
             model_cfg.cond_dim = 0
         if not hasattr(model_cfg, "use_comp_encoder"):
@@ -504,6 +508,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
             denoiser_cfg.diffusion.chol_log_min = None
         if not hasattr(denoiser_cfg.diffusion, "chol_log_max"):
             denoiser_cfg.diffusion.chol_log_max = None
+        if not hasattr(denoiser_cfg.diffusion, "chol_log_min_vec"):
+            denoiser_cfg.diffusion.chol_log_min_vec = None
+        if not hasattr(denoiser_cfg.diffusion, "chol_log_max_vec"):
+            denoiser_cfg.diffusion.chol_log_max_vec = None
         if not hasattr(denoiser_cfg.diffusion, "cell_init"):
             denoiser_cfg.diffusion.cell_init = "gaussian"
         if not hasattr(denoiser_cfg.diffusion, "cell_init_scale"):
@@ -734,8 +742,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
     lattice_param_np = None
     slab_t_np = None
     chol_log_clamp_flags = None
-    chol_log_min = getattr(model_cfg, "chol_log_min", None)
-    chol_log_max = getattr(model_cfg, "chol_log_max", None)
+    chol_log_min = getattr(model_cfg, "chol_log_min_vec", None) or getattr(model_cfg, "chol_log_min", None)
+    chol_log_max = getattr(model_cfg, "chol_log_max_vec", None) or getattr(model_cfg, "chol_log_max", None)
     if (
         model_cfg.cell_rep == "cholesky6"
         and (chol_log_min is not None or chol_log_max is not None)
@@ -778,9 +786,17 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 diag_np = diag.detach().cpu().numpy()
                 hit = np.zeros((diag_np.shape[0],), dtype=bool)
                 if chol_log_min is not None:
-                    hit |= np.any(diag_np <= float(chol_log_min) + 1e-4, axis=1)
+                    if isinstance(chol_log_min, (tuple, list, np.ndarray)):
+                        bound = np.asarray(chol_log_min, dtype=float).reshape((1, 3))
+                        hit |= np.any(diag_np <= bound + 1e-4, axis=1)
+                    else:
+                        hit |= np.any(diag_np <= float(chol_log_min) + 1e-4, axis=1)
                 if chol_log_max is not None:
-                    hit |= np.any(diag_np >= float(chol_log_max) - 1e-4, axis=1)
+                    if isinstance(chol_log_max, (tuple, list, np.ndarray)):
+                        bound = np.asarray(chol_log_max, dtype=float).reshape((1, 3))
+                        hit |= np.any(diag_np >= bound - 1e-4, axis=1)
+                    else:
+                        hit |= np.any(diag_np >= float(chol_log_max) - 1e-4, axis=1)
                 chol_log_clamp_flags[idxs] = hit.astype(np.int8)
         z_np[idxs] = z.cpu().numpy()
         frac_np[idxs] = frac.cpu().numpy()

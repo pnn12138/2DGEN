@@ -1,6 +1,6 @@
 {
   "schema_version": "c2db_split_v1",
-  "created_at": "20260120_171422",
+  "created_at": "20260122_124628",
   "source_npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
   "seed": 0,
   "heldout_fraction": 0.1,

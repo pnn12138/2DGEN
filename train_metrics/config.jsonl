@@ -1,7 +1,7 @@
 {
-  "created_at": "20260121_205700",
+  "created_at": "20260122_015332",
   "run_metadata": {
-    "created_at_utc": "2026-01-21T12:57:00+00:00",
+    "created_at_utc": "2026-01-21T17:53:32+00:00",
     "argv": [
       "/home/pnn/2DGEN/twodgen/scrip/train_tokens.py",
       "--npz",
@@ -11,15 +11,13 @@
       "--split",
       "train",
       "--epochs",
-      "100",
+      "1000",
       "--batch-size",
-      "128",
+      "1024",
       "--lr",
       "1e-4",
       "--save-dir",
-      "outputs/checkpoints",
-      "--volume-max",
-      "1900"
+      "outputs/checkpoints"
     ],
     "python": "3.12.10",
     "platform": {
@@ -28,7 +26,7 @@
       "machine": "x86_64"
     },
     "git": {
-      "commit": "60b1028abbb52fbaf52a48a1e0de45e5634b7483",
+      "commit": "f51c4c1ab0b104e5340ea63cce0fab6a526efb9b",
       "dirty": true
     },
     "numpy": "2.3.4",
@@ -39,8 +37,8 @@
     "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
     "split_json": "data/C2DB/cache/c2db_tokens_split.json",
     "split": "train",
-    "epochs": 100,
-    "batch_size": 128,
+    "epochs": 1000,
+    "batch_size": 1024,
     "lr": 0.0001,
     "model_size": "base",
     "save_dir": "outputs/checkpoints",
@@ -67,8 +65,9 @@
     "c_len_loss_weight": 0.05,
     "c_len_min": 15.0,
     "volume_loss_weight": 0.1,
-    "volume_min": 1.0,
-    "volume_max": 1900.0,
+    "volume_min": 130.50086975097656,
+    "volume_max": 2633.107666015625,
+    "auto_volume_bounds": true,
     "anisotropy_loss_weight": 0.0,
     "anisotropy_min_std": 1.0,
     "loss_hinge": "relu",
@@ -226,8 +225,8 @@
     "lambda_expand_collision": 0.05,
     "expand_min_dist_cut": 1.5,
     "lambda_volume": 0.1,
-    "volume_min": 1.0,
-    "volume_max": 1900.0,
+    "volume_min": 130.50086975097656,
+    "volume_max": 2633.107666015625,
     "lambda_c_len": 0.05,
     "c_len_min": 15.0,
     "lambda_anisotropy": 0.0,
@@ -275,6 +274,11 @@
     "warmup_steps": 2000,
     "start_factor": 0.0,
     "end_factor": 1.0
+  },
+  "volume_stats": {
+    "p1": 130.50086975097656,
+    "p50": 505.11572265625,
+    "p99": 2633.107666015625
   },
   "denoiser_config": {
     "chol_log_relax": 0.15

@@ -97,16 +97,24 @@ class AtomDenoiser(nn.Module):
             metrics["loss_min_dist"] = penalty.detach()
         return loss, pred_v_f, pred_v_g, logits_z, metrics
 
-    def _relaxed_chol_bounds(self) -> tuple[Optional[float], Optional[float]]:
-        min_val = self.cfg.model.chol_log_min
-        max_val = self.cfg.model.chol_log_max
+    def _relaxed_chol_bounds(
+        self,
+    ) -> tuple[Optional[float | tuple[float, float, float]], Optional[float | tuple[float, float, float]]]:
+        min_val = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+        max_val = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
         relax = float(self.cfg.chol_log_relax)
         if relax <= 0.0:
             return min_val, max_val
         if min_val is not None:
-            min_val = float(min_val) - relax
+            if isinstance(min_val, (tuple, list)):
+                min_val = tuple(float(v) - relax for v in min_val)  # type: ignore[assignment]
+            else:
+                min_val = float(min_val) - relax
         if max_val is not None:
-            max_val = float(max_val) + relax
+            if isinstance(max_val, (tuple, list)):
+                max_val = tuple(float(v) + relax for v in max_val)  # type: ignore[assignment]
+            else:
+                max_val = float(max_val) + relax
         return min_val, max_val
 
     def _predict_velocity(
@@ -286,7 +294,17 @@ class AtomDenoiser(nn.Module):
             chol_min, chol_max = self._relaxed_chol_bounds()
             if chol_min is not None or chol_max is not None:
                 cell = cell.clone()
-                cell[:, :3] = torch.clamp(cell[:, :3], min=chol_min, max=chol_max)
+                min_bound = (
+                    torch.tensor(chol_min, device=cell.device, dtype=cell.dtype)
+                    if isinstance(chol_min, (tuple, list))
+                    else chol_min
+                )
+                max_bound = (
+                    torch.tensor(chol_max, device=cell.device, dtype=cell.dtype)
+                    if isinstance(chol_max, (tuple, list))
+                    else chol_max
+                )
+                cell[:, :3] = torch.clamp(cell[:, :3], min=min_bound, max=max_bound)
             lattice = cholesky6_to_lattice(
                 cell, log_min=chol_min, log_max=chol_max
             )
@@ -311,8 +329,10 @@ class AtomDenoiser(nn.Module):
         if self.cfg.min_dist_cut <= 0.0:
             return frac
         if self.cfg.diffusion.cell_rep == "cholesky6":
+            log_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+            log_max = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
             gram6 = cholesky6_to_gram6(
-                cell, log_min=self.cfg.model.chol_log_min, log_max=self.cfg.model.chol_log_max
+                cell, log_min=log_min, log_max=log_max
             )
         else:
             gram6 = cell
@@ -504,8 +524,12 @@ class AtomDenoiser(nn.Module):
         if self.cfg.diffusion.cell_rep == "cholesky6" and self.cfg.diffusion.cell_init == "iso":
             scale = 1.0 if self.cfg.diffusion.cell_init_scale is None else self.cfg.diffusion.cell_init_scale
             log_s = torch.log(torch.tensor(scale, device=device))
-            if self.cfg.model.chol_log_min is not None or self.cfg.model.chol_log_max is not None:
-                log_s = torch.clamp(log_s, min=self.cfg.model.chol_log_min, max=self.cfg.model.chol_log_max)
+            chol_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+            chol_max = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
+            if chol_min is not None or chol_max is not None:
+                min_scalar = min(chol_min) if isinstance(chol_min, (tuple, list)) else chol_min
+                max_scalar = max(chol_max) if isinstance(chol_max, (tuple, list)) else chol_max
+                log_s = torch.clamp(log_s, min=min_scalar, max=max_scalar)
             base = torch.zeros(batch_size, 6, device=device)
             base[:, :3] = log_s
             noise_scale = 0.2 if self.cfg.diffusion.cell_init_noise is None else self.cfg.diffusion.cell_init_noise

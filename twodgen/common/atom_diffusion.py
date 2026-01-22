@@ -58,6 +58,8 @@ class AtomDiffusionConfig:
     cell_rep: str = "gram6"  # gram6 | cholesky6
     chol_log_min: Optional[float] = None
     chol_log_max: Optional[float] = None
+    chol_log_min_vec: Optional[Tuple[float, float, float]] = None
+    chol_log_max_vec: Optional[Tuple[float, float, float]] = None
     cell_init: str = "gaussian"  # gaussian | iso
     cell_init_scale: Optional[float] = None
     cell_init_noise: Optional[float] = None
@@ -176,8 +178,10 @@ class AtomVelocityLoss(nn.Module):
             z_norm_t = z_norm_t.squeeze(-1)
             v_zn = v_zn.squeeze(-1)
         if self.cfg.cell_rep == "cholesky6":
+            log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+            log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
             cell = gram6_to_cholesky6(
-                gram6, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                gram6, log_min=log_min, log_max=log_max
             )
         else:
             cell = gram6
@@ -385,7 +389,9 @@ class AtomVelocityLoss(nn.Module):
         if self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
-                gram6_pred = cholesky6_to_gram6(pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max)
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
+                gram6_pred = cholesky6_to_gram6(pred_x0_g, log_min=log_min, log_max=log_max)
             else:
                 gram6_pred = pred_x0_g
             lattice = gram6_to_lattice(gram6_pred * float(g_scale))
@@ -442,8 +448,10 @@ class AtomVelocityLoss(nn.Module):
         ):
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
                 gram6_pred_vol = cholesky6_to_gram6(
-                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                    pred_x0_g, log_min=log_min, log_max=log_max
                 )
             else:
                 gram6_pred_vol = pred_x0_g
@@ -482,8 +490,10 @@ class AtomVelocityLoss(nn.Module):
         if self.cfg.lambda_angle > 0.0 or self.cfg.lambda_cond > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
                 gram6_pred = cholesky6_to_gram6(
-                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                    pred_x0_g, log_min=log_min, log_max=log_max
                 )
             else:
                 gram6_pred = pred_x0_g
@@ -536,8 +546,8 @@ class AtomVelocityLoss(nn.Module):
                     loss_cond = (cond_violation ** 2).mean()
 
         if self.cfg.lambda_chol_bound > 0.0:
-            chol_min = self.cfg.chol_log_min
-            chol_max = self.cfg.chol_log_max
+            chol_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+            chol_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
             if chol_min is not None or chol_max is not None:
                 if self.cfg.cell_rep == "cholesky6":
                     chol_params = pred_x0_g
@@ -548,9 +558,17 @@ class AtomVelocityLoss(nn.Module):
                 lower = torch.zeros_like(diag)
                 upper = torch.zeros_like(diag)
                 if chol_min is not None:
-                    lower = (float(chol_min) + margin - diag).clamp_min(0.0)
+                    if isinstance(chol_min, (tuple, list)):
+                        chol_min_t = torch.tensor(chol_min, device=diag.device, dtype=diag.dtype)
+                        lower = (chol_min_t + margin - diag).clamp_min(0.0)
+                    else:
+                        lower = (float(chol_min) + margin - diag).clamp_min(0.0)
                 if chol_max is not None:
-                    upper = (diag - (float(chol_max) - margin)).clamp_min(0.0)
+                    if isinstance(chol_max, (tuple, list)):
+                        chol_max_t = torch.tensor(chol_max, device=diag.device, dtype=diag.dtype)
+                        upper = (diag - (chol_max_t - margin)).clamp_min(0.0)
+                    else:
+                        upper = (diag - (float(chol_max) - margin)).clamp_min(0.0)
                 violation = lower + upper
                 denom = max(margin, 1e-6)
                 if int(self.cfg.chol_bound_power) <= 1:
@@ -562,8 +580,10 @@ class AtomVelocityLoss(nn.Module):
         if self.cfg.lambda_expand_collision > 0.0 and self.cfg.expand_min_dist_cut > 0.0:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
                 gram6_pred = cholesky6_to_gram6(
-                    pred_x0_g, log_min=self.cfg.chol_log_min, log_max=self.cfg.chol_log_max
+                    pred_x0_g, log_min=log_min, log_max=log_max
                 )
             else:
                 gram6_pred = pred_x0_g

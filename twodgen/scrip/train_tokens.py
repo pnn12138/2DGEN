@@ -910,6 +910,60 @@ def _gram6_to_scube(gram6: torch.Tensor, g_scale: float) -> torch.Tensor:
     return det_g.pow(1.0 / 6.0)
 
 
+def _estimate_chol_diag_stats_from_lattice(
+    lattice: torch.Tensor,
+    g_scale: float,
+) -> tuple[tuple[float, float, float], tuple[float, float, float], tuple[float, float, float], float] | None:
+    """
+    Estimate per-dimension Cholesky-diagonal log statistics in the *internal* (scaled) length unit.
+
+    For cholesky6, the model operates on the Cholesky parameters of G_scaled = G_phys / g_scale, i.e.
+    lattice_scaled = lattice_phys / sqrt(g_scale). The returned diag logs are for that scaled lattice.
+    """
+    if lattice.ndim != 3 or lattice.shape[-2:] != (3, 3):
+        raise ValueError(f"Expected lattice shape (B,3,3), got {tuple(lattice.shape)}")
+    if lattice.numel() == 0:
+        return None
+    lattice = lattice.float()
+    scale = math.sqrt(float(g_scale)) if float(g_scale) > 0 else 1.0
+    lattice_scaled = lattice / max(scale, 1e-12)
+    gram = lattice_scaled @ lattice_scaled.transpose(-1, -2)
+    gram = 0.5 * (gram + gram.transpose(-1, -2))
+
+    eye = torch.eye(3, device=gram.device, dtype=gram.dtype).unsqueeze(0)
+    jitter = 1e-6
+    gram_work = gram
+    L, info = torch.linalg.cholesky_ex(gram_work + jitter * eye)
+    tries = 0
+    while info.any() and tries < 4:
+        jitter *= 10.0
+        L, info = torch.linalg.cholesky_ex(gram_work + jitter * eye)
+        tries += 1
+    if info.any():
+        bad = info > 0
+        vals, vecs = torch.linalg.eigh(gram_work[bad])
+        vals = vals.clamp_min(1e-6)
+        gram_fixed = vecs @ torch.diag_embed(vals) @ vecs.transpose(-1, -2)
+        L_bad, info_bad = torch.linalg.cholesky_ex(gram_fixed + 1e-6 * eye)
+        if info_bad.any():
+            return None
+        L[bad] = L_bad
+
+    diag = torch.log(torch.diagonal(L, dim1=-2, dim2=-1))  # (B,3)
+    diag = diag[torch.isfinite(diag).all(dim=-1)]
+    if diag.numel() == 0:
+        return None
+    q = torch.quantile(diag, torch.tensor([0.1, 0.5, 0.9], device=diag.device, dtype=diag.dtype), dim=0)
+    q10, q50, q90 = q[0], q[1], q[2]
+    log_std = float(torch.std(diag.reshape(-1), unbiased=False).clamp_min(1e-6).item())
+    return (
+        (float(q10[0]), float(q10[1]), float(q10[2])),
+        (float(q50[0]), float(q50[1]), float(q50[2])),
+        (float(q90[0]), float(q90[1]), float(q90[2])),
+        log_std,
+    )
+
+
 def _estimate_scube_stats(
     dataset: C2DBAtomDataset | C2DBTokenNPZDataset, g_scale: float, indices: list[int] | None = None
 ) -> tuple[float, float, float, float]:
@@ -1215,17 +1269,32 @@ def train_one_epoch(
                         bad = np.where(atom_counts < 2)[0].tolist()
                         min_dist_low_atoms_indices = [idx_np[i] for i in bad[:10]]
                 chol_log_clamp_rate = None
-                if model.cfg.model.cell_rep == "cholesky6" and (
-                    model.cfg.model.chol_log_min is not None
-                    or model.cfg.model.chol_log_max is not None
-                ):
+                chol_min = (
+                    model.cfg.model.chol_log_min_vec
+                    if model.cfg.model.chol_log_min_vec is not None
+                    else model.cfg.model.chol_log_min
+                )
+                chol_max = (
+                    model.cfg.model.chol_log_max_vec
+                    if model.cfg.model.chol_log_max_vec is not None
+                    else model.cfg.model.chol_log_max
+                )
+                if model.cfg.model.cell_rep == "cholesky6" and (chol_min is not None or chol_max is not None):
                     diag = gram6_to_cholesky6(gram6, log_min=None, log_max=None)[:, :3]
                     diag_np = diag.detach().cpu().numpy()
                     hit = np.zeros((diag_np.shape[0],), dtype=bool)
-                    if model.cfg.model.chol_log_min is not None:
-                        hit |= diag_np.min(axis=1) <= float(model.cfg.model.chol_log_min) + 1e-4
-                    if model.cfg.model.chol_log_max is not None:
-                        hit |= diag_np.max(axis=1) >= float(model.cfg.model.chol_log_max) - 1e-4
+                    if chol_min is not None:
+                        if isinstance(chol_min, (tuple, list)):
+                            bound = np.asarray(chol_min, dtype=float).reshape((1, 3))
+                            hit |= (diag_np <= bound + 1e-4).any(axis=1)
+                        else:
+                            hit |= diag_np.min(axis=1) <= float(chol_min) + 1e-4
+                    if chol_max is not None:
+                        if isinstance(chol_max, (tuple, list)):
+                            bound = np.asarray(chol_max, dtype=float).reshape((1, 3))
+                            hit |= (diag_np >= bound - 1e-4).any(axis=1)
+                        else:
+                            hit |= diag_np.max(axis=1) >= float(chol_max) - 1e-4
                     chol_log_clamp_rate = float(np.mean(hit)) if hit.size else 0.0
             msg = (
                 f"[step {global_step}] loss={loss.item():.4f} "
@@ -1678,6 +1747,38 @@ def main() -> None:
             args.chol_log_min = float(np.log(max(args.cell_log_min_factor * s10, 1e-6)))
         if args.chol_log_max is None:
             args.chol_log_max = float(np.log(max(args.cell_log_max_factor * s90, 1e-6)))
+
+        # Root-cause fix for slab collapse:
+        # Use per-dimension Cholesky-diagonal bounds instead of a single scalar bound shared across axes.
+        chol_diag_stats = None
+        dataset_raw = _unwrap_indexed_dataset(dataset)
+        if isinstance(dataset_raw, C2DBTokenNPZDataset):
+            lattice = None
+            coord_frame_actual = getattr(dataset_raw, "coord_frame_actual", args.coord_frame)
+            if coord_frame_actual == "canon" and getattr(dataset_raw, "lattice_canon", None) is not None:
+                lattice = dataset_raw.lattice_canon.float()
+            elif getattr(dataset_raw, "lattice", None) is not None:
+                lattice = dataset_raw.lattice.float()
+            if lattice is not None and base_indices is not None:
+                lattice = lattice.index_select(0, torch.as_tensor(base_indices, dtype=torch.long))
+            if lattice is not None:
+                chol_diag_stats = _estimate_chol_diag_stats_from_lattice(lattice, g_scale)
+        if chol_diag_stats is not None:
+            diag10, diag50, diag90, diag_log_std = chol_diag_stats
+            shift_min = math.log(max(float(args.cell_log_min_factor), 1e-12))
+            shift_max = math.log(max(float(args.cell_log_max_factor), 1e-12))
+            chol_log_min_vec = tuple(float(v) + shift_min for v in diag10)
+            chol_log_max_vec = tuple(float(v) + shift_max for v in diag90)
+            args.chol_log_min_vec = chol_log_min_vec
+            args.chol_log_max_vec = chol_log_max_vec
+            print(
+                "[info] chol_diag bounds "
+                f"min_vec={chol_log_min_vec} max_vec={chol_log_max_vec} "
+                f"(diag_p10={diag10}, diag_p50={diag50}, diag_p90={diag90}, diag_log_std={diag_log_std:.4f})"
+            )
+        else:
+            args.chol_log_min_vec = None
+            args.chol_log_max_vec = None
         side_min = None
         side_max = None
         if args.chol_log_min is not None:
@@ -1748,6 +1849,8 @@ def main() -> None:
         cell_rep=args.cell_rep,
         chol_log_min=args.chol_log_min,
         chol_log_max=args.chol_log_max,
+        chol_log_min_vec=getattr(args, "chol_log_min_vec", None),
+        chol_log_max_vec=getattr(args, "chol_log_max_vec", None),
         cond_dim=cond_dim,
         use_comp_encoder=args.use_comp_encoder,
         comp_embed_dim=args.comp_embed_dim,
@@ -1765,6 +1868,8 @@ def main() -> None:
     denoiser_cfg.diffusion.cell_rep = args.cell_rep
     denoiser_cfg.diffusion.chol_log_min = args.chol_log_min
     denoiser_cfg.diffusion.chol_log_max = args.chol_log_max
+    denoiser_cfg.diffusion.chol_log_min_vec = getattr(args, "chol_log_min_vec", None)
+    denoiser_cfg.diffusion.chol_log_max_vec = getattr(args, "chol_log_max_vec", None)
     denoiser_cfg.diffusion.lambda_comp = float(args.comp_loss_weight)
     denoiser_cfg.diffusion.comp_loss_mode = str(args.comp_loss_mode)
     denoiser_cfg.diffusion.lambda_vacuum = float(args.vacuum_loss_weight)
