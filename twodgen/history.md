@@ -42,3 +42,34 @@
 - Fixed slab lattice collapse by introducing per-dimension `chol_log_min_vec/max_vec` bounds (instead of a single scalar) and applying them consistently in training/sampling clamps and losses.
 - Fixed `sample_tokens.py` export crash when `chol_log_min/max` are per-dimension tuples (now writes `chol_log_min_vec/max_vec` arrays to `samples.npz`).
 - Fixed sampling-side lattice projection volume scaling for `cell_rep=cholesky6` (convert physical `v_min/v_max` to scaled units before `clip_lattice`).
+- Fixed `cell_rep=cholesky6` lattice projection scale mismatch: apply `clip_lattice` in physical units inside `AtomDenoiser._project_step` and keep `sample_tokens.py` `v_min/v_max` in physical units.
+- Fixed Heun sampler consistency: pass `counts_vector` into the second velocity evaluation and re-apply `_project_step` once after the sampling loop so lattice clipping is enforced for both Euler/Heun.
+- Renamed lattice condition-number penalty metric from `loss_cond` to `loss_cond_number` to avoid confusion with conditioning vector `cond`.
+- Fixed NameError in train_tokens quality filtering and atom count helpers by correctly unwrapping IndexedDataset and referencing the dataset parameter (prevents crashes during quality filtering and bucketed batching).
+- Defaulted sample_tokens checkpoint loading to safe weights_only=True; added --unsafe-load gate for legacy checkpoints.
+- Added warning when C2DBTokenNPZDataset falls back from canon to raw due to missing canonical fields.
+- Unified numpy-side geometry helpers (min_dist/thickness/vacuum axis) into twodgen/common/geometry_np.py and reused them in clean_c2db_2d/prepare_c2db_tokens/eval_samples/metrics_core.
+- Aligned metrics_core.check_valid_2d to default min_atoms=3 to match eval_samples Tier-0 rule.
+- Updated sample_tokens to use geometry_np helpers after eval_samples refactor; smoke sampling with checkpoint 20260122_134725 now completes.
+- Verified fixes: train_tokens quality-filter/atom-count helpers no longer throw NameError after IndexedDataset unwrap.
+- Verified fixes: metrics_core default min_atoms=3 aligned with eval_samples; geometry helpers unified via common/geometry_np across clean/prep/eval pipelines.
+- Verified fixes: sample_tokens safe load gate (weights_only=True by default, --unsafe-load required for legacy ckpt) and C2DBTokenNPZDataset canon-fallback warning.
+- Added energy_mlip/formation energy stats, success_rate, and success_manifest export to `eval_samples.py` (with reference energies + top-k manifest).
+- Switched training min_dist loss to multi-pair accumulation (upper-tri MIC distances) and updated docs to reflect the stronger collision penalty.
+- Added CFG sampling (`--cfg-scale`) and ensured sampling can disable condition dropout; documented condition dropout + CFG in process notes.
+- Aligned vacuum axis selection across training/sampling/eval via shared helpers; z-clamp and vacuum loss now use the same axis rule.
+- Added training-side cross-vacuum proxy loss with cond/atom masking and logged `loss_cross_vacuum`/`cross_vacuum_rate`.
+- Added optional TensorBoard/W&B dashboards for min_dist/vacuum/chol_diag distributions, gradient norms, and early-step alerts.
+- Added spacegroup metadata to token preprocessing and enabled spacegroup one-hot conditioning in train/sample pipelines.
+- Added MLIP force guidance during sampling (optional CHGNet force hook in late steps).
+- Added optional EGNN-style tail adapter and symmetry mismatch penalty (spglib-based) in AtomDenoiser.
+- Added eval cache + IO helpers, and extended eval_samples with spacegroup match/violation plus success failure reasons.
+- Implemented self-train loop script to sample, eval, and append successful samples into a new dataset NPZ.
+- 2026-01-30: 补充 Phase2/3 验证测试（LossWeightScheduler 调度、evaluate/io 旧命名兼容、symmetry loss 回退与 EGNN tail adapter 掩码）。
+- 2026-01-30: 追加 Phase2/3 验证测试（eval cache 写入与 cross-vacuum 检测用例）。
+- 2026-01-30: 追加 Phase2/3 训练侧约束测试（AtomVelocityLoss vacuum/cross-vacuum loss）。
+- 2026-01-31: 训练 min_dist penalty 改为基于 `pred_x0_f/pred_x0_g` 计算并接入 AtomVelocityLoss，确保碰撞惩罚可回传梯度。
+- 2026-01-31: vacuum loss 由 `pred_x0_f` 驱动最大真空间隙计算，真空约束可直接作用到原子坐标预测。
+- 2026-01-31: symmetry loss 保留为指标但不再叠加到训练 loss，避免不可导常量项误导训练日志。
+- 2026-01-31: eval cache 增加 `CACHE_VERSION/bond_cut/pbc_mask/samples mtime+size` 校验并对齐 cross-vacuum 的 pbc_mask 逻辑，缓存参数变更自动重建。
+- 2026-01-31: 修复 `C2DBTokenNPZDataset` 在缺失 canonical 字段回退时的 `warnings` 导入缺失，避免 NameError 崩溃。

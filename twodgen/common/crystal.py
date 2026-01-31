@@ -243,31 +243,6 @@ def reduce_lattice_simple(lattice: torch.Tensor) -> torch.Tensor:
     return sorted_lattice
 
 
-def clip_lattice(
-    lattice: torch.Tensor,
-    v_min: float,
-    v_max: float,
-    cond_max: float,
-) -> torch.Tensor:
-    """
-    Clip lattice volume and condition number by isotropic scaling.
-    """
-    volume = torch.abs(torch.linalg.det(lattice))
-    v_target = volume.clone()
-    v_target = torch.clamp(v_target, min=v_min, max=v_max)
-    scale = (v_target / volume.clamp_min(1e-8)).pow(1.0 / 3.0)
-    lattice = lattice * scale.unsqueeze(-1).unsqueeze(-1)
-
-    gram = lattice.matmul(lattice.transpose(-1, -2))
-    eigvals = torch.linalg.eigvalsh(gram)
-    cond = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
-    mask = cond > cond_max
-    if mask.any():
-        scale_down = (cond_max / cond[mask]).pow(0.5)
-        lattice[mask] = lattice[mask] * scale_down.unsqueeze(-1).unsqueeze(-1)
-    return lattice
-
-
 def frac_mic_dist(
     frac: torch.Tensor,
     lattice: torch.Tensor,
@@ -433,7 +408,6 @@ __all__ = [
     "lattice_to_gram6",
     "reduce_lattice_simple",
     "niggli_reduce_lattice",
-    "clip_lattice",
     "frac_mic_dist",
     "frac_mic_dist_with_shifts",
     "build_knn",

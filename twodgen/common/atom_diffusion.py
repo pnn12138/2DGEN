@@ -8,7 +8,13 @@ from torch import nn
 from torch.nn import functional as F
 
 from twodgen.common.crystal import gram6_to_cholesky6
-from twodgen.common.crystal import cholesky6_to_gram6, gram6_to_lattice, frac_mic_dist
+from twodgen.common.crystal import (
+    cholesky6_to_gram6,
+    gram6_to_lattice,
+    frac_mic_dist,
+    frac_mic_dist_with_shifts,
+)
+from twodgen.common.geometry_torch import choose_vacuum_axis_torch
 
 @dataclass
 class AtomDiffusionConfig:
@@ -34,6 +40,10 @@ class AtomDiffusionConfig:
     lambda_vacuum: float = 0.0
     vacuum_min: float = 15.0
     vacuum_loss_power: int = 2
+    vacuum_loss_mode: str = "c_axis"  # vacuum_gap | c_axis
+    lambda_cross_vacuum: float = 0.0
+    cross_vacuum_bond_cut: float = 3.0
+    cross_vacuum_power: int = 2
     lambda_angle: float = 0.1
     angle_min: float = 30.0
     angle_max: float = 150.0
@@ -60,9 +70,10 @@ class AtomDiffusionConfig:
     chol_log_max: Optional[float] = None
     chol_log_min_vec: Optional[Tuple[float, float, float]] = None
     chol_log_max_vec: Optional[Tuple[float, float, float]] = None
-    cell_init: str = "gaussian"  # gaussian | iso
+    cell_init: str = "gaussian"  # gaussian | iso | cellnet
     cell_init_scale: Optional[float] = None
     cell_init_noise: Optional[float] = None
+    cell_net_hidden_dim: int = 128
     cond_drop_prob: float = 0.0
 
 
@@ -96,6 +107,7 @@ class AtomVelocityLoss(nn.Module):
             self.s_t = nn.Parameter(torch.zeros(()))
             self.s_comp = nn.Parameter(torch.zeros(()))
             self.s_vacuum = nn.Parameter(torch.zeros(()))
+            self.s_cross_vacuum = nn.Parameter(torch.zeros(()))
             self.s_angle = nn.Parameter(torch.zeros(()))
             self.s_cond = nn.Parameter(torch.zeros(()))
 
@@ -135,6 +147,8 @@ class AtomVelocityLoss(nn.Module):
         nbr_idx: Optional[torch.Tensor] = None,
         nbr_mask: Optional[torch.Tensor] = None,
         dist_nbr: Optional[torch.Tensor] = None,
+        min_dist_train_weight: float = 0.0,
+        min_dist_train_cut: float = 1.5,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, dict[str, torch.Tensor]]:
         device = frac.device
         bsz = frac.shape[0]
@@ -239,6 +253,9 @@ class AtomVelocityLoss(nn.Module):
 
         cond_in = cond
         counts_in = counts_vector
+        cond_mask = None
+        if cond is not None or counts_vector is not None:
+            cond_mask = torch.ones((bsz,), device=device, dtype=frac.dtype)
         if (cond is not None or counts_vector is not None) and self.cfg.cond_drop_prob > 0.0:
             drop = torch.rand(bsz, device=device) < self.cfg.cond_drop_prob
             if drop.any():
@@ -248,6 +265,8 @@ class AtomVelocityLoss(nn.Module):
                 if counts_vector is not None:
                     counts_in = counts_vector.clone()
                     counts_in[drop] = 0.0
+                if cond_mask is not None:
+                    cond_mask = cond_mask * (~drop).float()
         geom_preds = None
         if uv_angle is not None or z_norm is not None or lattice_param is not None or slab_t is not None:
             pred_x0_f, pred_x0_g, logits_z, geom_preds = model(
@@ -383,10 +402,22 @@ class AtomVelocityLoss(nn.Module):
                     loss_comp = (expected - remaining).abs().sum(dim=-1).div(denom).mean()
 
         loss_vacuum = torch.tensor(0.0, device=device)
+        loss_cross_vacuum = torch.tensor(0.0, device=device)
+        cross_vacuum_rate = torch.tensor(float("nan"), device=device)
         vacuum_gap_mean = torch.tensor(float("nan"), device=device)
         c_len_mean = torch.tensor(float("nan"), device=device)
         thickness_gap_mean = torch.tensor(float("nan"), device=device)
-        if self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0:
+        vacuum_gap = torch.full((bsz,), float("nan"), device=device, dtype=frac.dtype)
+        if (
+            (self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0)
+            or self.cfg.lambda_cross_vacuum > 0.0
+        ):
+            def _hinge(delta: torch.Tensor) -> torch.Tensor:
+                if str(self.cfg.loss_hinge).lower() == "softplus":
+                    beta = float(self.cfg.loss_softplus_beta)
+                    return F.softplus(delta, beta=beta)
+                return delta.clamp_min(0.0)
+
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
                 log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
@@ -395,41 +426,82 @@ class AtomVelocityLoss(nn.Module):
             else:
                 gram6_pred = pred_x0_g
             lattice = gram6_to_lattice(gram6_pred * float(g_scale))
-            lengths = torch.linalg.norm(lattice, dim=-1)
-            c_idx = torch.argmax(lengths, dim=-1)
-            c_len = lengths.gather(1, c_idx.unsqueeze(1)).squeeze(1)
-            frac_wrap = frac - torch.floor(frac)
-            idx = c_idx.view(-1, 1, 1).expand(-1, frac_wrap.shape[1], 1)
-            frac_c = torch.take_along_dim(frac_wrap, idx, dim=2).squeeze(2)
-            vacuums = torch.empty((bsz,), device=device, dtype=frac.dtype)
-            for b in range(bsz):
-                vals = frac_c[b][atom_mask[b] > 0.5]
-                if vals.numel() == 0 or not torch.isfinite(c_len[b]):
-                    vacuums[b] = torch.tensor(float("nan"), device=device, dtype=frac.dtype)
-                    continue
-                vals, _ = torch.sort(vals)
-                if vals.numel() == 1:
-                    max_gap = torch.tensor(1.0, device=device, dtype=frac.dtype)
+            c_idx, c_len, _ = choose_vacuum_axis_torch(lattice)
+
+            if self.cfg.lambda_vacuum > 0.0 and self.cfg.vacuum_min > 0.0:
+                frac_wrap = pred_x0_f - torch.floor(pred_x0_f)
+                idx = c_idx.view(-1, 1, 1).expand(-1, frac_wrap.shape[1], 1)
+                frac_c = torch.take_along_dim(frac_wrap, idx, dim=2).squeeze(2)
+                vacuums = torch.empty((bsz,), device=device, dtype=frac.dtype)
+                for b in range(bsz):
+                    vals = frac_c[b][atom_mask[b] > 0.5]
+                    if vals.numel() == 0 or not torch.isfinite(c_len[b]):
+                        vacuums[b] = torch.tensor(float("nan"), device=device, dtype=frac.dtype)
+                        continue
+                    vals, _ = torch.sort(vals)
+                    if vals.numel() == 1:
+                        max_gap = torch.tensor(1.0, device=device, dtype=frac.dtype)
+                    else:
+                        gaps = vals[1:] - vals[:-1]
+                        wrap_gap = 1.0 - (vals[-1] - vals[0])
+                        max_gap = torch.max(torch.max(gaps), wrap_gap)
+                    vacuums[b] = max_gap * c_len[b]
+                vac_min = float(self.cfg.vacuum_min)
+                vacuum_gap = (vac_min - vacuums).clamp_min(0.0)
+                vacuum_gap_mean = torch.nanmean(vacuum_gap)
+                c_len_mean = torch.nanmean(c_len)
+                if slab_t is not None:
+                    slab_t_vec = slab_t if slab_t.ndim == 1 else slab_t.squeeze(-1)
+                    thickness_gap_mean = torch.nanmean((c_len - slab_t_vec).clamp_min(0.0))
+                power = int(self.cfg.vacuum_loss_power)
+                vac_mode = str(self.cfg.vacuum_loss_mode).lower()
+                if vac_mode == "c_axis":
+                    delta_c = _hinge(vac_min - c_len) / max(vac_min, 1e-8)
+                    if power <= 1:
+                        loss_vacuum = torch.nanmean(delta_c)
+                    else:
+                        loss_vacuum = torch.nanmean(delta_c**power)
                 else:
-                    gaps = vals[1:] - vals[:-1]
-                    wrap_gap = 1.0 - (vals[-1] - vals[0])
-                    max_gap = torch.max(torch.max(gaps), wrap_gap)
-                vacuums[b] = max_gap * c_len[b]
-            vac_min = float(self.cfg.vacuum_min)
-            delta = (vac_min - vacuums).clamp_min(0.0)
-            vacuum_gap_mean = torch.nanmean(delta)
-            c_len_mean = torch.nanmean(c_len)
-            if slab_t is not None:
-                slab_t_vec = slab_t if slab_t.ndim == 1 else slab_t.squeeze(-1)
-                thickness_gap_mean = torch.nanmean((c_len - slab_t_vec).clamp_min(0.0))
-            power = int(self.cfg.vacuum_loss_power)
-            if power <= 1:
-                loss_vacuum = torch.nanmean(delta / max(vac_min, 1e-8))
-            else:
-                loss_vacuum = torch.nanmean((delta / max(vac_min, 1e-8)) ** power)
+                    if power <= 1:
+                        loss_vacuum = torch.nanmean(vacuum_gap / max(vac_min, 1e-8))
+                    else:
+                        loss_vacuum = torch.nanmean((vacuum_gap / max(vac_min, 1e-8)) ** power)
+
+            if self.cfg.lambda_cross_vacuum > 0.0:
+                frac_pred = pred_x0_f - torch.floor(pred_x0_f)
+                dist_3d, shifts = frac_mic_dist_with_shifts(
+                    frac_pred, lattice, atom_mask, pbc_mask=(1, 1, 1)
+                )
+                idx = c_idx.view(-1, 1, 1, 1).expand(-1, dist_3d.shape[1], dist_3d.shape[2], 1)
+                shift_c = torch.take_along_dim(shifts, idx, dim=3).squeeze(3)
+                cross_mask = shift_c.abs() > 0
+                bond_cut = float(self.cfg.cross_vacuum_bond_cut)
+                delta = (bond_cut - dist_3d).clamp_min(0.0) / max(bond_cut, 1e-8)
+                n_atoms = dist_3d.shape[-1]
+                tri_mask = torch.triu(
+                    torch.ones((n_atoms, n_atoms), device=dist_3d.device, dtype=dist_3d.dtype),
+                    diagonal=1,
+                )
+                pair_mask = (atom_mask > 0.5)
+                pair_mask = pair_mask[:, :, None] & pair_mask[:, None, :]
+                pair_mask = pair_mask & (tri_mask > 0.5)
+                penalty = delta * cross_mask.float() * pair_mask.float()
+                pair_count = pair_mask.sum(dim=(1, 2)).clamp_min(1.0)
+                loss_per = penalty.sum(dim=(1, 2)) / pair_count
+                power = int(self.cfg.cross_vacuum_power)
+                if power > 1:
+                    loss_per = loss_per**power
+                cross_flag = ((dist_3d < bond_cut) & cross_mask & pair_mask).any(dim=(1, 2)).float()
+                if cond_mask is not None:
+                    denom = cond_mask.sum().clamp_min(1.0)
+                    loss_cross_vacuum = (loss_per * cond_mask).sum() / denom
+                    cross_vacuum_rate = (cross_flag * cond_mask).sum() / denom
+                else:
+                    loss_cross_vacuum = loss_per.mean()
+                    cross_vacuum_rate = cross_flag.mean()
 
         loss_angle = torch.tensor(0.0, device=device)
-        loss_cond = torch.tensor(0.0, device=device)
+        loss_cond_number = torch.tensor(0.0, device=device)
         loss_chol_bound = torch.tensor(0.0, device=device)
         loss_expand_collision = torch.tensor(0.0, device=device)
         loss_volume = torch.tensor(0.0, device=device)
@@ -441,6 +513,7 @@ class AtomVelocityLoss(nn.Module):
         min_dist_pred_mean = torch.tensor(float("nan"), device=device)
         min_dist_pred_p10 = torch.tensor(float("nan"), device=device)
         lengths_std_mean = torch.tensor(float("nan"), device=device)
+        loss_min_dist = torch.tensor(0.0, device=device)
         if (
             self.cfg.lambda_volume > 0.0
             or self.cfg.lambda_c_len > 0.0
@@ -543,7 +616,7 @@ class AtomVelocityLoss(nn.Module):
                     cond_mean = cond.mean()
                     cond_max = float(self.cfg.cond_max)
                     cond_violation = (cond - cond_max).clamp_min(0.0) / max(cond_max, 1e-8)
-                    loss_cond = (cond_violation ** 2).mean()
+                    loss_cond_number = (cond_violation ** 2).mean()
 
         if self.cfg.lambda_chol_bound > 0.0:
             chol_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
@@ -602,6 +675,30 @@ class AtomVelocityLoss(nn.Module):
                 min_dist_pred_mean = min_dist[valid].mean()
                 min_dist_pred_p10 = torch.quantile(min_dist[valid], 0.1)
 
+        if min_dist_train_weight > 0.0 and min_dist_train_cut > 0.0:
+            g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
+            if self.cfg.cell_rep == "cholesky6":
+                log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
+                log_max = self.cfg.chol_log_max_vec if self.cfg.chol_log_max_vec is not None else self.cfg.chol_log_max
+                gram6_pred = cholesky6_to_gram6(pred_x0_g, log_min=log_min, log_max=log_max)
+            else:
+                gram6_pred = pred_x0_g
+            lattice = gram6_to_lattice(gram6_pred * float(g_scale))
+            frac_pred = pred_x0_f - torch.floor(pred_x0_f)
+            pbc_mask = getattr(getattr(model, "cfg", None), "pbc_mask", (1, 1, 1))
+            dist = frac_mic_dist(frac_pred, lattice, atom_mask, pbc_mask=pbc_mask)
+            cut = float(min_dist_train_cut)
+            delta = (cut - dist).clamp_min(0.0)
+            n_atoms = dist.shape[-1]
+            tri_mask = torch.triu(
+                torch.ones((n_atoms, n_atoms), device=dist.device, dtype=dist.dtype),
+                diagonal=1,
+            )
+            pair_mask = torch.isfinite(dist) & (tri_mask > 0.5)
+            pair_count = pair_mask.sum(dim=(1, 2)).clamp_min(1.0)
+            loss_per = (delta**2 * pair_mask.float()).sum(dim=(1, 2)) / pair_count
+            loss_min_dist = loss_per.mean()
+
         if self.cfg.use_uncertainty_weighting:
             loss = torch.exp(-self.s_f) * loss_f + self.s_f + torch.exp(-self.s_g) * loss_g + self.s_g
             if masked_pos.any():
@@ -618,10 +715,12 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + torch.exp(-self.s_comp) * loss_comp + self.s_comp
             if self.cfg.lambda_vacuum > 0.0:
                 loss = loss + torch.exp(-self.s_vacuum) * loss_vacuum + self.s_vacuum
+            if self.cfg.lambda_cross_vacuum > 0.0:
+                loss = loss + torch.exp(-self.s_cross_vacuum) * loss_cross_vacuum + self.s_cross_vacuum
             if self.cfg.lambda_angle > 0.0:
                 loss = loss + torch.exp(-self.s_angle) * loss_angle + self.s_angle
             if self.cfg.lambda_cond > 0.0:
-                loss = loss + torch.exp(-self.s_cond) * loss_cond + self.s_cond
+                loss = loss + torch.exp(-self.s_cond) * loss_cond_number + self.s_cond
             if self.cfg.lambda_volume > 0.0:
                 loss = loss + self.cfg.lambda_volume * loss_volume
             if self.cfg.lambda_c_len > 0.0:
@@ -646,10 +745,12 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_comp * loss_comp
             if self.cfg.lambda_vacuum > 0.0:
                 loss = loss + self.cfg.lambda_vacuum * loss_vacuum
+            if self.cfg.lambda_cross_vacuum > 0.0:
+                loss = loss + self.cfg.lambda_cross_vacuum * loss_cross_vacuum
             if self.cfg.lambda_angle > 0.0:
                 loss = loss + self.cfg.lambda_angle * loss_angle
             if self.cfg.lambda_cond > 0.0:
-                loss = loss + self.cfg.lambda_cond * loss_cond
+                loss = loss + self.cfg.lambda_cond * loss_cond_number
             if self.cfg.lambda_volume > 0.0:
                 loss = loss + self.cfg.lambda_volume * loss_volume
             if self.cfg.lambda_c_len > 0.0:
@@ -660,6 +761,8 @@ class AtomVelocityLoss(nn.Module):
                 loss = loss + self.cfg.lambda_chol_bound * loss_chol_bound
             if self.cfg.lambda_expand_collision > 0.0:
                 loss = loss + self.cfg.lambda_expand_collision * loss_expand_collision
+        if min_dist_train_weight > 0.0:
+            loss = loss + float(min_dist_train_weight) * loss_min_dist
         metrics = {
             "loss_f": loss_f.detach(),
             "loss_g": loss_g.detach(),
@@ -670,10 +773,12 @@ class AtomVelocityLoss(nn.Module):
             "loss_t": loss_t.detach(),
             "loss_comp": loss_comp.detach(),
             "loss_vacuum": loss_vacuum.detach(),
+            "loss_cross_vacuum": loss_cross_vacuum.detach(),
             "loss_angle": loss_angle.detach(),
-            "loss_cond": loss_cond.detach(),
+            "loss_cond_number": loss_cond_number.detach(),
             "loss_chol_bound": loss_chol_bound.detach(),
             "loss_expand_collision": loss_expand_collision.detach(),
+            "loss_min_dist": loss_min_dist.detach(),
             "loss_volume": loss_volume.detach(),
             "loss_c_len": loss_c_len.detach(),
             "loss_anisotropy": loss_anisotropy.detach(),
@@ -683,9 +788,11 @@ class AtomVelocityLoss(nn.Module):
             "min_dist_pred_mean": min_dist_pred_mean.detach(),
             "min_dist_pred_p10": min_dist_pred_p10.detach(),
             "vacuum_gap_mean": vacuum_gap_mean.detach(),
+            "vacuum_gap": vacuum_gap.detach(),
             "c_len_mean": c_len_mean.detach(),
             "thickness_gap_mean": thickness_gap_mean.detach(),
             "lengths_std_mean": lengths_std_mean.detach(),
+            "cross_vacuum_rate": cross_vacuum_rate.detach(),
             "pred_x0_f_mean": pred_x0_f.detach().mean(),
             "pred_x0_f_std": pred_x0_f.detach().std(),
             "pred_v_f_mean": pred_v_f.detach().mean(),
@@ -703,6 +810,7 @@ class AtomVelocityLoss(nn.Module):
                     "s_t": self.s_t.detach(),
                     "s_comp": self.s_comp.detach(),
                     "s_vacuum": self.s_vacuum.detach(),
+                    "s_cross_vacuum": self.s_cross_vacuum.detach(),
                     "s_angle": self.s_angle.detach(),
                     "s_cond": self.s_cond.detach(),
                 }

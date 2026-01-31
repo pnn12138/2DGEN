@@ -3,7 +3,7 @@
 ## 内容概览
 - **默认路线（token）**：`model/atom_transformer.py` + `model/atom_denoiser.py`，以 `(Z,F,g)` token 表示进行扩散训练与采样。
 - **扩散与损失**：`common/atom_diffusion.py`（连续变量预测 x0，训练时换算为 v；动态权重 + 可选 Flow-Matching）。
-- **数据**：`data/prepare_c2db_tokens.py` 生成 token 缓存 npz；`data/c2db_dataset.py` 提供 `C2DBTokenNPZDataset` 与 `C2DBAtomDataset`。
+- **数据**：`data/prepare_c2db_tokens.py` 生成 token 缓存 npz；`data/c2db_dataset.py` 提供 `C2DBTokenNPZDataset`。
 - **测试/训练**：`scrip/test_tokens.py`/`scrip/train_tokens.py`/`scrip/sample_tokens.py` 为 token 路线。
 
 ## 当前对齐状态
@@ -24,8 +24,7 @@ uv run python -m twodgen.data.prepare_c2db_tokens \
 ```
 说明：
 - `lattice` 为行向量基矢，`cart = frac @ lattice`；Gram6 为 `G = lattice @ lattice^T`。
-- 旧版 `.npz` 缺少 `gram6_convention` 时需迁移：
-  `uv run python -m twodgen.data.migrate_gram6_convention --in <old.npz> --out <new.npz>`
+- 旧版 `.npz` 缺少 `gram6_convention` 时请重新预处理生成新缓存。
 - 生成 canonical 字段后会自动把 `coord_frame=canon` 写入 metadata，有条件重新跑一次预处理即可让 downstream 确认 geometry heads 可用。
 
 2) 生成 train/heldout 划分（供训练/采样使用）：
@@ -44,13 +43,20 @@ uv run python -m twodgen.scrip.train_tokens \
   --split-json data/C2DB/cache/c2db_tokens_split.json \
   --split train \
   --epochs 100 \
-  --batch-size 32 \
+  --batch-size 128 \
   --lr 1e-4 \
+  --cross-vacuum-loss-weight 0.1 \
+  --cross-vacuum-bond-cut 3.0 \
+  --tb-logdir outputs/tb_runs/train_tokens \
+  --tb-interval 200 \
+  --alert-steps 10000 \
   --save-dir outputs/checkpoints
 ```
 说明：
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
 - 训练默认启用 `--vacuum-loss-weight 0.1`（若要关闭需显式设为 0），与评估端的 `--vacuum-min 15` 对齐以强化 2D 真空约束。
+- 可选启用 cross-vacuum 训练惩罚：`--cross-vacuum-loss-weight`/`--cross-vacuum-bond-cut`（默认 0 代表关闭）。
+- 若要验证诊断仪表板与告警，建议使用 `--tb-logdir` + `--tb-interval`，并保留默认 `--alert-*` 参数（前 1 万步输出异常告警）。
 - 默认启用 `--auto-volume-bounds`，会按训练 split 的体积分布 p1/p99 自动设置 `volume_min/volume_max`，避免体积阈值漏设。
 - `cell_rep=cholesky6` 时会从训练 split 的 lattice 统计按维度的 `chol_log_min_vec/max_vec` 并写入 checkpoint；采样/训练的 clamp 与相关 loss 会优先使用按维 bound（旧 checkpoint 会回退到标量 `chol_log_min/max`）。
 - 若前置质量筛选已产出 `data/C2DB/clean/c2db_quality.jsonl`，可用 `--quality-jsonl`/`--quality-buckets`/`--quality-hard-pass-only` 只取 `good`/`risk`、`hard_pass` 行；clean 脚本详见 `twodgen/data/clean_c2db_2d.py`。

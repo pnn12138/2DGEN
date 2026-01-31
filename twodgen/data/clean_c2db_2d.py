@@ -14,9 +14,12 @@ import numpy as np
 import pandas as pd
 from pymatgen.core import Structure
 
-
-def _wrap01_array(x: np.ndarray) -> np.ndarray:
-    return x - np.floor(x)
+from twodgen.common.geometry_np import (
+    choose_vacuum_axis,
+    min_dist_and_shifts,
+    thickness_vacuum,
+)
+from twodgen.data.utils import wrap01_array
 
 
 def _summary_stats(values: Sequence[float]) -> Dict[str, Any]:
@@ -33,60 +36,6 @@ def _summary_stats(values: Sequence[float]) -> Dict[str, Any]:
         "min": float(np.min(arr)),
         "max": float(np.max(arr)),
     }
-
-
-def _thickness_vacuum(frac_1d: np.ndarray, c_len: float) -> Tuple[float, float]:
-    if frac_1d.size == 0:
-        return float("nan"), float("nan")
-    coords = np.sort(_wrap01_array(frac_1d.astype(float)))
-    if coords.size == 1:
-        thickness = 0.0
-        return thickness, c_len - thickness
-    gaps = np.diff(coords, axis=0).flatten().tolist()
-    gaps.append(1.0 - (coords[-1] - coords[0]))
-    max_gap = max(gaps)
-    thickness = (1.0 - max_gap) * c_len
-    vacuum = c_len - thickness
-    return float(thickness), float(vacuum)
-
-
-def _mic_dist_and_shifts(
-    frac: np.ndarray, lattice: np.ndarray, pbc_mask: Tuple[int, int, int]
-) -> Tuple[np.ndarray, np.ndarray]:
-    df = frac[:, None, :] - frac[None, :, :]
-    shifts_1d = (-1.0, 0.0, 1.0)
-    zeros_1d = (0.0,)
-    components = [
-        shifts_1d if pbc_mask[0] == 1 else zeros_1d,
-        shifts_1d if pbc_mask[1] == 1 else zeros_1d,
-        shifts_1d if pbc_mask[2] == 1 else zeros_1d,
-    ]
-    shifts_all = np.asarray(list(_cartesian_product(components)), dtype=float)  # (S, 3)
-    df_shifted = df[:, :, None, :] - shifts_all[None, None, :, :]  # (N, N, S, 3)
-    dr = df_shifted @ lattice  # (N, N, S, 3)
-    dist_all = np.linalg.norm(dr, axis=-1)  # (N, N, S)
-    best_idx = np.argmin(dist_all, axis=-1)  # (N, N)
-    dist = np.take_along_axis(dist_all, best_idx[:, :, None], axis=-1)[:, :, 0]
-    shifts = shifts_all[best_idx]
-    np.fill_diagonal(dist, np.inf)
-    return dist, shifts
-
-
-def _cartesian_product(components: Sequence[Sequence[float]]) -> Iterable[Tuple[float, float, float]]:
-    if len(components) != 3:
-        raise ValueError("expected 3 components for cartesian product")
-    for a in components[0]:
-        for b in components[1]:
-            for c in components[2]:
-                yield (a, b, c)
-
-
-def _choose_vacuum_axis(lattice: np.ndarray) -> Tuple[int, float, np.ndarray]:
-    lengths = np.linalg.norm(lattice, axis=1)
-    if not np.all(np.isfinite(lengths)) or np.any(lengths <= 0):
-        return 2, float("nan"), lengths
-    c_idx = int(np.argmax(lengths))
-    return c_idx, float(lengths[c_idx]), lengths
 
 
 def _source_bucket_from_row(row: Dict[str, Any]) -> str:
@@ -124,21 +73,22 @@ def analyze_cif(cif_str: str, cfg: C2DB2DQualityConfig) -> Dict[str, Any]:
     structure = Structure.from_str(cif_str, fmt="cif")
     n_atoms = int(len(structure))
     lattice = np.asarray(structure.lattice.matrix, dtype=float)
-    frac = _wrap01_array(np.asarray(structure.frac_coords, dtype=float))
+    frac = wrap01_array(np.asarray(structure.frac_coords, dtype=float))
 
-    c_idx, c_len, lengths = _choose_vacuum_axis(lattice)
+    c_idx, c_len, lengths = choose_vacuum_axis(lattice)
     pbc_mask_slab = (1, 1, 1)
     pbc_mask_slab = tuple(0 if i == c_idx else 1 for i in range(3))  # type: ignore[assignment]
 
-    thickness, vacuum = _thickness_vacuum(frac[:, c_idx] if n_atoms else np.zeros((0,)), c_len)
+    frac_c = wrap01_array(frac[:, c_idx] if n_atoms else np.zeros((0,)))
+    thickness, vacuum = thickness_vacuum(frac_c, c_len)
 
     min_dist_slab = float("inf")
     cross_vacuum_bond = False
     if n_atoms > 1 and np.all(np.isfinite(lattice)):
-        dist_slab, _ = _mic_dist_and_shifts(frac, lattice, pbc_mask=pbc_mask_slab)  # type: ignore[arg-type]
+        _, dist_slab, _ = min_dist_and_shifts(frac, lattice, pbc_mask=pbc_mask_slab)  # type: ignore[arg-type]
         min_dist_slab = float(np.min(dist_slab)) if dist_slab.size else float("inf")
 
-        dist_3d, shifts_3d = _mic_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 1))
+        _, dist_3d, shifts_3d = min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 1))
         below = (dist_3d < cfg.bond_cut) & np.isfinite(dist_3d)
         if np.any(below):
             shifts_c = shifts_3d[..., c_idx]

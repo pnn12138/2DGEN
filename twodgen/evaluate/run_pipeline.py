@@ -40,7 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--pipeline-steps",
         type=str,
-        default="tier0,conditions,energy,formation,merge",
+        default="tier0,conditions,energy,merge",
         help="Comma-separated steps to execute.",
     )
     return parser.parse_args()
@@ -55,7 +55,6 @@ def main() -> None:
     tier0_dir = out_dir / "tier0"
     cond_dir = out_dir / "conditions"
     energy_dir = out_dir / "energy"
-    formation_dir = out_dir / "formation"
     merged_dir = out_dir / "merged"
 
     base_inputs = []
@@ -105,7 +104,12 @@ def main() -> None:
             + (["--target-spacegroup", str(args.target_spacegroup)] if args.target_spacegroup else [])
         )
 
-    if "energy" in steps:
+    need_energy = "energy" in steps or "formation" in steps
+    need_formation = "formation" in steps
+    if need_formation and args.ref_energies is None:
+        raise ValueError("--ref-energies is required when pipeline includes formation.")
+
+    if need_energy:
         _run(
             [
                 "python",
@@ -123,41 +127,30 @@ def main() -> None:
             ]
             + (["--model-path", args.mattersim_model] if args.mattersim_model else [])
             + (["--relax"] if args.relax else [])
-        )
-
-    if "formation" in steps:
-        if args.ref_energies is None:
-            raise ValueError("--ref-energies is required for formation step.")
-        _run(
-            [
-                "python",
-                "-m",
-                "twodgen.evaluate.formation_energy",
-                "--energy-jsonl",
-                str(energy_dir / "per_sample_energy.jsonl"),
-                "--ref-energies",
-                str(args.ref_energies),
-                "--out-dir",
-                str(formation_dir),
-                "--formation-max",
-                str(args.formation_max),
-            ]
+            + (["--ref-energies", str(args.ref_energies)] if args.ref_energies else [])
+            + (["--formation-max", str(args.formation_max)] if need_formation else [])
         )
 
     if "merge" in steps:
-        _run(
-            [
-                "python",
-                "-m",
-                "twodgen.evaluate.merge_reports",
-                "--tier0",
-                str(tier0_dir / "per_sample_tier0.jsonl"),
-                "--conditions",
-                str(cond_dir / "per_sample_conditions.jsonl"),
-                "--energy",
-                str(energy_dir / "per_sample_energy.jsonl"),
+        merge_cmd = [
+            "python",
+            "-m",
+            "twodgen.evaluate.merge_reports",
+            "--tier0",
+            str(tier0_dir / "per_sample_tier0.jsonl"),
+            "--conditions",
+            str(cond_dir / "per_sample_conditions.jsonl"),
+            "--energy",
+            str(energy_dir / "per_sample_energy.jsonl"),
+        ]
+        if need_formation:
+            merge_cmd += [
                 "--formation",
-                str(formation_dir / "per_sample_formation.jsonl"),
+                str(energy_dir / "per_sample_formation.jsonl"),
+            ]
+        _run(
+            merge_cmd
+            + [
                 "--out-dir",
                 str(merged_dir),
             ]
@@ -167,7 +160,7 @@ def main() -> None:
         "tier0": str(tier0_dir),
         "conditions": str(cond_dir),
         "energy": str(energy_dir),
-        "formation": str(formation_dir),
+        "formation": str(energy_dir) if need_formation else None,
         "merged": str(merged_dir),
         "steps": steps,
     }

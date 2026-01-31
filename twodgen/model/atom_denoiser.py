@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Optional, Tuple
+from typing import Callable, Optional, Tuple
 
 import torch
 from torch import nn
+import numpy as np
 
 from twodgen.common.atom_diffusion import AtomDiffusionConfig, AtomVelocityLoss, expand_t, mask_schedule
 from twodgen.common.crystal import (
     cholesky6_to_gram6,
     cholesky6_to_lattice,
-    clip_lattice,
     frac_mic_dist,
     frac_mic_dist_with_shifts,
     gram6_to_cholesky6,
@@ -19,7 +19,10 @@ from twodgen.common.crystal import (
     niggli_reduce_lattice,
     reduce_lattice_simple,
 )
+from twodgen.common.geometry_torch import choose_vacuum_axis_torch
 from twodgen.model.atom_transformer import AtomTransformer, AtomTransformerConfig
+from twodgen.model.cell_net import CellNet
+from twodgen.model.tail_adapters import EgNNTailAdapter
 
 
 @dataclass
@@ -29,9 +32,6 @@ class AtomDenoiserConfig:
     sampling_method: str = "euler"
     num_sampling_steps: int = 20
     neighbor_update_steps: int = 1
-    v_min: float = 1e-3
-    v_max: float = 1e3
-    cond_max: float = 1e3
     reduce_lattice: bool = False
     niggli_reduce: bool = False
     project_each_step: bool = False
@@ -43,6 +43,11 @@ class AtomDenoiserConfig:
     min_dist_train_cut: float = 1.5
     min_dist_train_weight: float = 0.02
     chol_log_relax: float = 0.0
+    z_clamp: bool = False
+    z_clamp_min_t: float = 5.0
+    z_clamp_max_t: Optional[float] = None
+    symmetry_loss_weight: float = 0.0
+    symmetry_symprec: float = 1e-2
 
 
 class AtomDenoiser(nn.Module):
@@ -51,6 +56,24 @@ class AtomDenoiser(nn.Module):
         self.cfg = cfg
         self.model = AtomTransformer(cfg.model)
         self.loss_fn = AtomVelocityLoss(cfg.diffusion, self.model.mask_id)
+        self.tail_adapter: Optional[nn.Module] = None
+        self.cell_net: Optional[nn.Module] = None
+        if cfg.model.tail_adapter and cfg.model.tail_adapter != "none":
+            if cfg.model.tail_adapter == "egnn":
+                self.tail_adapter = EgNNTailAdapter(
+                    cfg.model.z_embed_dim,
+                    cfg.model.tail_hidden_dim,
+                    cfg.model.pbc_mask,
+                    init_scale=cfg.model.tail_scale,
+                )
+            else:
+                raise ValueError(f"Unknown tail_adapter={cfg.model.tail_adapter!r}")
+        if cfg.diffusion.cell_init == "cellnet":
+            if cfg.model.cond_dim <= 0:
+                raise ValueError("cellnet requires cond_dim > 0.")
+            self.cell_net = CellNet(
+                cfg.model.cond_dim, cfg.diffusion.cell_net_hidden_dim, out_dim=6
+            )
 
     def forward(
         self,
@@ -64,6 +87,7 @@ class AtomDenoiser(nn.Module):
         z_norm: Optional[torch.Tensor] = None,
         lattice_param: Optional[torch.Tensor] = None,
         slab_t: Optional[torch.Tensor] = None,
+        spacegroup_number: Optional[torch.Tensor] = None,
         nbr_idx: Optional[torch.Tensor] = None,
         nbr_mask: Optional[torch.Tensor] = None,
         dist_nbr: Optional[torch.Tensor] = None,
@@ -83,19 +107,62 @@ class AtomDenoiser(nn.Module):
             nbr_idx,
             nbr_mask,
             dist_nbr,
+            min_dist_train_weight=self.cfg.min_dist_train_weight if self.training else 0.0,
+            min_dist_train_cut=self.cfg.min_dist_train_cut,
         )
-        if self.training and self.cfg.min_dist_train_weight > 0.0:
-            lattice = gram6_to_lattice(gram6 * self.cfg.model.g_scale)
-            dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
-            cut = float(self.cfg.min_dist_train_cut)
-            delta = (cut - dist).clamp_min(0.0)
-            # Collision-prioritized reduction: penalize only the worst (closest) pair per structure.
-            # This makes "one bad short bond" visible even when many pairs are already fine.
-            penalty_per = (delta ** 2).amax(dim=(1, 2))
-            penalty = penalty_per.mean()
-            loss = loss + self.cfg.min_dist_train_weight * penalty
-            metrics["loss_min_dist"] = penalty.detach()
+        if (
+            self.cfg.symmetry_loss_weight > 0.0
+            and spacegroup_number is not None
+        ):
+            sym_loss, sym_rate = self._symmetry_residual_loss(
+                frac, gram6, atom_mask, z, spacegroup_number
+            )
+            metrics["loss_symmetry"] = sym_loss.detach()
+            metrics["symmetry_violation_rate"] = sym_rate.detach()
         return loss, pred_v_f, pred_v_g, logits_z, metrics
+
+    def _symmetry_residual_loss(
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        atom_mask: torch.Tensor,
+        z: torch.Tensor,
+        spacegroup_number: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        try:
+            import spglib  # type: ignore
+        except Exception:
+            zero = torch.tensor(0.0, device=frac.device, dtype=frac.dtype)
+            return zero, zero
+        lattice = self._cell_to_lattice(cell).detach().cpu().numpy()
+        frac_np = frac.detach().cpu().numpy()
+        mask_np = atom_mask.detach().cpu().numpy()
+        z_np = z.detach().cpu().numpy()
+        target = spacegroup_number.detach().cpu().numpy().reshape(-1)
+        violations = []
+        for i in range(frac_np.shape[0]):
+            if target[i] <= 0:
+                continue
+            mask_i = (mask_np[i] > 0.5) & (z_np[i] > 0)
+            if not np.any(mask_i):
+                continue
+            cell_tuple = (lattice[i], frac_np[i][mask_i], z_np[i][mask_i].astype(int))
+            try:
+                dataset = spglib.get_symmetry_dataset(cell_tuple, symprec=float(self.cfg.symmetry_symprec))
+            except Exception:
+                dataset = None
+            if dataset is None:
+                violations.append(1.0)
+                continue
+            sg_number = int(dataset.get("number"))
+            violations.append(0.0 if sg_number == int(target[i]) else 1.0)
+        if not violations:
+            zero = torch.tensor(0.0, device=frac.device, dtype=frac.dtype)
+            return zero, zero
+        mean_violation = float(np.mean(violations))
+        loss = torch.tensor(mean_violation, device=frac.device, dtype=frac.dtype)
+        rate = torch.tensor(mean_violation, device=frac.device, dtype=frac.dtype)
+        return loss, rate
 
     def _relaxed_chol_bounds(
         self,
@@ -163,6 +230,12 @@ class AtomDenoiser(nn.Module):
         else:
             pred_x0_f, pred_x0_g, logits_z = outputs  # type: ignore[misc]
 
+        if self.tail_adapter is not None:
+            lattice = self._cell_to_lattice(gram6)
+            z_emb = self.model.z_embed(z)
+            delta = self.tail_adapter(z_emb, pred_x0_f, lattice, atom_mask)
+            pred_x0_f = pred_x0_f + delta
+
         if self.cfg.diffusion.mode == "flow":
             denom_f = expand_t(t, frac.ndim).clamp_min(self.cfg.diffusion.t_eps)
             denom_g = expand_t(t, gram6.ndim).clamp_min(self.cfg.diffusion.t_eps)
@@ -203,7 +276,87 @@ class AtomDenoiser(nn.Module):
                 else:
                     denom_t = expand_t(1.0 - t, slab_t.ndim).clamp_min(self.cfg.diffusion.t_eps)
                     geom_preds["t"] = (geom_preds["t"] - slab_t) / denom_t
-            return pred_v_f, pred_v_g, logits_z, geom_preds
+        return pred_v_f, pred_v_g, logits_z, geom_preds
+
+    def _cell_to_lattice(self, cell: torch.Tensor) -> torch.Tensor:
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            chol_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+            chol_max = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
+            lattice = cholesky6_to_lattice(cell, log_min=chol_min, log_max=chol_max)
+            lattice = lattice * float(self.cfg.model.g_scale) ** 0.5
+            return lattice
+        return gram6_to_lattice(cell * self.cfg.model.g_scale)
+
+    def _predict_velocity_guided(
+        self,
+        z: torch.Tensor,
+        frac: torch.Tensor,
+        atom_mask: torch.Tensor,
+        gram6: torch.Tensor,
+        t: torch.Tensor,
+        cond: Optional[torch.Tensor] = None,
+        counts_vector: Optional[torch.Tensor] = None,
+        uv_angle: Optional[torch.Tensor] = None,
+        z_norm: Optional[torch.Tensor] = None,
+        lattice_param: Optional[torch.Tensor] = None,
+        slab_t: Optional[torch.Tensor] = None,
+        return_geom: bool = False,
+        step: Optional[int] = None,
+        cache_every: Optional[int] = None,
+        guidance_scale: float = 1.0,
+    ):
+        outputs = self._predict_velocity(
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            t,
+            cond,
+            counts_vector,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+            return_geom=return_geom,
+            step=step,
+            cache_every=cache_every,
+        )
+        if guidance_scale <= 1.0 or (cond is None and counts_vector is None):
+            return outputs
+        outputs_u = self._predict_velocity(
+            z,
+            frac,
+            atom_mask,
+            gram6,
+            t,
+            None,
+            None,
+            uv_angle=uv_angle,
+            z_norm=z_norm,
+            lattice_param=lattice_param,
+            slab_t=slab_t,
+            return_geom=return_geom,
+            step=step,
+            cache_every=cache_every,
+        )
+
+        def _blend(cond_out: torch.Tensor, uncond_out: torch.Tensor) -> torch.Tensor:
+            return uncond_out + float(guidance_scale) * (cond_out - uncond_out)
+
+        if return_geom:
+            pred_v_f, pred_v_g, logits_z, geom_preds = outputs  # type: ignore[misc]
+            pred_v_f_u, pred_v_g_u, logits_z_u, geom_preds_u = outputs_u  # type: ignore[misc]
+            pred_v_f = _blend(pred_v_f, pred_v_f_u)
+            pred_v_g = _blend(pred_v_g, pred_v_g_u)
+            logits_z = _blend(logits_z, logits_z_u)
+            guided_geom = {k: _blend(geom_preds[k], geom_preds_u[k]) for k in geom_preds}
+            return pred_v_f, pred_v_g, logits_z, guided_geom
+
+        pred_v_f, pred_v_g, logits_z = outputs  # type: ignore[misc]
+        pred_v_f_u, pred_v_g_u, logits_z_u = outputs_u  # type: ignore[misc]
+        pred_v_f = _blend(pred_v_f, pred_v_f_u)
+        pred_v_g = _blend(pred_v_g, pred_v_g_u)
+        logits_z = _blend(logits_z, logits_z_u)
         return pred_v_f, pred_v_g, logits_z
 
     @torch.no_grad()
@@ -224,6 +377,7 @@ class AtomDenoiser(nn.Module):
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
         return_geom: bool = False,
+        guidance_scale: float = 1.0,
     ) -> Tuple[
         torch.Tensor,
         torch.Tensor,
@@ -233,7 +387,7 @@ class AtomDenoiser(nn.Module):
         Optional[torch.Tensor],
         Optional[torch.Tensor],
     ]:
-        outputs = self._predict_velocity(
+        outputs = self._predict_velocity_guided(
             z,
             frac,
             atom_mask,
@@ -248,6 +402,7 @@ class AtomDenoiser(nn.Module):
             return_geom=return_geom,
             step=step,
             cache_every=cache_every,
+            guidance_scale=guidance_scale,
         )
         if return_geom:
             pred_v_f, pred_v_g, logits_z, geom_preds = outputs  # type: ignore[misc]
@@ -305,17 +460,48 @@ class AtomDenoiser(nn.Module):
                     else chol_max
                 )
                 cell[:, :3] = torch.clamp(cell[:, :3], min=min_bound, max=max_bound)
-            lattice = cholesky6_to_lattice(
-                cell, log_min=chol_min, log_max=chol_max
-            )
-            lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
-            gram6 = lattice_to_gram6(lattice)
+            lattice = cholesky6_to_lattice(cell, log_min=chol_min, log_max=chol_max)
+            sqrt_g = float(self.cfg.model.g_scale) ** 0.5
+            lattice_phys = lattice * sqrt_g
+            gram6 = lattice_to_gram6(lattice_phys) / float(self.cfg.model.g_scale)
             cell = gram6_to_cholesky6(gram6, log_min=chol_min, log_max=chol_max)
             return frac, cell
         lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
-        lattice = clip_lattice(lattice, self.cfg.v_min, self.cfg.v_max, self.cfg.cond_max)
         cell = lattice_to_gram6(lattice) / self.cfg.model.g_scale
         return frac, cell
+
+    def _z_clamp_step(
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        atom_mask: torch.Tensor,
+        slab_t: Optional[torch.Tensor],
+    ) -> torch.Tensor:
+        if not self.cfg.z_clamp or slab_t is None:
+            return frac
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            lattice = cholesky6_to_lattice(cell)
+            lattice = lattice * float(self.cfg.model.g_scale) ** 0.5
+        else:
+            lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
+        c_idx, c_len, _ = choose_vacuum_axis_torch(lattice)
+        c_len = c_len.clamp_min(1e-6)
+
+        t_val = slab_t
+        if self.cfg.z_clamp_max_t is not None:
+            t_val = torch.minimum(t_val, torch.tensor(self.cfg.z_clamp_max_t, device=t_val.device))
+        t_val = torch.clamp(t_val, min=self.cfg.z_clamp_min_t)
+        t_frac = (t_val / c_len).clamp(max=1.0)
+        lower = 0.5 - 0.5 * t_frac
+        upper = 0.5 + 0.5 * t_frac
+
+        for b in range(frac.shape[0]):
+            idx = int(c_idx[b].item())
+            lo = lower[b].item()
+            hi = upper[b].item()
+            frac[b, :, idx] = torch.clamp(frac[b, :, idx], min=lo, max=hi)
+        frac = frac * atom_mask.unsqueeze(-1)
+        return frac
 
     @torch.no_grad()
     def _apply_min_dist_repulsion(
@@ -389,6 +575,7 @@ class AtomDenoiser(nn.Module):
         step: Optional[int] = None,
         cache_every: Optional[int] = None,
         return_geom: bool = False,
+        guidance_scale: float = 1.0,
     ) -> Tuple[
         torch.Tensor,
         torch.Tensor,
@@ -398,7 +585,7 @@ class AtomDenoiser(nn.Module):
         Optional[torch.Tensor],
         Optional[torch.Tensor],
     ]:
-        outputs = self._predict_velocity(
+        outputs = self._predict_velocity_guided(
             z,
             frac,
             atom_mask,
@@ -413,6 +600,7 @@ class AtomDenoiser(nn.Module):
             return_geom=return_geom,
             step=step,
             cache_every=cache_every,
+            guidance_scale=guidance_scale,
         )
         if return_geom:
             pred_v_f, pred_v_g, logits_z, geom_preds = outputs  # type: ignore[misc]
@@ -435,13 +623,14 @@ class AtomDenoiser(nn.Module):
         if return_geom and slab_t is not None:
             delta_t = expand_t(t_next - t, slab_t.ndim)
             t_euler = slab_t + delta_t * geom_preds["t"]
-        outputs_next = self._predict_velocity(
+        outputs_next = self._predict_velocity_guided(
             z,
             frac_euler,
             atom_mask,
             gram_euler,
             t_next,
             cond,
+            counts_vector,
             uv_angle=uv_euler if return_geom else None,
             z_norm=zn_euler if return_geom else None,
             lattice_param=lat_euler if return_geom else None,
@@ -449,6 +638,7 @@ class AtomDenoiser(nn.Module):
             return_geom=return_geom,
             step=step,
             cache_every=cache_every,
+            guidance_scale=guidance_scale,
         )
         if return_geom:
             pred_v_f_next, pred_v_g_next, _, geom_preds_next = outputs_next  # type: ignore[misc]
@@ -488,6 +678,13 @@ class AtomDenoiser(nn.Module):
         z_top_p: float = 0.9,
         cond: Optional[torch.Tensor] = None,
         counts_vector: Optional[torch.Tensor] = None,
+        cfg_scale: float = 1.0,
+        guidance_fn: Optional[
+            Callable[[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, int, int], Optional[torch.Tensor]]
+        ] = None,
+        guidance_start: float = 0.8,
+        guidance_interval: int = 1,
+        guidance_scale: float = 1.0,
     ) -> Tuple[
         torch.Tensor,
         torch.Tensor,
@@ -521,7 +718,15 @@ class AtomDenoiser(nn.Module):
             z_norm = z_norm * atom_mask
             lattice_param = torch.randn(batch_size, 3, device=device) * self.cfg.diffusion.noise_scale_lat
             slab_t = torch.randn(batch_size, device=device) * self.cfg.diffusion.noise_scale_t
-        if self.cfg.diffusion.cell_rep == "cholesky6" and self.cfg.diffusion.cell_init == "iso":
+        if self.cfg.diffusion.cell_init == "cellnet":
+            if self.cell_net is None:
+                raise ValueError("cellnet requested but not initialized.")
+            if cond is None:
+                raise ValueError("cellnet requires cond to initialize cell.")
+            cell = self.cell_net(cond)
+            noise_scale = 0.1 if self.cfg.diffusion.cell_init_noise is None else self.cfg.diffusion.cell_init_noise
+            cell = cell + torch.randn_like(cell) * noise_scale
+        elif self.cfg.diffusion.cell_rep == "cholesky6" and self.cfg.diffusion.cell_init == "iso":
             scale = 1.0 if self.cfg.diffusion.cell_init_scale is None else self.cfg.diffusion.cell_init_scale
             log_s = torch.log(torch.tensor(scale, device=device))
             chol_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
@@ -623,6 +828,7 @@ class AtomDenoiser(nn.Module):
                     step=i,
                     cache_every=self.cfg.neighbor_update_steps,
                     return_geom=self.cfg.project_geometry,
+                    guidance_scale=cfg_scale,
                 )
             elif method == "heun":
                 frac, cell, logits_z, uv_angle, z_norm, lattice_param, slab_t = self._heun_step(
@@ -641,6 +847,7 @@ class AtomDenoiser(nn.Module):
                     step=i,
                     cache_every=self.cfg.neighbor_update_steps,
                     return_geom=self.cfg.project_geometry,
+                    guidance_scale=cfg_scale,
                 )
             else:
                 raise ValueError(f"Unknown sampling method: {method}")
@@ -649,6 +856,17 @@ class AtomDenoiser(nn.Module):
                 frac, cell = self._project_step(frac, cell)
             if self.cfg.project_geometry and uv_angle is not None and z_norm is not None:
                 uv_angle, z_norm = self._project_geometry_step(uv_angle, z_norm, atom_mask)
+            if self.cfg.z_clamp:
+                frac = self._z_clamp_step(frac, cell, atom_mask, slab_t)
+            if guidance_fn is not None:
+                start_step = int(max(0.0, min(1.0, guidance_start)) * steps)
+                if i >= start_step and (i - start_step) % max(guidance_interval, 1) == 0:
+                    lattice = self._cell_to_lattice(cell)
+                    delta = guidance_fn(frac, lattice, atom_mask, z, i, steps)
+                    if delta is not None:
+                        frac = frac + float(guidance_scale) * delta
+                        frac = frac - torch.floor(frac)
+                        frac = frac * atom_mask.unsqueeze(-1)
 
             p_mask = mask_schedule(
                 t_next, self.cfg.diffusion.p_mask_min, self.cfg.diffusion.p_mask_max, self.cfg.diffusion.mode
@@ -675,6 +893,9 @@ class AtomDenoiser(nn.Module):
                         if token.item() > 0:
                             remaining_counts[b, token.item() - 1] -= 1
                         z[b, idx] = token
+
+        if self.cfg.project_each_step:
+            frac, cell = self._project_step(frac, cell)
 
         frac = frac - torch.floor(frac)
         frac_pre = frac.clone()

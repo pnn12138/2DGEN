@@ -7,7 +7,7 @@ from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
 import sys
-from typing import Any
+from typing import Any, Iterable
 
 import math
 import numpy as np
@@ -15,7 +15,7 @@ import torch
 from torch import nn, optim
 from torch.utils.data import DataLoader, Dataset, Sampler
 
-from twodgen.data.c2db_dataset import C2DBAtomDataset, C2DBTokenNPZDataset
+from twodgen.data.c2db_dataset import C2DBTokenNPZDataset
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
 from twodgen.common.crystal import gram6_to_lattice, gram6_to_cholesky6, frac_mic_dist
 from twodgen.common.run_metadata import collect_run_metadata
@@ -68,6 +68,7 @@ def _parse_loss_weight_keys(value: str) -> list[str]:
 def _apply_loss_weights(model: AtomDenoiser, weights: dict[str, float]) -> None:
     cfg = model.loss_fn.cfg
     cfg.lambda_vacuum = float(weights.get("vacuum", cfg.lambda_vacuum))
+    cfg.lambda_cross_vacuum = float(weights.get("cross_vacuum", cfg.lambda_cross_vacuum))
     cfg.lambda_cond = float(weights.get("cond", cfg.lambda_cond))
     cfg.lambda_chol_bound = float(weights.get("chol_bound", cfg.lambda_chol_bound))
     cfg.lambda_expand_collision = float(weights.get("expand_collision", cfg.lambda_expand_collision))
@@ -82,6 +83,16 @@ def _linear_warmup_factor(step: int, warmup_steps: int, start: float, end: float
     progress = float(step + 1) / float(max(1, warmup_steps))
     progress = max(0.0, min(progress, 1.0))
     return float(start + (end - start) * progress)
+
+
+def _grad_norm(parameters: Iterable[torch.nn.Parameter]) -> float:
+    total = 0.0
+    for param in parameters:
+        if param.grad is None:
+            continue
+        grad = param.grad.detach()
+        total += float(grad.norm(2).item()) ** 2
+    return total**0.5
 
 
 def parse_args() -> argparse.Namespace:
@@ -104,12 +115,83 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument(
+        "--log-interval",
+        type=int,
+        default=50,
+        help="Steps between stdout/jsonl logging.",
+    )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=4,
+        help="DataLoader workers (set 0 to avoid multiprocessing).",
+    )
+    parser.add_argument(
+        "--tb-logdir",
+        type=Path,
+        default=None,
+        help="TensorBoard log directory (disabled if unset).",
+    )
+    parser.add_argument(
+        "--tb-interval",
+        type=int,
+        default=200,
+        help="Steps between TensorBoard histogram logging.",
+    )
+    parser.add_argument(
+        "--wandb-project",
+        type=str,
+        default=None,
+        help="Enable Weights & Biases logging to this project (optional).",
+    )
+    parser.add_argument("--wandb-entity", type=str, default=None, help="W&B entity (optional).")
+    parser.add_argument("--wandb-name", type=str, default=None, help="W&B run name (optional).")
+    parser.add_argument(
+        "--alert-steps",
+        type=int,
+        default=10000,
+        help="Emit alerts only before this global step.",
+    )
+    parser.add_argument(
+        "--alert-collision-rate",
+        type=float,
+        default=0.4,
+        help="Alert if collision_rate exceeds this threshold.",
+    )
+    parser.add_argument(
+        "--alert-min-dist-p10",
+        type=float,
+        default=0.8,
+        help="Alert if min_dist_p10 falls below this threshold.",
+    )
+    parser.add_argument(
+        "--alert-vacuum-gap",
+        type=float,
+        default=1.0,
+        help="Alert if vacuum_gap_mean exceeds this threshold.",
+    )
+    parser.add_argument(
+        "--alert-chol-clamp-rate",
+        type=float,
+        default=0.5,
+        help="Alert if chol_log_clamp_rate exceeds this threshold.",
+    )
+    parser.add_argument(
         "--model-size",
         type=str,
         default="base",
         choices=["tiny", "base", "large", "xl"],
         help="Model size preset.",
     )
+    parser.add_argument(
+        "--tail-adapter",
+        type=str,
+        default="none",
+        choices=["none", "egnn"],
+        help="Optional equivariant tail adapter (none/egnn).",
+    )
+    parser.add_argument("--tail-hidden-dim", type=int, default=128)
+    parser.add_argument("--tail-scale", type=float, default=0.1)
     parser.add_argument("--save-dir", type=Path, default=Path("outputs/checkpoints"))
     parser.add_argument("--seed", type=int, default=0, help="Random seed for reproducibility.")
     parser.add_argument(
@@ -182,7 +264,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vacuum-loss-weight",
         type=float,
-        default=0.1,
+        default=1.0,
         help="Weight for 2D vacuum loss (0 disables).",
     )
     parser.add_argument(
@@ -192,11 +274,43 @@ def parse_args() -> argparse.Namespace:
         help="Minimum vacuum thickness (Angstrom) for vacuum loss.",
     )
     parser.add_argument(
+        "--vacuum-loss-mode",
+        type=str,
+        default="c_axis",
+        choices=["vacuum_gap", "c_axis"],
+        help="Vacuum loss mode: vacuum_gap uses max gap; c_axis uses hinge(c_len).",
+    )
+    parser.add_argument(
         "--vacuum-loss-power",
         type=int,
         default=2,
         help="Power for vacuum loss: 1=linear, 2=squared, ...",
     )
+    parser.add_argument(
+        "--cross-vacuum-loss-weight",
+        type=float,
+        default=0.0,
+        help="Weight for cross-vacuum proxy loss during training (0 disables).",
+    )
+    parser.add_argument(
+        "--cross-vacuum-bond-cut",
+        type=float,
+        default=3.0,
+        help="Bond cutoff (Angstrom) for cross-vacuum proxy.",
+    )
+    parser.add_argument(
+        "--cross-vacuum-power",
+        type=int,
+        default=2,
+        help="Power for cross-vacuum proxy loss: 1=linear, 2=squared, ...",
+    )
+    parser.add_argument(
+        "--symmetry-loss-weight",
+        type=float,
+        default=0.0,
+        help="Weight for spacegroup mismatch penalty (requires spacegroup_number in dataset).",
+    )
+    parser.add_argument("--symmetry-symprec", type=float, default=1e-2)
     parser.add_argument(
         "--angle-loss-weight",
         type=float,
@@ -327,8 +441,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--loss-weight-warmup-keys",
         type=str,
-        default="vacuum,cond,chol_bound,expand_collision",
-        help="Comma-separated loss keys for warmup (vacuum,cond,chol_bound,expand_collision).",
+        default="vacuum,cross_vacuum,cond,chol_bound,expand_collision",
+        help="Comma-separated loss keys for warmup (vacuum,cross_vacuum,cond,chol_bound,expand_collision).",
     )
     parser.add_argument(
         "--loss-weight-warmup-start",
@@ -392,7 +506,6 @@ def parse_args() -> argparse.Namespace:
         f_embed_dim=None,
         rbf_dim=None,
         pair_mlp_hidden=None,
-        csv=None,
         optimizer="adamw",
         weight_decay=1e-2,
         betas="0.9,0.95",
@@ -427,7 +540,6 @@ def parse_args() -> argparse.Namespace:
         use_geometry_fields=True,
         align_atoms=True,
         coord_frame="canon",
-        niggli_reduce=False,
         bucket_batches=False,
         bucket_shuffle=False,
         use_condition=True,
@@ -476,6 +588,8 @@ def _parse_element_ids(value: Optional[str]) -> Optional[list[int]]:
 
 _VALID_QUALITY_BUCKETS = {"good", "risk", "bad"}
 _DEFAULT_QUALITY_BUCKETS = ("good", "risk")
+_SPACEGROUP_MAX = 230
+_SPACEGROUP_FIELDS = {"spacegroup", "spacegroup_number", "spacegroup_num"}
 
 
 def _parse_quality_buckets(value: Optional[str]) -> list[str]:
@@ -521,15 +635,11 @@ def _load_quality_map(path: Path) -> dict[str, dict[str, Any]]:
 
 
 def _material_id_for(dataset: Dataset, idx: int) -> str | None:
+    dataset_for_iter = _unwrap_indexed_dataset(dataset)
     if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
-        if dataset.material_ids is None:
+        if dataset_for_iter.material_ids is None:
             return None
-        return dataset.material_ids[idx]
-    if isinstance(dataset, C2DBAtomDataset):
-        try:
-            return dataset.base.get_metadata(idx).material_id
-        except IndexError:
-            return None
+        return dataset_for_iter.material_ids[idx]
     return None
 
 
@@ -608,12 +718,13 @@ class BucketBatchSampler(Sampler[list[int]]):
         return len(self.buckets)
 
 
-def _atom_counts(dataset: C2DBAtomDataset | C2DBTokenNPZDataset) -> torch.Tensor:
+def _atom_counts(dataset: C2DBTokenNPZDataset) -> torch.Tensor:
+    dataset_for_iter = _unwrap_indexed_dataset(dataset)
     if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
-        return dataset.atom_mask.sum(dim=1)
+        return dataset_for_iter.atom_mask.sum(dim=1)
     counts = []
-    for i in range(len(dataset)):
-        counts.append(dataset[i]["atom_mask"].sum())
+    for i in range(len(dataset_for_iter)):
+        counts.append(dataset_for_iter[i]["atom_mask"].sum())
     return torch.stack(counts, dim=0)
 
 
@@ -633,7 +744,7 @@ def _seed_everything(seed: int, deterministic: bool) -> None:
 
 
 def prepare_dataloader(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    dataset: C2DBTokenNPZDataset,
     batch_size: int,
     num_workers: int,
     use_buckets: bool,
@@ -735,7 +846,7 @@ def prepare_dataloader(
 
 @torch.no_grad()
 def _compute_dataset_min_dist(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    dataset: C2DBTokenNPZDataset,
     *,
     pbc_mask: tuple[int, int, int],
     g_scale: float,
@@ -965,7 +1076,7 @@ def _estimate_chol_diag_stats_from_lattice(
 
 
 def _estimate_scube_stats(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset, g_scale: float, indices: list[int] | None = None
+    dataset: C2DBTokenNPZDataset, g_scale: float, indices: list[int] | None = None
 ) -> tuple[float, float, float, float]:
     if isinstance(dataset, C2DBTokenNPZDataset):
         gram6 = dataset.gram6.float()
@@ -990,7 +1101,7 @@ def _estimate_scube_stats(
 
 
 def _estimate_volume_stats(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    dataset: C2DBTokenNPZDataset,
     g_scale: float,
     indices: list[int] | None = None,
 ) -> tuple[float, float, float] | None:
@@ -1055,6 +1166,18 @@ def _build_condition(
             counts = counts / max(1, max_atoms)
             parts.append(counts)
             continue
+        if field in _SPACEGROUP_FIELDS:
+            key = "spacegroup_number" if "spacegroup_number" in batch else field
+            if key not in batch:
+                raise ValueError(f"{field} not found in batch but requested by --cond-fields.")
+            sg = batch[key].long().view(-1)
+            one_hot = torch.zeros(sg.shape[0], _SPACEGROUP_MAX, device=sg.device, dtype=torch.float32)
+            valid = (sg > 0) & (sg <= _SPACEGROUP_MAX)
+            if valid.any():
+                idx = sg[valid] - 1
+                one_hot[valid, idx] = 1.0
+            parts.append(one_hot)
+            continue
         if field not in batch:
             raise ValueError(f"{field} not found in batch but requested by --cond-fields.")
         value = batch[field].float()
@@ -1076,6 +1199,12 @@ def _infer_cond_dim(sample: dict, cond_fields: list[str], num_elements: int) -> 
         if field in ("counts", "counts_vector"):
             cond_dim += num_elements
             continue
+        if field in _SPACEGROUP_FIELDS:
+            key = "spacegroup_number" if "spacegroup_number" in sample else field
+            if key not in sample:
+                raise ValueError(f"{field} not found but requested by --cond-fields.")
+            cond_dim += _SPACEGROUP_MAX
+            continue
         if field not in sample:
             raise ValueError(f"{field} not found but requested by --cond-fields.")
         value = sample[field]
@@ -1084,7 +1213,7 @@ def _infer_cond_dim(sample: dict, cond_fields: list[str], num_elements: int) -> 
 
 
 def _compute_cond_stats(
-    dataset: C2DBAtomDataset | C2DBTokenNPZDataset,
+    dataset: C2DBTokenNPZDataset,
     cond_fields: list[str],
     normalize_fields: list[str],
     indices: list[int] | None = None,
@@ -1096,6 +1225,8 @@ def _compute_cond_stats(
     indices_t = torch.as_tensor(indices, dtype=torch.long) if indices is not None else None
     for field in normalize_fields:
         if field in ("counts", "counts_vector"):
+            continue
+        if field in _SPACEGROUP_FIELDS:
             continue
         if field not in cond_fields:
             continue
@@ -1122,6 +1253,14 @@ def train_one_epoch(
     optimizer: optim.Optimizer,
     device: torch.device,
     log_interval: int,
+    tb_writer: Any | None,
+    tb_interval: int,
+    wandb_run: Any | None,
+    alert_steps: int,
+    alert_collision_rate: float,
+    alert_min_dist_p10: float,
+    alert_vacuum_gap: float,
+    alert_chol_clamp_rate: float,
     global_step: int,
     max_steps: int | None,
     total_steps: int,
@@ -1194,6 +1333,9 @@ def train_one_epoch(
                 counts_vector = counts_vector.to(device, non_blocking=True)
             else:
                 counts_vector = _counts_from_z(z, atom_mask, num_elements).to(device)
+        spacegroup_number = None
+        if "spacegroup_number" in batch:
+            spacegroup_number = batch["spacegroup_number"].to(device, non_blocking=True)
 
         lr = _adjust_lr(optimizer, global_step, total_steps, warmup_steps, base_lr, min_lr, schedule)
         loss_weight_state = None
@@ -1230,10 +1372,18 @@ def train_one_epoch(
             z_norm=z_norm,
             lattice_param=lattice_param,
             slab_t=slab_t,
+            spacegroup_number=spacegroup_number,
         )
         loss.backward()
         if clip_grad > 0:
             torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad)
+        grad_norm = None
+        if (
+            global_step % log_interval == 0
+            or (tb_writer is not None and global_step % tb_interval == 0)
+            or wandb_run is not None
+        ):
+            grad_norm = _grad_norm(model.parameters())
         optimizer.step()
         if ema is not None:
             ema.update(model)
@@ -1269,6 +1419,7 @@ def train_one_epoch(
                         bad = np.where(atom_counts < 2)[0].tolist()
                         min_dist_low_atoms_indices = [idx_np[i] for i in bad[:10]]
                 chol_log_clamp_rate = None
+                chol_diag = None
                 chol_min = (
                     model.cfg.model.chol_log_min_vec
                     if model.cfg.model.chol_log_min_vec is not None
@@ -1282,6 +1433,7 @@ def train_one_epoch(
                 if model.cfg.model.cell_rep == "cholesky6" and (chol_min is not None or chol_max is not None):
                     diag = gram6_to_cholesky6(gram6, log_min=None, log_max=None)[:, :3]
                     diag_np = diag.detach().cpu().numpy()
+                    chol_diag = diag.detach()
                     hit = np.zeros((diag_np.shape[0],), dtype=bool)
                     if chol_min is not None:
                         if isinstance(chol_min, (tuple, list)):
@@ -1317,10 +1469,12 @@ def train_one_epoch(
                 msg += f" loss_comp={metrics['loss_comp'].item():.4f}"
             if "loss_vacuum" in metrics:
                 msg += f" loss_vac={metrics['loss_vacuum'].item():.4f}"
+            if "loss_cross_vacuum" in metrics:
+                msg += f" loss_cv={metrics['loss_cross_vacuum'].item():.4f}"
             if "loss_angle" in metrics:
                 msg += f" loss_angle={metrics['loss_angle'].item():.4f}"
-            if "loss_cond" in metrics:
-                msg += f" loss_cond={metrics['loss_cond'].item():.4f}"
+            if "loss_cond_number" in metrics:
+                msg += f" loss_cond_number={metrics['loss_cond_number'].item():.4f}"
             if "loss_volume" in metrics:
                 msg += f" loss_vol={metrics['loss_volume'].item():.4f}"
             if "loss_c_len" in metrics:
@@ -1340,6 +1494,10 @@ def train_one_epoch(
             )
             if chol_log_clamp_rate is not None:
                 msg += f" chol_log_clamp={chol_log_clamp_rate:.3f}"
+            if "cross_vacuum_rate" in metrics:
+                msg += f" cross_vac_rate={metrics['cross_vacuum_rate'].item():.3f}"
+            if grad_norm is not None:
+                msg += f" grad_norm={grad_norm:.3f}"
             if "s_f" in metrics:
                 msg += (
                     f" s_f={metrics['s_f'].item():.3f}"
@@ -1358,7 +1516,27 @@ def train_one_epoch(
                     msg += f" s_comp={metrics['s_comp'].item():.3f}"
                 if "s_vacuum" in metrics:
                     msg += f" s_vac={metrics['s_vacuum'].item():.3f}"
+                if "s_cross_vacuum" in metrics:
+                    msg += f" s_cv={metrics['s_cross_vacuum'].item():.3f}"
             print(msg)
+            alerts = []
+            if global_step < alert_steps:
+                if collision_rate > alert_collision_rate:
+                    alerts.append("collision_rate")
+                if min_dist_p10 < alert_min_dist_p10:
+                    alerts.append("min_dist_p10")
+                if "vacuum_gap_mean" in metrics:
+                    vac_gap_val = float(metrics["vacuum_gap_mean"].item())
+                    if np.isfinite(vac_gap_val) and vac_gap_val > alert_vacuum_gap:
+                        alerts.append("vacuum_gap")
+                if chol_log_clamp_rate is not None and chol_log_clamp_rate > alert_chol_clamp_rate:
+                    alerts.append("chol_log_clamp")
+            if alerts:
+                print(
+                    f"[alert step {global_step}] "
+                    + ", ".join(alerts)
+                    + f" (collision_rate={collision_rate:.3f}, min_dist_p10={min_dist_p10:.3f})"
+                )
             if metrics_log_path is not None:
                 payload = {
                     "step": global_step,
@@ -1368,6 +1546,9 @@ def train_one_epoch(
                     "loss_z": float(metrics["loss_z"].item()),
                     "loss_comp": float(metrics.get("loss_comp", torch.tensor(0.0)).item()),
                     "loss_vacuum": float(metrics.get("loss_vacuum", torch.tensor(0.0)).item()),
+                    "loss_cross_vacuum": float(
+                        metrics.get("loss_cross_vacuum", torch.tensor(0.0)).item()
+                    ),
                     "lr": float(lr),
                     "min_dist_mean": min_dist_mean,
                     "min_dist_p10": min_dist_p10,
@@ -1395,8 +1576,8 @@ def train_one_epoch(
                     payload["loss_min_dist"] = float(metrics["loss_min_dist"].item())
                 if "loss_angle" in metrics:
                     payload["loss_angle"] = float(metrics["loss_angle"].item())
-                if "loss_cond" in metrics:
-                    payload["loss_cond"] = float(metrics["loss_cond"].item())
+                if "loss_cond_number" in metrics:
+                    payload["loss_cond_number"] = float(metrics["loss_cond_number"].item())
                 if "loss_volume" in metrics:
                     payload["loss_volume"] = float(metrics["loss_volume"].item())
                 if "loss_c_len" in metrics:
@@ -1419,6 +1600,8 @@ def train_one_epoch(
                     payload["min_dist_pred_p10"] = float(metrics["min_dist_pred_p10"].item())
                 if "vacuum_gap_mean" in metrics:
                     payload["vacuum_gap_mean"] = float(metrics["vacuum_gap_mean"].item())
+                if "cross_vacuum_rate" in metrics:
+                    payload["cross_vacuum_rate"] = float(metrics["cross_vacuum_rate"].item())
                 if "c_len_mean" in metrics:
                     payload["c_len_mean"] = float(metrics["c_len_mean"].item())
                 if "thickness_gap_mean" in metrics:
@@ -1454,10 +1637,19 @@ def train_one_epoch(
                         payload["s_t"] = float(metrics["s_t"].item())
                     if "s_angle" in metrics:
                         payload["s_angle"] = float(metrics["s_angle"].item())
+                    if "s_cross_vacuum" in metrics:
+                        payload["s_cross_vacuum"] = float(metrics["s_cross_vacuum"].item())
                 if "s_cond" in metrics:
                     payload["s_cond"] = float(metrics["s_cond"].item())
+                if grad_norm is not None:
+                    payload["grad_norm"] = float(grad_norm)
+                if alerts:
+                    payload["alerts"] = alerts
                 if loss_weight_state is not None:
                     payload["lambda_vacuum"] = float(loss_weight_state.get("vacuum", 0.0))
+                    payload["lambda_cross_vacuum"] = float(
+                        loss_weight_state.get("cross_vacuum", 0.0)
+                    )
                     payload["lambda_cond"] = float(loss_weight_state.get("cond", 0.0))
                     payload["lambda_chol_bound"] = float(loss_weight_state.get("chol_bound", 0.0))
                     payload["lambda_expand_collision"] = float(
@@ -1468,6 +1660,87 @@ def train_one_epoch(
                     payload["lambda_anisotropy"] = float(loss_weight_state.get("anisotropy", 0.0))
                 with metrics_log_path.open("a", encoding="utf-8") as f:
                     f.write(json.dumps(payload, ensure_ascii=True) + "\n")
+            if tb_writer is not None and global_step % tb_interval == 0:
+                tb_writer.add_scalar("loss/total", float(loss.item()), global_step)
+                tb_writer.add_scalar("loss/f", float(metrics["loss_f"].item()), global_step)
+                tb_writer.add_scalar("loss/g", float(metrics["loss_g"].item()), global_step)
+                tb_writer.add_scalar("loss/z", float(metrics["loss_z"].item()), global_step)
+                if "loss_vacuum" in metrics:
+                    tb_writer.add_scalar(
+                        "loss/vacuum", float(metrics["loss_vacuum"].item()), global_step
+                    )
+                if "loss_cross_vacuum" in metrics:
+                    tb_writer.add_scalar(
+                        "loss/cross_vacuum", float(metrics["loss_cross_vacuum"].item()), global_step
+                    )
+                if "loss_min_dist" in metrics:
+                    tb_writer.add_scalar(
+                        "loss/min_dist", float(metrics["loss_min_dist"].item()), global_step
+                    )
+                if grad_norm is not None:
+                    tb_writer.add_scalar("grad/total_norm", float(grad_norm), global_step)
+                tb_writer.add_scalar("dist/min_dist_mean", min_dist_mean, global_step)
+                tb_writer.add_scalar("dist/min_dist_p10", min_dist_p10, global_step)
+                tb_writer.add_scalar("dist/collision_rate", collision_rate, global_step)
+                if "vacuum_gap_mean" in metrics:
+                    tb_writer.add_scalar(
+                        "vacuum/gap_mean", float(metrics["vacuum_gap_mean"].item()), global_step
+                    )
+                if "cross_vacuum_rate" in metrics:
+                    tb_writer.add_scalar(
+                        "vacuum/cross_rate", float(metrics["cross_vacuum_rate"].item()), global_step
+                    )
+                if chol_log_clamp_rate is not None:
+                    tb_writer.add_scalar(
+                        "lattice/chol_log_clamp_rate", float(chol_log_clamp_rate), global_step
+                    )
+                if valid_mask.any():
+                    tb_writer.add_histogram(
+                        "dist/min_dist",
+                        torch.tensor(min_dist_batch[valid_mask], dtype=torch.float32),
+                        global_step,
+                    )
+                vac_gap = metrics.get("vacuum_gap")
+                if vac_gap is not None:
+                    vac_gap = vac_gap.detach().cpu()
+                    vac_gap = vac_gap[torch.isfinite(vac_gap)]
+                    if vac_gap.numel() > 0:
+                        tb_writer.add_histogram("vacuum/gap", vac_gap, global_step)
+                if chol_diag is not None:
+                    tb_writer.add_histogram(
+                        "lattice/chol_diag", chol_diag.detach().cpu(), global_step
+                    )
+            if wandb_run is not None:
+                wandb_payload = {
+                    "loss/total": float(loss.item()),
+                    "loss/f": float(metrics["loss_f"].item()),
+                    "loss/g": float(metrics["loss_g"].item()),
+                    "loss/z": float(metrics["loss_z"].item()),
+                    "dist/min_dist_mean": min_dist_mean,
+                    "dist/min_dist_p10": min_dist_p10,
+                    "dist/collision_rate": collision_rate,
+                }
+                if "loss_vacuum" in metrics:
+                    wandb_payload["loss/vacuum"] = float(metrics["loss_vacuum"].item())
+                if "loss_cross_vacuum" in metrics:
+                    wandb_payload["loss/cross_vacuum"] = float(
+                        metrics["loss_cross_vacuum"].item()
+                    )
+                if "loss_min_dist" in metrics:
+                    wandb_payload["loss/min_dist"] = float(metrics["loss_min_dist"].item())
+                if "vacuum_gap_mean" in metrics:
+                    wandb_payload["vacuum/gap_mean"] = float(metrics["vacuum_gap_mean"].item())
+                if "cross_vacuum_rate" in metrics:
+                    wandb_payload["vacuum/cross_rate"] = float(
+                        metrics["cross_vacuum_rate"].item()
+                    )
+                if chol_log_clamp_rate is not None:
+                    wandb_payload["lattice/chol_log_clamp_rate"] = float(chol_log_clamp_rate)
+                if grad_norm is not None:
+                    wandb_payload["grad/total_norm"] = float(grad_norm)
+                if alerts:
+                    wandb_payload["alerts"] = ",".join(alerts)
+                wandb_run.log(wandb_payload, step=global_step)
 
         global_step += 1
         total_loss += loss.item()
@@ -1527,45 +1800,35 @@ def main() -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
 
+    if args.npz is None:
+        raise ValueError("--npz is required; CSV-based datasets are no longer supported.")
     split_indices: list[int] | None = None
-    if args.npz is not None:
-        if args.coord_frame == "canon" and not args.align_atoms:
-            raise ValueError("--coord-frame canon requires --align-atoms to keep per-atom fields aligned.")
-        dataset = C2DBTokenNPZDataset(
-            args.npz, align_atoms=args.align_atoms, coord_frame=args.coord_frame
+    if args.coord_frame == "canon" and not args.align_atoms:
+        raise ValueError("--coord-frame canon requires --align-atoms to keep per-atom fields aligned.")
+    dataset = C2DBTokenNPZDataset(
+        args.npz, align_atoms=args.align_atoms, coord_frame=args.coord_frame
+    )
+    if args.split_json is not None and args.split != "all":
+        split_payload = load_c2db_split(args.split_json)
+        split_indices = select_split_indices(split_payload, args.split)
+        if not split_indices:
+            raise ValueError(f"Split subset {args.split!r} is empty in {args.split_json}.")
+        validate_split_indices(split_indices, total=len(dataset))
+    if args.g_scale != dataset.g_scale:
+        print(f"[warn] g_scale {args.g_scale} != dataset g_scale {dataset.g_scale}")
+    g_scale = dataset.g_scale
+    if getattr(dataset, "coord_frame", None) is not None or getattr(dataset, "schema_version", None) is not None:
+        print(
+            "[info] dataset alignment: "
+            f"align_atoms={dataset.align_atoms} "
+            f"coord_frame={getattr(dataset, 'coord_frame', None)} "
+            f"schema_version={getattr(dataset, 'schema_version', None)}"
         )
-        if args.split_json is not None and args.split != "all":
-            split_payload = load_c2db_split(args.split_json)
-            split_indices = select_split_indices(split_payload, args.split)
-            if not split_indices:
-                raise ValueError(f"Split subset {args.split!r} is empty in {args.split_json}.")
-            validate_split_indices(split_indices, total=len(dataset))
-        if args.g_scale != dataset.g_scale:
-            print(f"[warn] g_scale {args.g_scale} != dataset g_scale {dataset.g_scale}")
-        g_scale = dataset.g_scale
-        if getattr(dataset, "coord_frame", None) is not None or getattr(dataset, "schema_version", None) is not None:
-            print(
-                "[info] dataset alignment: "
-                f"align_atoms={dataset.align_atoms} "
-                f"coord_frame={getattr(dataset, 'coord_frame', None)} "
-                f"schema_version={getattr(dataset, 'schema_version', None)}"
-            )
-        if getattr(dataset, "coord_frame_actual", None) is not None and dataset.coord_frame_actual != args.coord_frame:
-            print(
-                f"[warn] requested coord_frame={args.coord_frame} "
-                f"but dataset fell back to coord_frame={dataset.coord_frame_actual}"
-            )
-    else:
-        if args.split_json is not None and args.split != "all":
-            raise ValueError("--split-json/--split are supported only when training from --npz.")
-        csv_path = args.csv if args.csv is not None else Path("data/C2DB/c2db_summary.csv")
-        dataset = C2DBAtomDataset(
-            csv_path,
-            max_atoms=args.max_atoms,
-            g_scale=args.g_scale,
-            niggli_reduce=args.niggli_reduce,
+    if getattr(dataset, "coord_frame_actual", None) is not None and dataset.coord_frame_actual != args.coord_frame:
+        print(
+            f"[warn] requested coord_frame={args.coord_frame} "
+            f"but dataset fell back to coord_frame={dataset.coord_frame_actual}"
         )
-        g_scale = args.g_scale
     dataset = IndexedDataset(dataset)
 
     quality_map: dict[str, dict[str, Any]] | None = None
@@ -1692,20 +1955,11 @@ def main() -> None:
     if use_thickness:
         t_values = getattr(dataset, "t", None)
         if t_values is not None:
-            use_dataset_stats = (
-                split_indices is None
-                and getattr(dataset, "cond_t_mean", None) is not None
-                and getattr(dataset, "cond_t_std", None) is not None
-            )
-            if use_dataset_stats:
-                t_mean = float(dataset.cond_t_mean.reshape(-1)[0])
-                t_std = float(dataset.cond_t_std.reshape(-1)[0])
-            else:
-                t_float = t_values.float()
-                if split_indices is not None:
-                    t_float = t_float.index_select(0, torch.as_tensor(split_indices, dtype=torch.long))
-                t_mean = float(t_float.mean().item())
-                t_std = float(t_float.std(unbiased=False).clamp_min(1e-6).item())
+            t_float = t_values.float()
+            if split_indices is not None:
+                t_float = t_float.index_select(0, torch.as_tensor(split_indices, dtype=torch.long))
+            t_mean = float(t_float.mean().item())
+            t_std = float(t_float.std(unbiased=False).clamp_min(1e-6).item())
             if t_std <= 0:
                 t_std = 1e-6
             t_stats = (t_mean, t_std)
@@ -1862,6 +2116,9 @@ def main() -> None:
         edge_type_dim=args.edge_type_dim,
         edge_type_gating=args.edge_type_gating,
         wrap_embed_dim=args.wrap_embed_dim,
+        tail_adapter=args.tail_adapter,
+        tail_hidden_dim=args.tail_hidden_dim,
+        tail_scale=args.tail_scale,
     )
     denoiser_cfg = AtomDenoiserConfig(model=model_cfg)
     denoiser_cfg.diffusion.mode = args.mode
@@ -1875,6 +2132,12 @@ def main() -> None:
     denoiser_cfg.diffusion.lambda_vacuum = float(args.vacuum_loss_weight)
     denoiser_cfg.diffusion.vacuum_min = float(args.vacuum_min)
     denoiser_cfg.diffusion.vacuum_loss_power = int(args.vacuum_loss_power)
+    denoiser_cfg.diffusion.vacuum_loss_mode = str(args.vacuum_loss_mode)
+    denoiser_cfg.diffusion.lambda_cross_vacuum = float(args.cross_vacuum_loss_weight)
+    denoiser_cfg.diffusion.cross_vacuum_bond_cut = float(args.cross_vacuum_bond_cut)
+    denoiser_cfg.diffusion.cross_vacuum_power = int(args.cross_vacuum_power)
+    denoiser_cfg.symmetry_loss_weight = float(args.symmetry_loss_weight)
+    denoiser_cfg.symmetry_symprec = float(args.symmetry_symprec)
     denoiser_cfg.diffusion.lambda_angle = float(args.angle_loss_weight)
     denoiser_cfg.diffusion.angle_min = float(args.angle_min)
     denoiser_cfg.diffusion.angle_max = float(args.angle_max)
@@ -1915,6 +2178,7 @@ def main() -> None:
     loss_weight_scheduler = None
     base_loss_weights = {
         "vacuum": float(args.vacuum_loss_weight),
+        "cross_vacuum": float(args.cross_vacuum_loss_weight),
         "cond": float(args.cond_loss_weight),
         "chol_bound": float(args.chol_bound_loss_weight),
         "expand_collision": float(args.expand_on_collision_weight),
@@ -1997,9 +2261,8 @@ def main() -> None:
         },
         "lattice_stats": lattice_stats,
         "dataset": {
-            "type": "C2DBTokenNPZDataset" if args.npz is not None else "C2DBAtomDataset",
-            "npz": str(args.npz) if args.npz is not None else None,
-            "csv": str(args.csv) if args.csv is not None else None,
+            "type": "C2DBTokenNPZDataset",
+            "npz": str(args.npz),
             "split_json": str(args.split_json) if args.split_json is not None else None,
             "split": str(args.split),
             "pbc_mask": pbc_mask,
@@ -2014,6 +2277,36 @@ def main() -> None:
     metrics_log_path = run_dir / "train_metrics.jsonl"
     if metrics_log_path.exists():
         metrics_log_path.unlink()
+
+    tb_writer = None
+    if args.tb_logdir is not None:
+        try:
+            from torch.utils.tensorboard import SummaryWriter
+
+            tb_writer = SummaryWriter(log_dir=str(args.tb_logdir))
+        except Exception as exc:  # pragma: no cover - optional dependency
+            print(f"[warn] TensorBoard not available: {exc}")
+
+    wandb_run = None
+    if args.wandb_project:
+        try:
+            import wandb
+
+            wandb_run = wandb.init(
+                project=str(args.wandb_project),
+                entity=str(args.wandb_entity) if args.wandb_entity else None,
+                name=str(args.wandb_name) if args.wandb_name else None,
+                dir=str(run_dir),
+                config={
+                    "model": str(args.model_size),
+                    "batch_size": int(args.batch_size),
+                    "lr": float(args.lr),
+                    "vacuum_loss_weight": float(args.vacuum_loss_weight),
+                    "cross_vacuum_loss_weight": float(args.cross_vacuum_loss_weight),
+                },
+            )
+        except Exception as exc:  # pragma: no cover - optional dependency
+            print(f"[warn] W&B init failed: {exc}")
 
     global_step = 0
     best_loss = float("inf")
@@ -2040,6 +2333,14 @@ def main() -> None:
             optimizer=optimizer,
             device=device,
             log_interval=args.log_interval,
+            tb_writer=tb_writer,
+            tb_interval=args.tb_interval,
+            wandb_run=wandb_run,
+            alert_steps=int(args.alert_steps),
+            alert_collision_rate=float(args.alert_collision_rate),
+            alert_min_dist_p10=float(args.alert_min_dist_p10),
+            alert_vacuum_gap=float(args.alert_vacuum_gap),
+            alert_chol_clamp_rate=float(args.alert_chol_clamp_rate),
             global_step=global_step,
             max_steps=args.max_steps,
             total_steps=total_steps,
@@ -2109,6 +2410,11 @@ def main() -> None:
         if args.max_steps is not None and global_step >= args.max_steps:
             print(f"Reached max_steps={args.max_steps}, stopping.")
             break
+
+    if tb_writer is not None:
+        tb_writer.close()
+    if wandb_run is not None:
+        wandb_run.finish()
 
 
 if __name__ == "__main__":

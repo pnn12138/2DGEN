@@ -68,6 +68,9 @@ class AtomTransformerConfig:
     comp_use_frac: bool = True
     element_ids: Optional[List[int]] = None
     pbc_mask: Tuple[int, int, int] = (1, 1, 0)
+    tail_adapter: str = "none"  # none | egnn
+    tail_hidden_dim: int = 128
+    tail_scale: float = 0.1
 
 
 class MLP(nn.Module):

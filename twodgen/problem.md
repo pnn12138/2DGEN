@@ -1,17 +1,19 @@
 # twodgen 问题清单（按严重程度排序）
 
-
+## P0（最高优先级，严重影响项目结论）
+- 已修复（2026-01-31）：训练侧碰撞惩罚无梯度。`min_dist_train_weight` 现在在 `AtomVelocityLoss` 内使用 `pred_x0_f/pred_x0_g` 计算，梯度链路指向模型输出。
 
 ## P1（高优先级）
-- 晶格体积塌缩到 `chol_log_min` 下界（根因级）：`train_metrics/tier0_metric.jsonl` 中 `volume.p10/p90≈71.2367` 几乎常数，且这一数值**严格等于** `train_metrics/config.jsonl` 的 `chol_log_min=-0.8805823`、`g_scale=100` 所对应的下界体积：
-  - `side_min = exp(chol_log_min) * sqrt(g_scale) ≈ 4.1454 Å`
-  - `volume_min = side_min^3 ≈ 71.2367 Å^3`
-  - 这说明采样时的 cell（`cell_rep=cholesky6`）在 `twodgen/common/crystal.py` 的 clamp（`cholesky6_to_lattice/cholesky6_to_gram6`）处**长期触底**，导致 lattice 尺度/角度分布不可学习地“贴边”，进而把后续所有几何指标一起带崩。现状：未解决。
-- 2D 真空维度约束失效：`train_metrics/tier1_2d_metrics.jsonl` 显示 `valid_2d_rate=0.01`、`cross_vacuum_rate=0.85`，且 `vacuum.mean=1.507` 远低于目标 `vacuum_min=15`；同时 `train_metrics/config.jsonl` 中 `vacuum_loss_weight=0.0/lambda_vacuum=0.0`，训练侧完全未优化真空。更关键的是：在“晶格触底”情况下，`c_len` 最大也只有约 `4.15 Å`，理论上就不可能达到 `15 Å` 的真空要求，因此该问题与上条强耦合。现状：未解决。
-- Tier‑0 有效率过低/碰撞严重：`train_metrics/tier0_metric.jsonl` 显示 `valid_rate_eval=0.08` 且 `collision=184/200`，`min_dist.median=0.971 < min_dist_cut=1.5`。在 `volume` 被压到下界后，真实笛卡尔距离整体缩小，采样末尾的 `min_dist` repulsion 只能挪 `frac`，无法把 lattice 拉大，因此碰撞很难从根上缓解。现状：未解决。
+- 已修复（2026-01-31）：对称性损失不可导。`_symmetry_residual_loss` 仅保留为指标记录，训练 loss 不再叠加该常量项，避免误导。
+- 已修复（2026-01-31）：真空损失只约束晶胞不约束原子位置。`vacuum loss` 使用 `pred_x0_f` 计算最大真空间隙，梯度回传到原子坐标预测。
+- 已修复（2026-01-31）：训练/采样在缺少 canonical 字段时会直接崩溃。`twodgen/data/c2db_dataset.py` 已补充 `import warnings`，确保 fallback 到 raw 坐标。
 
 ## P2（中优先级）
-（已核验）训练/评估产物已对齐：训练曲线按 step 写入 `outputs/checkpoints/<run>/train_metrics.jsonl`，评估写入 `tier0_metrics.json`、`tier1_2d_metrics.json`、`per_sample.jsonl`（见 `twodgen/history.md`）。本节问题已移除。
+- 已修复（2026-01-31）：评估缓存易产生陈旧指标。`eval_cache.npz` 现在校验 `CACHE_VERSION`、`bond_cut`、`pbc_mask` 以及样本 `mtime/size`，不一致即重建缓存。
+- 待优化：训练/评估核心几何变换存在明显性能瓶颈。`twodgen/common/crystal.py::gram6_to_lattice/gram6_to_cholesky6` 仍是逐样本 Python 循环，后续考虑批量化/torch.linalg 批处理改写。
+- 训练时重复计算全量 `min_dist`：`_compute_dataset_min_dist` 只从 `dataset.extra` 读取缓存，但 `min_dist` 存在 `C2DBTokenNPZDataset.min_dist`，导致每次启动都重算（大数据集显著拖慢训练启动）。
+
 
 ## P3（低优先级）
-- 评估链路依赖缺失/占位：`property_predict.py` 仍为 mock（`twodgen/evaluate/property_predict.py:1-80`），形成能评估依赖的 `ref_energies.json` 无生成路径（`twodgen/evaluate/formation_energy.py:30-60`），影响评估完整性但不直接阻断训练。现状：未解决。
+- 已修复（2026-01-31）：`twodgen/evaluate/cache.py::build_eval_cache` 的 `pbc_mask` 参数未使用。现在与 eval_samples 行为对齐，仅在 `pbc_mask[c_idx]==0` 时触发 3D cross-vacuum 检测。
+- 已核验（2026-01-31）：`twodgen/loss/schedule.py::_normalize_keys` 当前不存在于仓库（已清理），无需处理。

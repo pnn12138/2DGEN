@@ -4,7 +4,7 @@ import argparse
 import json
 import random
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 import sys
 
 import numpy as np
@@ -14,6 +14,7 @@ from pymatgen.io.cif import CifWriter
 
 from twodgen.common.crystal import frac_mic_dist, gram6_to_cholesky6
 from twodgen.evaluate import eval_samples as eval_samples_mod
+from twodgen.common.geometry_np import choose_vacuum_axis, min_dist_and_shifts, thickness_vacuum
 from twodgen.common.run_metadata import collect_run_metadata
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
@@ -23,6 +24,158 @@ from twodgen.model.atom_transformer import AtomTransformerConfig
 
 _VALID_QUALITY_BUCKETS = {"good", "risk", "bad"}
 _DEFAULT_QUALITY_BUCKETS = ("good", "risk")
+_SPACEGROUP_MAX = 230
+_SPACEGROUP_FIELDS = {"spacegroup", "spacegroup_number", "spacegroup_num"}
+
+
+def _expand_and_center_vacuum(
+    lattice: np.ndarray, frac: np.ndarray, target_c: float
+) -> Tuple[np.ndarray, np.ndarray, int]:
+    c_idx, c_len, _ = choose_vacuum_axis(lattice)
+    new_lattice = np.array(lattice, dtype=float, copy=True)
+    new_frac = np.array(frac, dtype=float, copy=True)
+    if np.isfinite(c_len) and c_len > 0 and c_len < target_c:
+        scale = float(target_c) / c_len
+        new_lattice[c_idx] = new_lattice[c_idx] * scale
+    if new_frac.size:
+        z = new_frac[:, c_idx]
+        z_min = float(np.min(z))
+        z_max = float(np.max(z))
+        shift = 0.5 - 0.5 * (z_min + z_max)
+        new_frac[:, c_idx] = (z + shift) % 1.0
+    return new_lattice, new_frac, c_idx
+
+
+def _rescale_inplane_for_density(
+    lattice: np.ndarray,
+    num_atoms: int,
+    target_area_per_atom: float,
+    min_scale: float,
+) -> np.ndarray:
+    if num_atoms <= 0:
+        return lattice
+    c_idx, _, _ = choose_vacuum_axis(lattice)
+    axes = [0, 1, 2]
+    axes.remove(c_idx)
+    a_vec = lattice[axes[0]]
+    b_vec = lattice[axes[1]]
+    area = float(np.linalg.norm(np.cross(a_vec, b_vec)))
+    if not np.isfinite(area) or area <= 0:
+        return lattice
+    area_per_atom = area / max(float(num_atoms), 1.0)
+    if area_per_atom <= target_area_per_atom:
+        return lattice
+    scale = (target_area_per_atom / max(area_per_atom, 1e-8)) ** 0.5
+    scale = max(min(scale, 1.0), min_scale)
+    if scale >= 1.0:
+        return lattice
+    new_lattice = np.array(lattice, dtype=float, copy=True)
+    new_lattice[axes[0]] = new_lattice[axes[0]] * scale
+    new_lattice[axes[1]] = new_lattice[axes[1]] * scale
+    return new_lattice
+
+
+def _flatten_along_c(
+    lattice: np.ndarray, frac: np.ndarray, factor: float
+) -> np.ndarray:
+    if frac.size == 0:
+        return frac
+    c_idx, _, _ = choose_vacuum_axis(lattice)
+    c_vec = lattice[c_idx]
+    norm = float(np.linalg.norm(c_vec))
+    if norm <= 0:
+        return frac
+    c_unit = c_vec / norm
+    cart = frac @ lattice
+    proj = cart @ c_unit
+    mean = float(np.mean(proj))
+    proj_new = mean + (proj - mean) * float(factor)
+    cart = cart + (proj_new - proj)[:, None] * c_unit[None, :]
+    try:
+        inv = np.linalg.inv(lattice)
+    except np.linalg.LinAlgError:
+        return frac
+    frac_new = cart @ inv
+    return frac_new
+
+
+def _load_chgnet_calculator(device: Optional[str]) -> Any:
+    try:
+        from chgnet.model import CHGNet  # type: ignore
+        from chgnet.model.dynamics import CHGNetCalculator  # type: ignore
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise ImportError("chgnet is required for --relax. Install via `pip install chgnet`.") from exc
+    model = CHGNet.load()
+    if device is not None:
+        try:
+            model = model.to(device)
+        except Exception:
+            pass
+    try:
+        calc = CHGNetCalculator(model=model, use_device=device)
+    except TypeError:
+        calc = CHGNetCalculator(model=model)
+    return calc
+
+
+def _relax_structure(calc: Any, structure: Structure, steps: int, fmax: float) -> Tuple[Structure, Optional[float]]:
+    try:
+        from ase.optimize import BFGS  # type: ignore
+        from pymatgen.io.ase import AseAtomsAdaptor  # type: ignore
+    except Exception as exc:  # pragma: no cover - optional dependency
+        raise ImportError("ase/pymatgen is required for CHGNet relaxation.") from exc
+
+    atoms = AseAtomsAdaptor.get_atoms(structure)
+    atoms.calc = calc
+    try:
+        optimizer = BFGS(atoms, logfile=None)
+        optimizer.run(fmax=float(fmax), steps=int(steps))
+    except Exception:
+        pass
+    try:
+        energy = float(atoms.get_potential_energy())
+    except Exception:
+        energy = None
+    relaxed = AseAtomsAdaptor.get_structure(atoms)
+    return relaxed, energy
+
+
+def relax_batch(
+    structures: List[Structure],
+    *,
+    steps: int = 50,
+    fmax: float = 0.05,
+    device: Optional[str] = None,
+) -> Tuple[List[Structure], List[Optional[float]], List[bool]]:
+    calc = _load_chgnet_calculator(device=device)
+    relaxed_structures: List[Structure] = []
+    energies: List[Optional[float]] = []
+    flags: List[bool] = []
+    for structure in structures:
+        try:
+            relaxed, energy = _relax_structure(calc, structure, steps=steps, fmax=fmax)
+            relaxed_structures.append(relaxed)
+            energies.append(energy)
+            flags.append(True)
+        except Exception:
+            relaxed_structures.append(structure)
+            energies.append(None)
+            flags.append(False)
+    return relaxed_structures, energies, flags
+
+
+def _mlip_forces(calc: Any, structure: Structure) -> Optional[np.ndarray]:
+    try:
+        from pymatgen.io.ase import AseAtomsAdaptor  # type: ignore
+    except Exception as exc:  # pragma: no cover - environment dependent
+        raise ImportError("ase/pymatgen is required for MLIP force guidance.") from exc
+    atoms = AseAtomsAdaptor.get_atoms(structure)
+    atoms.calc = calc
+    try:
+        forces = np.asarray(atoms.get_forces(), dtype=np.float32)
+    except Exception:
+        return None
+    return forces
 
 
 def _parse_quality_buckets(value: Optional[str]) -> list[str]:
@@ -96,32 +249,15 @@ def _filter_indices_by_quality(
         kept.append(idx)
     return kept, missing, filtered
 
-def _install_checkpoint_legacy_shims() -> None:
-    """
-    Install legacy module name aliases to load older checkpoints.
-
-    Historical checkpoints stored config objects under module paths like
-    `model.atom_transformer.AtomTransformerConfig`. The codebase has since moved
-    them to `twodgen.*`. We alias those modules so `torch.load(..., weights_only=False)`
-    can unpickle trusted checkpoints without requiring the old package layout.
-    """
-    import sys
-    import types
-
-    import twodgen.common.atom_diffusion as atom_diffusion_mod
-    import twodgen.model.atom_denoiser as atom_denoiser_mod
-    import twodgen.model.atom_transformer as atom_transformer_mod
-
-    sys.modules.setdefault("model", types.ModuleType("model"))
-    sys.modules.setdefault("common", types.ModuleType("common"))
-    sys.modules["model.atom_transformer"] = atom_transformer_mod
-    sys.modules["model.atom_denoiser"] = atom_denoiser_mod
-    sys.modules["common.atom_diffusion"] = atom_diffusion_mod
-
-
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Sample token-based crystal diffusion and export CIF.")
     parser.add_argument("--checkpoint", type=Path, required=True)
+    parser.add_argument(
+        "--unsafe-load",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Allow unsafe checkpoint loading with torch.load(weights_only=False).",
+    )
     parser.add_argument("--npz", type=Path, default=None, help="Token cache for sampling N/volume stats.")
     parser.add_argument("--cond-npz", type=Path, default=None, help="Token cache used to provide conditioning rows.")
     parser.add_argument(
@@ -158,6 +294,18 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser.add_argument("--num-samples", type=int, default=10)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
+    parser.add_argument(
+        "--cfg-scale",
+        type=float,
+        default=1.0,
+        help="Classifier-free guidance scale (>1 enables CFG).",
+    )
+    parser.add_argument(
+        "--cond-drop-prob",
+        type=float,
+        default=None,
+        help="Override checkpoint cond_drop_prob during sampling (defaults to 0 when cfg_scale > 1).",
+    )
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/samples_tokens"))
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
@@ -165,6 +313,12 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         action=argparse.BooleanOptionalAction,
         default=False,
         help="If set, project fractional coords and clip lattice every sampling step.",
+    )
+    parser.add_argument(
+        "--min-dist-project",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="If set, apply min_dist repulsion during sampling.",
     )
     parser.add_argument(
         "--vacuum-min",
@@ -191,11 +345,54 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         help="If set, isotropically expand the lattice when min_dist falls below min_dist_cut.",
     )
     parser.add_argument(
+        "--relax",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, run CHGNet relaxation on sampled structures.",
+    )
+    parser.add_argument("--relax-steps", type=int, default=50)
+    parser.add_argument("--relax-fmax", type=float, default=0.05)
+    parser.add_argument("--relax-vacuum", type=float, default=20.0)
+    parser.add_argument("--relax-target-area-per-atom", type=float, default=12.0)
+    parser.add_argument("--relax-min-scale", type=float, default=0.3)
+    parser.add_argument(
+        "--relax-flatten-z",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, compress atoms along c-axis before vacuum expansion.",
+    )
+    parser.add_argument("--relax-flatten-factor", type=float, default=0.1)
+    parser.add_argument("--relax-device", type=str, default=None)
+    parser.add_argument(
+        "--force-guidance",
+        action="store_true",
+        help="If set, apply MLIP force guidance during the last sampling steps.",
+    )
+    parser.add_argument("--force-guidance-start", type=float, default=0.8)
+    parser.add_argument("--force-guidance-scale", type=float, default=0.05)
+    parser.add_argument("--force-guidance-interval", type=int, default=1)
+    parser.add_argument("--force-guidance-max-force", type=float, default=10.0)
+    parser.add_argument("--force-guidance-device", type=str, default=None)
+    parser.add_argument(
+        "--relax-out-dir",
+        type=Path,
+        default=None,
+        help="Optional output directory for relaxed CIFs (default: <out_dir>/relaxed).",
+    )
+    parser.add_argument(
         "--lattice-jitter",
         type=float,
         default=0.02,
         help="Log-normal isotropic jitter applied to lattice scale (0 disables).",
     )
+    parser.add_argument(
+        "--z-clamp",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, clamp fractional z within slab thickness each sampling step.",
+    )
+    parser.add_argument("--z-clamp-min-t", type=float, default=5.0)
+    parser.add_argument("--z-clamp-max-t", type=float, default=None)
 
     parser.set_defaults(
         deterministic=False,
@@ -204,7 +401,6 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         num_atoms=None,
         g_scale=100.0,
         min_dist=None,
-        min_dist_project=True,
         min_dist_iter=12,
         min_dist_strength=0.05,
         min_dist_cut=None,
@@ -323,6 +519,17 @@ def _build_cond_from_npz(
             counts = counts / float(max_atoms)
             parts.append(counts)
             continue
+        if field in _SPACEGROUP_FIELDS:
+            key = "spacegroup_number" if "spacegroup_number" in data else field
+            if key not in data:
+                raise ValueError(f"{field} not found in cond npz.")
+            sg = data[key][indices].astype(np.int64).reshape(-1)
+            one_hot = np.zeros((sg.shape[0], _SPACEGROUP_MAX), dtype=np.float32)
+            valid = (sg > 0) & (sg <= _SPACEGROUP_MAX)
+            if np.any(valid):
+                one_hot[np.where(valid)[0], sg[valid] - 1] = 1.0
+            parts.append(one_hot)
+            continue
         if field not in data:
             raise ValueError(f"{field} not found in cond npz.")
         value = data[field][indices].astype(np.float32)
@@ -344,6 +551,8 @@ def _cond_stats_from_npz(npz_path: Path, normalize_fields: list[str]) -> dict:
     stats: dict[str, float | list] = {}
     for field in normalize_fields:
         if field in ("counts", "counts_vector"):
+            continue
+        if field in _SPACEGROUP_FIELDS:
             continue
         mean_key = f"cond_{field}_mean"
         std_key = f"cond_{field}_std"
@@ -406,6 +615,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "num_samples": int(args.num_samples),
         "steps": int(args.steps),
         "method": str(args.method),
+        "cfg_scale": float(args.cfg_scale),
         "seed": int(args.seed),
     }
 
@@ -442,9 +652,16 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if args.npz is not None:
         n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=coord_frame_actual)
 
-    print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
-    _install_checkpoint_legacy_shims()
-    ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    if args.unsafe_load:
+        print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
+        ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
+    else:
+        try:
+            ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
+        except Exception as exc:
+            raise RuntimeError(
+                "Safe checkpoint load failed. Re-run with --unsafe-load if the checkpoint is trusted."
+            ) from exc
     model_cfg = ckpt.get("config")
     if model_cfg is None:
         model_cfg = AtomTransformerConfig(num_elements=118, k_neighbors=32, g_scale=args.g_scale)
@@ -481,6 +698,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
             model_cfg.edge_type_gating = True
         if not hasattr(model_cfg, "wrap_embed_dim"):
             model_cfg.wrap_embed_dim = 0
+        if not hasattr(model_cfg, "tail_adapter"):
+            model_cfg.tail_adapter = "none"
+        if not hasattr(model_cfg, "tail_hidden_dim"):
+            model_cfg.tail_hidden_dim = 128
+        if not hasattr(model_cfg, "tail_scale"):
+            model_cfg.tail_scale = 0.1
     if args.pbc_mask is not None:
         model_cfg.pbc_mask = _parse_pbc_mask(args.pbc_mask)
     print(
@@ -518,6 +741,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
             denoiser_cfg.diffusion.cell_init_scale = None
         if not hasattr(denoiser_cfg.diffusion, "cell_init_noise"):
             denoiser_cfg.diffusion.cell_init_noise = None
+    if args.cond_drop_prob is not None:
+        denoiser_cfg.diffusion.cond_drop_prob = float(args.cond_drop_prob)
+    elif float(args.cfg_scale) > 1.0:
+        denoiser_cfg.diffusion.cond_drop_prob = 0.0
     if denoiser_cfg.diffusion.cell_rep == "cholesky6" and args.npz is not None:
         scube_stats = _load_npz_scube_stats(args.npz, coord_frame=coord_frame_actual)
         if scube_stats is not None:
@@ -532,15 +759,6 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 model_cfg.chol_log_max = float(np.log(max(2.5 * s90, 1e-6)))
     if vol_bounds is not None:
         v_min, v_max = vol_bounds
-        # NOTE: for cholesky6 the internal lattice is in *scaled* length units
-        # (physical / sqrt(g_scale)), so volumes scale by g_scale^(3/2).
-        if str(denoiser_cfg.diffusion.cell_rep) == "cholesky6":
-            g_scale = float(getattr(model_cfg, "g_scale", 1.0))
-            vol_scale = max(g_scale, 1e-12) ** 1.5
-            denoiser_cfg.v_min = float(v_min) / vol_scale
-            denoiser_cfg.v_max = float(v_max) / vol_scale
-        else:
-            denoiser_cfg.v_min, denoiser_cfg.v_max = float(v_min), float(v_max)
     if args.cell_init is not None:
         denoiser_cfg.diffusion.cell_init = args.cell_init
     if args.cell_init_scale is not None:
@@ -550,6 +768,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
     denoiser_cfg.neighbor_update_steps = max(args.neighbor_update_steps, 1)
     denoiser_cfg.project_each_step = args.project_each_step
     denoiser_cfg.project_geometry = args.project_geometry
+    denoiser_cfg.z_clamp = bool(args.z_clamp)
+    denoiser_cfg.z_clamp_min_t = float(args.z_clamp_min_t)
+    denoiser_cfg.z_clamp_max_t = (
+        float(args.z_clamp_max_t) if args.z_clamp_max_t is not None else None
+    )
+    sampling_config["cond_drop_prob"] = float(getattr(denoiser_cfg.diffusion, "cond_drop_prob", 0.0))
     z_norm_clip = args.z_norm_clip
     if z_norm_clip is None and args.npz is not None:
         z_norm_clip = _load_npz_z_norm_clip(args.npz)
@@ -585,6 +809,55 @@ def run_sampling(args: argparse.Namespace) -> Path:
         print(f"[warn] Unexpected keys in checkpoint: {len(incompatible.unexpected_keys)}")
     model.eval()
 
+    guidance_fn = None
+    if args.force_guidance:
+        calc = _load_chgnet_calculator(device=args.force_guidance_device)
+        max_force = float(args.force_guidance_max_force)
+
+        def _force_guidance(
+            frac: torch.Tensor,
+            lattice: torch.Tensor,
+            atom_mask: torch.Tensor,
+            z: torch.Tensor,
+            step: int,
+            steps: int,
+        ) -> Optional[torch.Tensor]:
+            frac_np = frac.detach().cpu().numpy()
+            lattice_np = lattice.detach().cpu().numpy()
+            mask_np = atom_mask.detach().cpu().numpy()
+            z_np = z.detach().cpu().numpy()
+            delta = np.zeros_like(frac_np, dtype=np.float32)
+            for i in range(frac_np.shape[0]):
+                mask_i = (mask_np[i] > 0.5) & (z_np[i] > 0)
+                if not np.any(mask_i):
+                    continue
+                coords = frac_np[i][mask_i]
+                lattice_mat = lattice_np[i]
+                zs = z_np[i][mask_i].astype(int).tolist()
+                structure = Structure(
+                    lattice=lattice_mat,
+                    species=[Element.from_Z(z_val) for z_val in zs],
+                    coords=coords,
+                    coords_are_cartesian=False,
+                )
+                forces = _mlip_forces(calc, structure)
+                if forces is None:
+                    continue
+                forces = np.clip(forces, -max_force, max_force)
+                try:
+                    inv = np.linalg.inv(lattice_mat)
+                except np.linalg.LinAlgError:
+                    continue
+                delta_frac = forces @ inv
+                delta[i][mask_i] = delta_frac.astype(np.float32)
+            return torch.from_numpy(delta).to(frac.device, frac.dtype)
+
+        guidance_fn = _force_guidance
+        sampling_config["force_guidance"] = True
+        sampling_config["force_guidance_start"] = float(args.force_guidance_start)
+        sampling_config["force_guidance_scale"] = float(args.force_guidance_scale)
+        sampling_config["force_guidance_interval"] = int(args.force_guidance_interval)
+
     cond = None
     cond_fields = []
     normalize_fields = []
@@ -611,6 +884,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
     cond_counts_vector = None
     cond_indices = None
     cond_strategy = None
+    cond_spacegroup = None
     if cond_cfg.get("use_condition"):
         cond_npz = args.cond_npz or args.npz
         if cond_npz is None:
@@ -709,6 +983,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
         cond_indices = indices.astype(np.int64)
         if "counts_vector" in data and ("counts_vector" in cond_fields or "counts" in cond_fields):
             cond_counts_vector = data["counts_vector"][indices].astype(np.int64)
+        if "spacegroup_number" in data and any(field in _SPACEGROUP_FIELDS for field in cond_fields):
+            cond_spacegroup = data["spacegroup_number"][indices].astype(np.int64)
         cond = _build_cond_from_npz(
             Path(cond_npz),
             indices,
@@ -788,6 +1064,11 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 z_top_p=args.z_top_p,
                 cond=cond[idxs] if cond is not None else None,
                 counts_vector=counts_tensor,
+                cfg_scale=float(args.cfg_scale),
+                guidance_fn=guidance_fn,
+                guidance_start=float(args.force_guidance_start),
+                guidance_interval=int(args.force_guidance_interval),
+                guidance_scale=float(args.force_guidance_scale),
             )
             lattice = model.gram6_to_lattice(gram6)
             if chol_log_clamp_flags is not None:
@@ -863,9 +1144,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
         if args.expand_vacuum and args.vacuum_min is not None:
             lengths = np.linalg.norm(lattice_mat, axis=1)
             if np.all(np.isfinite(lengths)) and np.all(lengths > 0):
-                c_idx = int(np.argmax(lengths))
-                c_len = float(lengths[c_idx])
-                thickness, vacuum = eval_samples_mod._thickness_vacuum(coords_np[:, c_idx], c_len)
+                c_idx, c_len, _ = choose_vacuum_axis(lattice_mat)
+                thickness, vacuum = thickness_vacuum(coords_np[:, c_idx], c_len)
                 if np.isfinite(vacuum) and float(vacuum) < float(args.vacuum_min):
                     target_len = float(thickness) + float(args.vacuum_min)
                     scale = target_len / max(c_len, 1e-8)
@@ -882,13 +1162,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
         frac_np[i][mask] = coords_np
 
         lengths = np.linalg.norm(lattice_mat, axis=1)
-        c_idx = int(np.argmax(lengths)) if np.all(np.isfinite(lengths)) else 2
-        c_len = float(lengths[c_idx]) if np.all(np.isfinite(lengths)) else float("nan")
-        thickness, vacuum = eval_samples_mod._thickness_vacuum(coords_np[:, c_idx], c_len)
+        c_idx, c_len, _ = choose_vacuum_axis(lattice_mat)
+        thickness, vacuum = thickness_vacuum(coords_np[:, c_idx], c_len)
         thickness_np[i] = float(thickness)
         vacuum_np[i] = float(vacuum)
         if args.reject_cross_vacuum and len(zs) > 1:
-            dist_3d, _, shifts_3d = eval_samples_mod._min_dist_and_shifts(
+            dist_3d, _, shifts_3d = min_dist_and_shifts(
                 coords_np, lattice_mat, pbc_mask=(1, 1, 1)
             )
             if np.ndim(dist_3d) == 0:
@@ -1081,10 +1360,90 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if cond_counts_vector is not None:
         payload["cond_counts_vector"] = cond_counts_vector
         payload["cond_counts_source"] = np.array("target")
+    if cond_spacegroup is not None:
+        payload["cond_spacegroup"] = cond_spacegroup
     if cond_strategy is not None:
         payload["cond_strategy"] = np.array(cond_strategy)
     if args.cond_split_json is not None:
         payload["cond_split"] = np.array(str(args.cond_split))
+
+    if args.relax:
+        relax_out_dir = args.relax_out_dir or (args.out_dir / "relaxed")
+        relax_out_dir.mkdir(parents=True, exist_ok=True)
+        relaxed_frac = np.array(frac_np, copy=True)
+        relaxed_lattice = np.array(lattice_np, copy=True)
+        relaxed_flag = np.zeros((frac_np.shape[0],), dtype=np.int64)
+        energy_mlip = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
+        min_dist_relax = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
+
+        structures: List[Optional[Structure]] = []
+        index_map: List[List[int]] = []
+        for i in range(frac_np.shape[0]):
+            z_i = z_np[i]
+            mask_i = mask_np[i] if mask_np is not None else np.ones_like(z_i, dtype=float)
+            valid_idx = np.where((mask_i > 0.5) & (z_i > 0))[0].tolist()
+            index_map.append(valid_idx)
+            if not valid_idx:
+                structures.append(None)
+                continue
+            zs = [int(z_i[idx]) for idx in valid_idx]
+            coords = frac_np[i][valid_idx]
+            lattice_mat = _rescale_inplane_for_density(
+                lattice_np[i],
+                num_atoms=len(zs),
+                target_area_per_atom=float(args.relax_target_area_per_atom),
+                min_scale=float(args.relax_min_scale),
+            )
+            if args.relax_flatten_z:
+                coords = _flatten_along_c(
+                    lattice_mat, coords, factor=float(args.relax_flatten_factor)
+                )
+            lattice_mat, coords, _ = _expand_and_center_vacuum(
+                lattice_mat, coords, float(args.relax_vacuum)
+            )
+            elements = [Element.from_Z(z) for z in zs]
+            structure = Structure(lattice=lattice_mat, species=elements, coords=coords, coords_are_cartesian=False)
+            structures.append(structure)
+
+        to_relax = [s for s in structures if s is not None]
+        relaxed_structures, energies, flags = relax_batch(
+            to_relax, steps=int(args.relax_steps), fmax=float(args.relax_fmax), device=args.relax_device
+        )
+        relaxed_iter = iter(zip(relaxed_structures, energies, flags))
+
+        for i, valid_idx in enumerate(index_map):
+            if not valid_idx:
+                continue
+            structure, energy, ok = next(relaxed_iter)
+            if energy is not None:
+                energy_mlip[i] = float(energy)
+            relaxed_flag[i] = int(bool(ok))
+            if not valid_idx:
+                continue
+            relaxed_lattice[i] = np.asarray(structure.lattice.matrix, dtype=np.float32)
+            relaxed_frac[i][valid_idx] = np.asarray(structure.frac_coords, dtype=np.float32)
+            try:
+                min_dist, _, _ = min_dist_and_shifts(
+                    relaxed_frac[i][valid_idx], relaxed_lattice[i], pbc_mask=(1, 1, 0)
+                )
+                min_dist_relax[i] = float(min_dist)
+            except Exception:
+                pass
+            if args.save_cif:
+                try:
+                    writer = CifWriter(structure)
+                    writer.write_file(relax_out_dir / f"{args.cif_prefix}_{i}.cif")
+                except Exception:
+                    pass
+
+        payload["frac_pre_relax"] = frac_np
+        payload["lattice_pre_relax"] = lattice_np
+        payload["frac"] = relaxed_frac
+        payload["lattice"] = relaxed_lattice
+        payload["relaxed_flag"] = relaxed_flag
+        payload["energy_mlip"] = energy_mlip
+        payload["min_dist_relax"] = min_dist_relax
+
     np.savez_compressed(args.out_dir / "samples.npz", **payload)
     sampling_config["export"] = {
         "valid_rate_samples": float(valid_rate),
@@ -1168,7 +1527,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
             stats = eval_samples_mod._load_npz_stats(stats_npz)
             if stats is not None:
                 v_min, v_max = stats
-        per_sample, tier0, tier1 = eval_samples_mod._eval_samples(
+        element_refs_path = Path("data/ref_energies.json")
+        element_refs = eval_samples_mod._load_element_refs(element_refs_path)
+        atomic_ref_map = eval_samples_mod._atomic_ref_map(element_refs, 0.0)
+        per_sample, tier0, tier1, success_manifest = eval_samples_mod._eval_samples(
             samples,
             v_min=v_min,
             v_max=v_max,
@@ -1177,6 +1539,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
             dup_eps=args.eval_dup_eps,
             pbc_mask=eval_pbc_mask,
             vacuum_min=args.vacuum_min,
+            atomic_ref_map=atomic_ref_map,
+            formation_energy_threshold=0.0,
+            success_top_k=10,
         )
         eval_params = eval_samples_mod.build_eval_params(
             min_dist_cut=float(args.eval_min_dist),
@@ -1186,6 +1551,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
             v_min=v_min,
             v_max=v_max,
             pbc_mask=eval_pbc_mask,
+            formation_energy_threshold=0.0,
+            element_refs_path=element_refs_path,
         )
         eval_samples_mod.write_eval_outputs(
             out_dir=eval_out_dir,
@@ -1193,6 +1560,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
             tier0=tier0,
             tier1=tier1,
             eval_params=eval_params,
+            success_manifest=success_manifest,
             run_context={
                 "source": "sample_tokens",
                 "samples": str(samples_path),

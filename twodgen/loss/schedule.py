@@ -9,7 +9,7 @@ class LossWeightScheduleConfig:
     warmup_steps: int = 15000
     start_factor: float = 0.0
     end_factor: float = 1.0
-    keys: tuple[str, ...] = ("vacuum", "cond", "chol_bound", "expand_collision")
+    keys: tuple[str, ...] = ("vacuum", "cross_vacuum", "cond", "chol_bound", "expand_collision")
     schedule: str = "sigmoid"
 
 
@@ -18,11 +18,6 @@ class LossWeightScheduler:
         self._base_weights = dict(base_weights)
         self._cfg = cfg
         self._keys = set(cfg.keys)
-
-    @staticmethod
-    def _normalize_keys(keys: Iterable[str]) -> tuple[str, ...]:
-        normalized = [key.strip().lower() for key in keys if key.strip()]
-        return tuple(dict.fromkeys(normalized))
 
     def factor(self, step: int) -> float:
         if self._cfg.warmup_steps <= 0:

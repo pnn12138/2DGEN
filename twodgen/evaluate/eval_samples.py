@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import argparse
-import itertools
 import json
 import shlex
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
+from pymatgen.core import Element
+
+from twodgen.common.geometry_np import choose_vacuum_axis, min_dist_and_shifts, thickness_vacuum
+from twodgen.evaluate.cache import load_eval_cache
 
 
 EVAL_SCHEMA_VERSION = "eval_samples_v1"
@@ -22,6 +25,69 @@ VALID_CRITERIA = [
 ]
 
 
+_ELEMENT_SYMBOLS = [None] + [Element.from_Z(z).symbol for z in range(1, 119)]
+_SPACEGROUP_MAX = 230
+
+
+def _spacegroup_number(
+    lattice: np.ndarray, frac: np.ndarray, numbers: np.ndarray, symprec: float
+) -> Optional[int]:
+    try:
+        import spglib  # type: ignore
+    except Exception:  # pragma: no cover - optional dependency
+        return None
+    try:
+        cell = (lattice, frac, numbers)
+        dataset = spglib.get_symmetry_dataset(cell, symprec=float(symprec))
+        if dataset is None:
+            return None
+        return int(dataset.get("number"))
+    except Exception:
+        return None
+
+
+def _load_element_refs(path: Optional[Path]) -> Optional[Dict[str, float]]:
+    if path is None:
+        return None
+    with path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    return {str(k): float(v) for k, v in data.items()}
+
+
+def _atomic_ref_map(
+    element_refs: Optional[Dict[str, float]],
+    default_mu: float,
+) -> list[float]:
+    ref_map: list[float] = [default_mu]
+    for symbol in _ELEMENT_SYMBOLS[1:]:
+        if element_refs is None:
+            ref_map.append(float(default_mu))
+        else:
+            ref_map.append(float(element_refs.get(symbol, default_mu)))
+    return ref_map
+
+
+def _formation_energy_per_atom(
+    total_energy: Optional[float],
+    counts_vec: np.ndarray,
+    atomic_ref_map: list[float],
+) -> Optional[float]:
+    if total_energy is None or not np.isfinite(total_energy):
+        return None
+    n_atoms = int(np.sum(counts_vec))
+    if n_atoms <= 0:
+        return None
+    ref_energy = 0.0
+    for idx, count in enumerate(counts_vec):
+        if count <= 0:
+            continue
+        z = idx + 1
+        ref_energy += atomic_ref_map[z] * float(count)
+    if not np.isfinite(ref_energy):
+        ref_energy = float(atomic_ref_map[0] * n_atoms)
+    return float((total_energy - ref_energy) / max(n_atoms, 1))
+
+
 def build_eval_params(
     *,
     min_dist_cut: float,
@@ -31,6 +97,10 @@ def build_eval_params(
     v_min: Optional[float],
     v_max: Optional[float],
     pbc_mask: Tuple[int, int, int],
+    formation_energy_threshold: float,
+    element_refs_path: Optional[Path],
+    target_spacegroup: Optional[int] = None,
+    spacegroup_symprec: float = 1e-2,
 ) -> Dict[str, Any]:
     return {
         "min_dist_cut": float(min_dist_cut),
@@ -40,6 +110,10 @@ def build_eval_params(
         "v_min": float(v_min) if v_min is not None else None,
         "v_max": float(v_max) if v_max is not None else None,
         "pbc_mask": pbc_mask,
+        "formation_energy_threshold": float(formation_energy_threshold),
+        "element_refs_path": str(element_refs_path) if element_refs_path is not None else None,
+        "target_spacegroup": int(target_spacegroup) if target_spacegroup is not None else None,
+        "spacegroup_symprec": float(spacegroup_symprec),
     }
 
 
@@ -50,6 +124,7 @@ def write_eval_outputs(
     tier0: Dict[str, Any],
     tier1: Dict[str, Any],
     eval_params: Dict[str, Any],
+    success_manifest: Optional[List[Dict[str, Any]]] = None,
     run_context: Optional[Dict[str, Any]] = None,
 ) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -71,6 +146,9 @@ def write_eval_outputs(
         json.dump(tier0, f, indent=2, ensure_ascii=True)
     with (out_dir / "tier1_2d_metrics.json").open("w", encoding="utf-8") as f:
         json.dump(tier1, f, indent=2, ensure_ascii=True)
+    if success_manifest:
+        with (out_dir / "success_manifest.json").open("w", encoding="utf-8") as f:
+            json.dump(success_manifest, f, indent=2, ensure_ascii=True)
 
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
@@ -121,49 +199,6 @@ def _counts_from_samples(z: np.ndarray, atom_mask: np.ndarray, num_elements: int
     return counts
 
 
-def _min_dist_and_shifts(
-    frac: np.ndarray, lattice: np.ndarray, pbc_mask: Tuple[int, int, int]
-) -> Tuple[float, np.ndarray, np.ndarray]:
-    df = frac[:, None, :] - frac[None, :, :]
-    pbc = np.asarray(pbc_mask, dtype=float).reshape((1, 1, 1, 3))
-
-    # Exact MIC by enumerating neighbor-cell shifts (2D slab: 9 shifts).
-    shifts_1d = (-1.0, 0.0, 1.0)
-    zeros_1d = (0.0,)
-    components = [
-        shifts_1d if pbc_mask[0] == 1 else zeros_1d,
-        shifts_1d if pbc_mask[1] == 1 else zeros_1d,
-        shifts_1d if pbc_mask[2] == 1 else zeros_1d,
-    ]
-    shifts_all = np.asarray(list(itertools.product(*components)), dtype=float)  # (S, 3)
-
-    df_shifted = df[:, :, None, :] - shifts_all[None, None, :, :]  # (N, N, S, 3)
-    dr = df_shifted @ lattice  # (N, N, S, 3)
-    dist_all = np.linalg.norm(dr, axis=-1)  # (N, N, S)
-    best_idx = np.argmin(dist_all, axis=-1)  # (N, N)
-    dist = np.take_along_axis(dist_all, best_idx[:, :, None], axis=-1)[:, :, 0]
-    shifts = shifts_all[best_idx]
-
-    np.fill_diagonal(dist, np.inf)
-    min_dist = float(np.min(dist)) if dist.size > 0 else float("inf")
-    return min_dist, dist, shifts
-
-
-def _thickness_vacuum(frac: np.ndarray, c_len: float) -> Tuple[float, float]:
-    if frac.size == 0:
-        return float("nan"), float("nan")
-    coords = np.sort(frac)
-    if coords.size == 1:
-        thickness = 0.0
-        return thickness, c_len - thickness
-    gaps = np.diff(coords, axis=0).flatten().tolist()
-    gaps.append(1.0 - (coords[-1] - coords[0]))
-    max_gap = max(gaps)
-    thickness = (1.0 - max_gap) * c_len
-    vacuum = c_len - thickness
-    return float(thickness), float(vacuum)
-
-
 def _gcc_ratio(n_atoms: int, edges: List[Tuple[int, int]]) -> float:
     if n_atoms == 0:
         return 0.0
@@ -199,7 +234,12 @@ def _eval_samples(
     dup_eps: float,
     pbc_mask: Tuple[int, int, int],
     vacuum_min: Optional[float] = None,
-) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, Any]]:
+    atomic_ref_map: Optional[list[float]] = None,
+    formation_energy_threshold: float = 0.0,
+    success_top_k: int = 10,
+    target_spacegroup: Optional[int] = None,
+    spacegroup_symprec: float = 1e-2,
+) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, Any], List[Dict[str, Any]]]:
     z = samples["z"]
     frac = samples["frac"]
     lattice = samples["lattice"]
@@ -240,8 +280,8 @@ def _eval_samples(
             "comp_l1": comp_l1,
             "comp_cos": comp_cos,
         }
-        if cond_source_value is None and exact_match.size and np.all(exact_match) and np.all(l1 == 0):
-            cond_match_suspect = True
+    if cond_source_value is None and exact_match.size and np.all(exact_match) and np.all(l1 == 0):
+        cond_match_suspect = True
 
     per_sample: List[Dict[str, Any]] = []
     fail_counts: Dict[str, int] = {}
@@ -267,6 +307,18 @@ def _eval_samples(
 
     valid_flags: List[int] = []
     valid_2d_flags: List[int] = []
+
+    counts_batch = _counts_from_samples(z, atom_mask, num_elements=len(_ELEMENT_SYMBOLS) - 1)
+    energy_mlip_values = samples.get("energy_mlip")
+    energy_stats: List[float] = []
+    formation_stats: List[float] = []
+    success_flags: List[int] = []
+    sg_numbers: List[Optional[int]] = []
+    sg_match_flags: List[int] = []
+    sg_violation_flags: List[int] = []
+    cond_spacegroup = samples.get("cond_spacegroup")
+    if cond_spacegroup is not None:
+        cond_spacegroup = cond_spacegroup.reshape(-1)
 
     for i in range(z.shape[0]):
         mask = atom_mask[i] > 0.5
@@ -295,7 +347,7 @@ def _eval_samples(
             cond = float(eigvals.max() / max(eigvals.min(), 1e-12))
 
         if n_atoms > 0:
-            min_dist, dist, shifts = _min_dist_and_shifts(frac_i, lattice_i, pbc_mask=pbc_mask)
+            min_dist, dist, shifts = min_dist_and_shifts(frac_i, lattice_i, pbc_mask=pbc_mask)
             min_dists.append(min_dist)
             if min_dist < min_dist_cut:
                 reasons.append("collision")
@@ -342,10 +394,9 @@ def _eval_samples(
             angle_out_flags.append(angle_out)
             if angle_out:
                 reasons.append("angle_out_of_range")
-        c_idx = int(np.argmax(lengths))
-        c_len = float(lengths[c_idx])
+        c_idx, c_len, _ = choose_vacuum_axis(lattice_i)
         if n_atoms > 0:
-            thickness, vacuum = _thickness_vacuum(frac_i[:, c_idx], c_len)
+            thickness, vacuum = thickness_vacuum(frac_i[:, c_idx], c_len)
         else:
             thickness, vacuum = float("nan"), float("nan")
 
@@ -354,7 +405,7 @@ def _eval_samples(
         if n_atoms > 1:
             dist_3d, shifts_3d = None, None
             if pbc_mask[c_idx] == 0:
-                _, dist_3d, shifts_3d = _min_dist_and_shifts(frac_i, lattice_i, pbc_mask=(1, 1, 1))
+                _, dist_3d, shifts_3d = min_dist_and_shifts(frac_i, lattice_i, pbc_mask=(1, 1, 1))
             for a in range(n_atoms):
                 for b in range(a + 1, n_atoms):
                     if dist[a, b] < bond_cut:
@@ -392,6 +443,69 @@ def _eval_samples(
         valid_flags.append(int(valid))
         valid_2d_flags.append(int(valid_2d))
 
+        counts_vec = counts_batch[i]
+        energy_val: Optional[float] = None
+        if energy_mlip_values is not None:
+            energy_raw = energy_mlip_values[i]
+            if np.isfinite(float(energy_raw)):
+                energy_val = float(energy_raw)
+        formation_energy: Optional[float] = None
+        if atomic_ref_map is not None:
+            formation_energy = _formation_energy_per_atom(
+                energy_val, counts_vec, atomic_ref_map
+            )
+        cond_ok = True
+        if cond_metrics is not None:
+            cond_ok = bool(cond_metrics["exact_match"][i])
+
+        target_sg = target_spacegroup
+        if cond_spacegroup is not None:
+            if np.size(cond_spacegroup) > i:
+                sg_val = int(cond_spacegroup[i])
+                if sg_val > 0:
+                    target_sg = sg_val
+        sg_number = None
+        sg_match = None
+        if n_atoms > 0 and target_sg is not None:
+            sg_number = _spacegroup_number(lattice_i, frac_i, z_i, symprec=spacegroup_symprec)
+            sg_match = bool(sg_number == int(target_sg))
+        elif n_atoms > 0:
+            sg_number = _spacegroup_number(lattice_i, frac_i, z_i, symprec=spacegroup_symprec)
+        symmetry_violation = None
+        if target_sg is not None:
+            symmetry_violation = not bool(sg_match) if sg_match is not None else True
+        if sg_match is not None:
+            sg_match_flags.append(int(sg_match))
+        if symmetry_violation is not None:
+            sg_violation_flags.append(int(symmetry_violation))
+        sg_numbers.append(sg_number)
+
+        low_energy = (
+            formation_energy is not None and formation_energy <= float(formation_energy_threshold)
+        )
+        symmetry_ok = True if target_sg is None else bool(sg_match)
+        success_flag = bool(valid and valid_2d and cond_ok and low_energy and symmetry_ok)
+        success_reasons: List[str] = []
+        if not valid:
+            success_reasons.append("invalid")
+        if not valid_2d:
+            success_reasons.append("invalid_2d")
+        if not cond_ok:
+            success_reasons.append("cond_mismatch")
+        if not low_energy:
+            if formation_energy is None:
+                success_reasons.append("missing_energy")
+            else:
+                success_reasons.append("high_energy")
+        if not symmetry_ok:
+            success_reasons.append("spacegroup_mismatch")
+
+        if energy_val is not None:
+            energy_stats.append(energy_val)
+        if formation_energy is not None:
+            formation_stats.append(formation_energy)
+        success_flags.append(int(success_flag))
+
         row = {
             "id": int(i),
             "n_atoms": n_atoms,
@@ -408,6 +522,13 @@ def _eval_samples(
             "valid": valid,
             "valid_2d": valid_2d,
             "fail_reason": "+".join(reasons) if reasons else "",
+            "energy_mlip": energy_val,
+            "formation_energy_per_atom": formation_energy,
+            "success": success_flag,
+            "success_fail_reason": "+".join(success_reasons) if success_reasons else "",
+            "spacegroup_number": sg_number,
+            "spacegroup_match": sg_match if sg_match is not None else None,
+            "symmetry_violation": symmetry_violation,
         }
         if cond_metrics is not None:
             row.update(
@@ -431,6 +552,11 @@ def _eval_samples(
         "volume": _summary_stats(volumes),
         "cond": _summary_stats(conds),
         "spd_rate": float(np.mean([c < float("inf") for c in conds])) if conds else 0.0,
+        "energy_mlip": _summary_stats(energy_stats),
+        "formation_energy_per_atom": _summary_stats(formation_stats),
+        "success_rate": float(np.mean(success_flags)) if success_flags else 0.0,
+        "spacegroup_match_rate": float(np.mean(sg_match_flags)) if sg_match_flags else None,
+        "symmetry_violation_rate": float(np.mean(sg_violation_flags)) if sg_violation_flags else None,
         "angle_alpha": _summary_stats(angles_alpha),
         "angle_beta": _summary_stats(angles_beta),
         "angle_gamma": _summary_stats(angles_gamma),
@@ -461,7 +587,26 @@ def _eval_samples(
         "anisotropy": _summary_stats(anisotropies),
         "total_samples": int(z.shape[0]),
     }
-    return per_sample, tier0, tier1
+    success_manifest: List[Dict[str, Any]] = []
+    if success_top_k > 0 and per_sample:
+        sorted_samples = sorted(
+            per_sample,
+            key=lambda row: row["formation_energy_per_atom"]
+            if row.get("formation_energy_per_atom") is not None
+            else float("inf"),
+        )
+        top_rows = sorted_samples[:success_top_k]
+        for row in top_rows:
+            success_manifest.append(
+                {
+                    "id": row["id"],
+                    "formation_energy_per_atom": row.get("formation_energy_per_atom"),
+                    "energy_mlip": row.get("energy_mlip"),
+                    "success": row["success"],
+                    "fail_reason": row["fail_reason"],
+                }
+            )
+    return per_sample, tier0, tier1, success_manifest
 
 
 def parse_args() -> argparse.Namespace:
@@ -475,6 +620,32 @@ def parse_args() -> argparse.Namespace:
         default=15.0,
         help="If set, report vacuum_ok_rate = P(vacuum >= vacuum_min).",
     )
+    parser.add_argument(
+        "--element-refs",
+        type=Path,
+        default=Path("data/ref_energies.json"),
+        help="JSON file mapping element symbols to reference energies (per atom). Set to empty string to disable.",
+    )
+    parser.add_argument(
+        "--formation-energy-threshold",
+        type=float,
+        default=0.0,
+        help="Threshold for formation energy per atom when calculating success rate.",
+    )
+    parser.add_argument(
+        "--formation-energy-default-mu",
+        type=float,
+        default=0.0,
+        help="Default elemental chemical potential used when a reference energy is missing.",
+    )
+    parser.add_argument(
+        "--success-top-k",
+        type=int,
+        default=10,
+        help="Number of top samples (sorted by formation energy) to record in success_manifest.",
+    )
+    parser.add_argument("--target-spacegroup", type=int, default=None)
+    parser.add_argument("--spacegroup-symprec", type=float, default=1e-2)
     parser.set_defaults(
         min_dist=1.5,
         eval_min_dist=None,
@@ -501,8 +672,8 @@ def main() -> None:
     if args.self_check:
         lattice = np.eye(3, dtype=float)
         frac = np.array([[0.1, 0.1, 0.1], [0.9, 0.1, 0.9]], dtype=float)
-        d_3d, _, shifts_3d = _min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 1))
-        d_slab, _, shifts_slab = _min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 0))
+        d_3d, _, shifts_3d = min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 1))
+        d_slab, _, shifts_slab = min_dist_and_shifts(frac, lattice, pbc_mask=(1, 1, 0))
         assert abs(d_3d - (0.2**2 + 0.0**2 + 0.2**2) ** 0.5) < 1e-6, d_3d
         assert abs(d_slab - (0.2**2 + 0.0**2 + 0.8**2) ** 0.5) < 1e-6, d_slab
         assert np.all(shifts_slab[..., 2] == 0.0)
@@ -523,16 +694,25 @@ def main() -> None:
             sample_argv += shlex.split(args.sample_args)
         sample_args = sample_tokens_mod.parse_args(sample_argv)
         samples_path = sample_tokens_mod.run_sampling(sample_args)
-        samples = np.load(samples_path)
+        samples = dict(np.load(samples_path))
         out_dir = args.out_dir or (samples_path.parent / "eval")
     else:
         if args.samples is None:
             raise ValueError("--samples is required unless --self-check is set.")
-        samples = np.load(args.samples)
+        samples_path = args.samples
+        samples = dict(np.load(args.samples))
         out_dir = args.out_dir
         if out_dir is None:
             out_dir = args.samples.parent / "eval"
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        cache = load_eval_cache(samples_path, pbc_mask=pbc_mask, bond_cut=args.bond_cut)
+        for key in ("energy_mlip", "relaxed_flag", "cross_vacuum_flag"):
+            if key not in samples and key in cache:
+                samples[key] = cache[key]
+    except Exception:
+        pass
 
     if "min_dist_cut" in samples:
         stored = float(np.asarray(samples["min_dist_cut"]).reshape(-1)[0])
@@ -548,7 +728,13 @@ def main() -> None:
         if stats is not None:
             v_min, v_max = stats
 
-    per_sample, tier0, tier1 = _eval_samples(
+    element_refs_path = args.element_refs
+    if element_refs_path is not None and str(element_refs_path).strip() == "":
+        element_refs_path = None
+    element_refs = _load_element_refs(element_refs_path)
+    atomic_ref_map = _atomic_ref_map(element_refs, float(args.formation_energy_default_mu))
+
+    per_sample, tier0, tier1, success_manifest = _eval_samples(
         samples,
         v_min=v_min,
         v_max=v_max,
@@ -557,6 +743,11 @@ def main() -> None:
         dup_eps=args.dup_eps,
         pbc_mask=pbc_mask,
         vacuum_min=args.vacuum_min,
+        atomic_ref_map=atomic_ref_map,
+        formation_energy_threshold=args.formation_energy_threshold,
+        success_top_k=args.success_top_k,
+        target_spacegroup=args.target_spacegroup,
+        spacegroup_symprec=args.spacegroup_symprec,
     )
     eval_params = build_eval_params(
         min_dist_cut=float(args.min_dist),
@@ -566,6 +757,10 @@ def main() -> None:
         v_min=v_min,
         v_max=v_max,
         pbc_mask=pbc_mask,
+        formation_energy_threshold=args.formation_energy_threshold,
+        element_refs_path=element_refs_path,
+        target_spacegroup=args.target_spacegroup,
+        spacegroup_symprec=args.spacegroup_symprec,
     )
     write_eval_outputs(
         out_dir=out_dir,
@@ -573,6 +768,7 @@ def main() -> None:
         tier0=tier0,
         tier1=tier1,
         eval_params=eval_params,
+        success_manifest=success_manifest,
         run_context={"source": "eval_samples", "samples": str(args.samples)},
     )
 

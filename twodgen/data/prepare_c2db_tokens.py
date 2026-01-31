@@ -10,70 +10,21 @@ import numpy as np
 import pandas as pd
 from pymatgen.core import Structure
 
-from twodgen.data.clean_c2db_2d import _mic_dist_and_shifts
+try:  # Optional dependency: spacegroup metadata uses spglib via pymatgen.
+    from pymatgen.symmetry.analyzer import SpacegroupAnalyzer  # type: ignore
+except Exception:  # pragma: no cover - environment dependent
+    SpacegroupAnalyzer = None  # type: ignore
+
+from twodgen.common.geometry_np import choose_vacuum_axis, min_dist_and_shifts, thickness_vacuum
 from twodgen.data.preprocess import PreprocessConfig, preprocess_cartesian
-
-
-def _pad_1d(values: np.ndarray, max_len: int, pad_value: float) -> Tuple[np.ndarray, np.ndarray]:
-    trimmed = values[:max_len]
-    padded = np.full((max_len,), pad_value, dtype=trimmed.dtype)
-    padded[: len(trimmed)] = trimmed
-    mask = np.zeros((max_len,), dtype=np.float32)
-    mask[: len(trimmed)] = 1.0
-    return padded, mask
-
-
-def _pad_2d(values: np.ndarray, max_len: int, pad_value: float) -> Tuple[np.ndarray, np.ndarray]:
-    trimmed = values[:max_len]
-    padded = np.full((max_len, 3), pad_value, dtype=np.float32)
-    padded[: len(trimmed)] = trimmed.astype(np.float32)
-    mask = np.zeros((max_len,), dtype=np.float32)
-    mask[: len(trimmed)] = 1.0
-    return padded, mask
-
-
-def _pad_2d4(values: np.ndarray, max_len: int, pad_value: float) -> Tuple[np.ndarray, np.ndarray]:
-    trimmed = values[:max_len]
-    padded = np.full((max_len, 4), pad_value, dtype=np.float32)
-    padded[: len(trimmed)] = trimmed.astype(np.float32)
-    mask = np.zeros((max_len,), dtype=np.float32)
-    mask[: len(trimmed)] = 1.0
-    return padded, mask
-
-
-def _wrap01_array(x: np.ndarray) -> np.ndarray:
-    return x - np.floor(x)
-
-
-def _thickness_vacuum(frac_1d: np.ndarray, c_len: float) -> Tuple[float, float]:
-    frac_1d = _wrap01_array(frac_1d.astype(float))
-    if frac_1d.size == 0:
-        return float("nan"), float("nan")
-    coords = np.sort(frac_1d)
-    if coords.size == 1:
-        thickness = 0.0
-        return thickness, float(c_len - thickness)
-    gaps = np.diff(coords, axis=0).flatten().tolist()
-    gaps.append(1.0 - (coords[-1] - coords[0]))
-    max_gap = float(max(gaps))
-    thickness = (1.0 - max_gap) * float(c_len)
-    vacuum = float(c_len) - thickness
-    return float(thickness), float(vacuum)
-
-
-def _choose_vacuum_axis(lattice: np.ndarray) -> Tuple[int, float]:
-    lengths = np.linalg.norm(lattice.astype(float), axis=1)
-    if not np.all(np.isfinite(lengths)) or np.any(lengths <= 0.0):
-        return 2, float("nan")
-    c_idx = int(np.argmax(lengths))
-    return c_idx, float(lengths[c_idx])
+from twodgen.data.utils import pad_1d, pad_2d, pad_2d4, wrap01_array
 
 
 def _cross_vacuum_bond(frac: np.ndarray, lattice: np.ndarray, bond_cut: float) -> bool:
-    c_idx, _ = _choose_vacuum_axis(lattice)
+    c_idx, _, _ = choose_vacuum_axis(lattice)
     if frac.shape[0] < 2:
         return False
-    dist_3d, shifts_3d = _mic_dist_and_shifts(frac.astype(float), lattice.astype(float), pbc_mask=(1, 1, 1))
+    _, dist_3d, shifts_3d = min_dist_and_shifts(frac.astype(float), lattice.astype(float), pbc_mask=(1, 1, 1))
     edges = np.where(dist_3d < float(bond_cut))
     if edges[0].size == 0:
         return False
@@ -107,13 +58,24 @@ def _counts_vector(atomic_numbers: np.ndarray, max_atomic_number: int = 118) -> 
     return counts
 
 
+def _spacegroup_info(structure: Structure) -> Tuple[int, str]:
+    if SpacegroupAnalyzer is None:
+        return -1, ""
+    try:
+        analyzer = SpacegroupAnalyzer(structure, symprec=1e-2, angle_tolerance=5.0)
+        number = int(analyzer.get_space_group_number())
+        symbol = str(analyzer.get_space_group_symbol())
+        return number, symbol
+    except Exception:
+        return -1, ""
+
+
 def row_to_tokens(
     cif_str: str,
     max_atoms: int,
     pad_value: float,
     g_scale: float,
     niggli_reduce: bool,
-    preprocess_v3: bool,
     preprocess_cfg: PreprocessConfig,
     min_dist_cut: float,
     pbc_mask: Tuple[int, int, int],
@@ -131,14 +93,15 @@ def row_to_tokens(
     frac_coords = np.asarray(structure.frac_coords, dtype=np.float32)
     lattice = np.asarray(structure.lattice.matrix, dtype=np.float32)
     pos_cart = np.asarray(structure.cart_coords, dtype=np.float64)
+    spacegroup_number, spacegroup_symbol = _spacegroup_info(structure)
 
-    padded_numbers, mask_numbers = _pad_1d(atomic_numbers, max_atoms, pad_value)
-    padded_coords, mask_coords = _pad_2d(frac_coords, max_atoms, pad_value)
+    padded_numbers, mask_numbers = pad_1d(atomic_numbers, max_atoms, pad_value)
+    padded_coords, mask_coords = pad_2d(frac_coords, max_atoms, pad_value)
     atom_mask = np.minimum(mask_numbers, mask_coords)
 
     gram6 = _lattice_to_gram6(lattice) / g_scale
     if num_atoms >= 2:
-        dist, _ = _mic_dist_and_shifts(
+        _, dist, _ = min_dist_and_shifts(
             frac_coords.astype(float),
             lattice.astype(float),
             pbc_mask=pbc_mask,
@@ -147,8 +110,9 @@ def row_to_tokens(
     else:
         min_dist = float("inf")
     collision_risk = float(min_dist < float(min_dist_cut))
-    c_idx, c_len = _choose_vacuum_axis(lattice)
-    thickness, vacuum = _thickness_vacuum(frac_coords[:, c_idx], c_len)
+    c_idx, c_len, _ = choose_vacuum_axis(lattice)
+    frac_c = wrap01_array(frac_coords[:, c_idx])
+    thickness, vacuum = thickness_vacuum(frac_c, c_len)
     low_vacuum_risk = bool(np.isfinite(vacuum) and vacuum < float(vacuum_min))
     cross_vacuum_bond = _cross_vacuum_bond(frac_coords, lattice, bond_cut=bond_cut)
     payload = {
@@ -164,17 +128,19 @@ def row_to_tokens(
         "slab_vacuum": np.asarray(vacuum, dtype=np.float32),
         "low_vacuum_risk": np.asarray(int(low_vacuum_risk), dtype=np.int64),
         "cross_vacuum_bond": np.asarray(int(cross_vacuum_bond), dtype=np.int64),
+        "spacegroup_number": np.asarray(spacegroup_number, dtype=np.int64),
+        "spacegroup_symbol": np.asarray(spacegroup_symbol, dtype=np.unicode_),
     }
 
-    if preprocess_v3 and num_atoms > 0:
+    if num_atoms > 0:
         pre = preprocess_cartesian(lattice.astype(np.float64), pos_cart, atomic_numbers, preprocess_cfg)
         order_idx = pre["order_idx"]
         order_inv = _invert_order(order_idx)
 
         canon_numbers = atomic_numbers[order_idx]
         canon_coords = frac_coords[order_idx]
-        padded_z_canon, mask_z_canon = _pad_1d(canon_numbers, max_atoms, pad_value)
-        padded_f_canon, mask_f_canon = _pad_2d(canon_coords, max_atoms, pad_value)
+        padded_z_canon, mask_z_canon = pad_1d(canon_numbers, max_atoms, pad_value)
+        padded_f_canon, mask_f_canon = pad_2d(canon_coords, max_atoms, pad_value)
         atom_mask_canon = np.minimum(mask_z_canon, mask_f_canon)
 
         lattice_canon = pre["lattice_canon"].astype(np.float32)
@@ -183,25 +149,25 @@ def row_to_tokens(
         except np.linalg.LinAlgError:
             return None
         frac_canon = pos_cart @ inv_lattice_canon
-        frac_canon = _wrap01_array(frac_canon)
+        frac_canon = wrap01_array(frac_canon)
         u_shift = float(pre["u_shift"])
         v_shift = float(pre["v_shift"])
-        frac_canon[:, 0] = _wrap01_array(frac_canon[:, 0] - u_shift)
-        frac_canon[:, 1] = _wrap01_array(frac_canon[:, 1] - v_shift)
+        frac_canon[:, 0] = wrap01_array(frac_canon[:, 0] - u_shift)
+        frac_canon[:, 1] = wrap01_array(frac_canon[:, 1] - v_shift)
         frac_canon = frac_canon[order_idx]
-        padded_frac_canon, mask_frac_canon = _pad_2d(frac_canon.astype(np.float32), max_atoms, pad_value)
+        padded_frac_canon, mask_frac_canon = pad_2d(frac_canon.astype(np.float32), max_atoms, pad_value)
         atom_mask_canon = np.minimum(atom_mask_canon, mask_frac_canon)
         gram6_canon = _lattice_to_gram6(lattice_canon) / g_scale
 
         uvz = np.stack([pre["u"], pre["v"], pre["z_norm"]], axis=-1)
-        padded_z, _ = _pad_1d(pre["Z"], max_atoms, pad_value)
-        padded_uvz, _ = _pad_2d(uvz, max_atoms, pad_value)
-        padded_uv_angle, _ = _pad_2d4(pre["uv_angle"], max_atoms, pad_value)
-        padded_u, _ = _pad_1d(pre["u"], max_atoms, pad_value)
-        padded_v, _ = _pad_1d(pre["v"], max_atoms, pad_value)
-        padded_z_norm, _ = _pad_1d(pre["z_norm"], max_atoms, pad_value)
-        padded_order, _ = _pad_1d(pre["order_idx"], max_atoms, -1)
-        padded_order_inv, _ = _pad_1d(order_inv, max_atoms, -1)
+        padded_z, _ = pad_1d(pre["Z"], max_atoms, pad_value)
+        padded_uvz, _ = pad_2d(uvz, max_atoms, pad_value)
+        padded_uv_angle, _ = pad_2d4(pre["uv_angle"], max_atoms, pad_value)
+        padded_u, _ = pad_1d(pre["u"], max_atoms, pad_value)
+        padded_v, _ = pad_1d(pre["v"], max_atoms, pad_value)
+        padded_z_norm, _ = pad_1d(pre["z_norm"], max_atoms, pad_value)
+        padded_order, _ = pad_1d(pre["order_idx"], max_atoms, -1)
+        padded_order_inv, _ = pad_1d(order_inv, max_atoms, -1)
         payload.update(
             {
                 "z_canon": padded_z,
@@ -235,7 +201,6 @@ def build_dataset(
     limit: Optional[int],
     g_scale: float,
     niggli_reduce: bool,
-    preprocess_v3: bool,
     preprocess_cfg: PreprocessConfig,
     min_dist_cut: float,
     pbc_mask: Tuple[int, int, int],
@@ -308,7 +273,6 @@ def build_dataset(
                 pad_value=pad_value,
                 g_scale=g_scale,
                 niggli_reduce=niggli_reduce,
-                preprocess_v3=preprocess_v3,
                 preprocess_cfg=preprocess_cfg,
                 min_dist_cut=min_dist_cut,
                 pbc_mask=pbc_mask,
@@ -335,7 +299,7 @@ def build_dataset(
         vacuum_list.append(result["slab_vacuum"])
         low_vacuum_list.append(result["low_vacuum_risk"])
         cross_vacuum_list.append(result["cross_vacuum_bond"])
-        if preprocess_v3 and "z_canon" in result:
+        if "z_canon" in result:
             z_canon_list.append(result["z_canon"])
             if "f_canon" in result:
                 f_canon_list.append(result["f_canon"])
@@ -383,7 +347,7 @@ def build_dataset(
         "low_vacuum_risk": np.stack(low_vacuum_list, axis=0).astype(np.int64),
         "cross_vacuum_bond": np.stack(cross_vacuum_list, axis=0).astype(np.int64),
     }
-    if preprocess_v3 and z_canon_list:
+    if z_canon_list:
         extras.update(
             {
             "z_canon": np.stack(z_canon_list, axis=0),
@@ -421,12 +385,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--g-scale", type=float, default=100.0)
     parser.add_argument("--niggli-reduce", action="store_true", help="Apply Niggli reduction to lattices.")
-    parser.add_argument(
-        "--preprocess-v3",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Run A++ v3 preprocessing and store canonical slab features.",
-    )
     parser.add_argument("--eps-area", type=float, default=1e-6)
     parser.add_argument("--eps-inv", type=float, default=1e-12)
     parser.add_argument("--round-prec", type=float, default=1e-6)
@@ -486,7 +444,6 @@ def main() -> None:
         limit=args.limit,
         g_scale=args.g_scale,
         niggli_reduce=args.niggli_reduce,
-        preprocess_v3=args.preprocess_v3,
         preprocess_cfg=preprocess_cfg,
         min_dist_cut=args.min_dist_cut,
         pbc_mask=pbc_mask,
@@ -508,7 +465,7 @@ def main() -> None:
         "material_id": np.array(material_ids),
         "max_atoms": np.asarray(args.max_atoms, dtype=np.int64),
         "g_scale": np.asarray(args.g_scale, dtype=np.float32),
-        "preprocess_v3": np.asarray(int(args.preprocess_v3), dtype=np.int64),
+        "preprocess_v3": np.asarray(1, dtype=np.int64),
         "preprocess_version": np.array("A++_v3"),
         "schema_version": np.array("v4"),
         "coord_frame": np.array(coord_frame_value),
@@ -517,7 +474,7 @@ def main() -> None:
         "vacuum_min": np.asarray(args.vacuum_min, dtype=np.float32),
         "bond_cut": np.asarray(args.bond_cut, dtype=np.float32),
     }
-    if args.preprocess_v3 and extras:
+    if extras:
         payload.update(
             {
                 "eps_area": np.asarray(args.eps_area, dtype=np.float32),
@@ -526,21 +483,6 @@ def main() -> None:
                 "z_norm_clip": np.asarray(args.z_norm_clip, dtype=np.float32),
             }
         )
-        if "lattice_param" in extras:
-            lattice = extras["lattice_param"].astype(np.float32)
-            lattice_mean = lattice.mean(axis=0)
-            lattice_std = lattice.std(axis=0)
-            lattice_std = np.maximum(lattice_std, 1e-6)
-            payload["cond_lattice_mean"] = lattice_mean
-            payload["cond_lattice_std"] = lattice_std
-        if "t" in extras:
-            t_vals = extras["t"].astype(np.float32)
-            t_mean = float(np.mean(t_vals))
-            t_std = float(np.std(t_vals))
-            if t_std < 1e-6:
-                t_std = 1e-6
-            payload["cond_t_mean"] = np.asarray(t_mean, dtype=np.float32)
-            payload["cond_t_std"] = np.asarray(t_std, dtype=np.float32)
         payload.update(extras)
     np.savez_compressed(args.out, **payload)
     stats["saved_samples"] = int(z.shape[0])
