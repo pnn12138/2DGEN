@@ -53,19 +53,53 @@ def create_split(
     t_bins: int,
 ) -> Dict[str, Any]:
     data = np.load(npz_path)
-    if "atom_mask" not in data or "counts_vector" not in data:
-        raise ValueError("Expected token cache with atom_mask and counts_vector fields.")
-    atom_mask = data["atom_mask"].astype(np.float32)
-    counts_vector = data["counts_vector"].astype(np.int64)
-    total = int(counts_vector.shape[0])
+    if "atom_mask" not in data and "z" not in data:
+        raise ValueError("Expected token cache to contain at least atom_mask or z fields.")
+
+    # Accept both the full-prepared token cache (counts_vector/t present) and
+    # minimal caches where only z/atom_mask are available.
+    atom_mask = data["atom_mask"].astype(np.float32) if "atom_mask" in data else None
+    z = data["z"].astype(np.int64) if "z" in data else None
+    if atom_mask is None and z is not None:
+        atom_mask = (z > 0).astype(np.float32)
+    if atom_mask is None:
+        raise ValueError("Token cache missing atom_mask (and cannot infer it without z).")
+
+    total = int(atom_mask.shape[0])
     if total == 0:
-        raise ValueError("Empty token cache.")
+        keys = sorted(list(data.files))
+        raise ValueError(
+            "Empty token cache (0 samples). "
+            f"npz={npz_path} keys={keys}. "
+            "Re-generate the token cache first (prepare_c2db_tokens) and re-run create_c2db_split."
+        )
+
+    # counts_vector: (N, E) element counts. If absent, compute from (z, atom_mask).
+    if "counts_vector" in data:
+        counts_vector = data["counts_vector"].astype(np.int64)
+    else:
+        if z is None:
+            raise ValueError("Token cache missing counts_vector and z; cannot compute element counts.")
+        # Default to 118 elements (Z=1..118) to match the rest of the pipeline.
+        num_elements = 118
+        counts_vector = np.zeros((total, num_elements), dtype=np.int64)
+        valid = (atom_mask > 0.5) & (z > 0)
+        for i in range(total):
+            zs = z[i][valid[i]].astype(int)
+            if zs.size == 0:
+                continue
+            idx = zs - 1
+            idx = idx[(idx >= 0) & (idx < num_elements)]
+            if idx.size:
+                np.add.at(counts_vector[i], idx, 1)
+
     n_atoms = atom_mask.sum(axis=1).round().astype(int)
 
     top_elem = np.argmax(counts_vector, axis=1).astype(int)  # 0..(E-1)
     has_atoms = counts_vector.sum(axis=1) > 0
     top_elem = np.where(has_atoms, top_elem, -1)
 
+    # Thickness stratification: prefer normalized thickness t if present.
     t = data["t"].astype(np.float32).reshape(-1) if "t" in data else None
     if t is None:
         t_bin = np.zeros((total,), dtype=int)
@@ -187,4 +221,3 @@ def main(argv: Optional[list[str]] = None) -> None:
 
 if __name__ == "__main__":
     main()
-

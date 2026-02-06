@@ -95,6 +95,21 @@ def _grad_norm(parameters: Iterable[torch.nn.Parameter]) -> float:
     return total**0.5
 
 
+def _grad_norm_by_prefix(model: nn.Module, prefixes: list[str]) -> dict[str, float]:
+    norms: dict[str, float] = {}
+    if not prefixes:
+        return norms
+    named_params = list(model.named_parameters())
+    for prefix in prefixes:
+        grads = [p.grad.detach() for name, p in named_params if name.startswith(prefix) and p.grad is not None]
+        if not grads:
+            norms[prefix] = float("nan")
+            continue
+        stacked = torch.stack([g.norm(2) for g in grads])
+        norms[prefix] = float(torch.norm(stacked))
+    return norms
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Train token-based crystal diffusion model.")
     parser.add_argument("--npz", type=Path, default=None, help="Preprocessed token cache (npz).")
@@ -112,6 +127,12 @@ def parse_args() -> argparse.Namespace:
         help="Which split subset to use when --split-json is provided.",
     )
     parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument(
+        "--max-steps",
+        type=int,
+        default=None,
+        help="Optional max training steps; if set, overrides epochs-based stopping.",
+    )
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--lr", type=float, default=1e-4)
     parser.add_argument(
@@ -330,6 +351,19 @@ def parse_args() -> argparse.Namespace:
         help="Maximum allowed lattice angle (degrees) for angle loss.",
     )
     parser.add_argument(
+        "--angle-param-mode",
+        type=str,
+        default="raw",
+        choices=["raw", "cos", "sigmoid"],
+        help="Angle parameterization mode for angle constraint (raw/cos/sigmoid).",
+    )
+    parser.add_argument(
+        "--angle-sigmoid-tau",
+        type=float,
+        default=10.0,
+        help="Temperature for sigmoid angle parameterization (only when angle-param-mode=sigmoid).",
+    )
+    parser.add_argument(
         "--cond-loss-weight",
         type=float,
         default=0.01,
@@ -340,6 +374,31 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1e3,
         help="Maximum allowed Gram condition number for cond loss.",
+    )
+    parser.add_argument(
+        "--cond-max-start",
+        type=float,
+        default=None,
+        help="Optional start value for cond_max schedule; if set, cond_max will be scheduled each step.",
+    )
+    parser.add_argument(
+        "--cond-max-end",
+        type=float,
+        default=None,
+        help="Optional end value for cond_max schedule; defaults to --cond-max when start is set.",
+    )
+    parser.add_argument(
+        "--cond-max-steps",
+        type=int,
+        default=None,
+        help="Number of steps for cond_max schedule (after此保持 end 值)。",
+    )
+    parser.add_argument(
+        "--cond-max-schedule",
+        type=str,
+        choices=["linear", "cosine"],
+        default="linear",
+        help="Schedule shape for cond_max when start/end/steps are provided.",
     )
     parser.add_argument(
         "--c-len-loss-weight",
@@ -480,6 +539,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.0,
         help="End factor for volume/c_len linear warmup.",
+    )
+    parser.add_argument(
+        "--debug-grad-submodules",
+        type=str,
+        default="",
+        help="Comma-separated list of parameter name prefixes; log their grad_norm each log_interval.",
     )
     parser.add_argument(
         "--chol-log-relax",
@@ -855,6 +920,8 @@ def _compute_dataset_min_dist(
     dataset_for_iter = _unwrap_indexed_dataset(dataset)
 
     if isinstance(dataset_for_iter, C2DBTokenNPZDataset):
+        if dataset_for_iter.min_dist is not None:
+            return dataset_for_iter.min_dist.float().reshape(-1).cpu()
         cached = dataset_for_iter.extra.get("min_dist")
         if cached is not None:
             return cached.float().reshape(-1).cpu()
@@ -982,6 +1049,15 @@ def _adjust_lr(
     for group in optimizer.param_groups:
         group["lr"] = lr
     return lr
+
+
+def _schedule_value(step: int, total_steps: int, start: float, end: float, schedule: str) -> float:
+    if total_steps <= 0:
+        return end
+    progress = min(max(float(step) / float(total_steps), 0.0), 1.0)
+    if schedule == "cosine":
+        progress = 0.5 * (1.0 - math.cos(math.pi * progress))
+    return start + (end - start) * progress
 
 
 class EMA:
@@ -1284,10 +1360,14 @@ def train_one_epoch(
     volume_c_len_warmup_steps: int = 0,
     volume_c_len_warmup_start: float = 0.0,
     volume_c_len_warmup_end: float = 1.0,
+    cond_max_schedule: dict | None = None,
+    debug_grad_prefixes: list[str] | None = None,
 ) -> tuple[int, float]:
     model.train()
     total_loss = 0.0
     step_count = 0
+    debug_grad_prefixes = debug_grad_prefixes or []
+    grad_prefix_norms: dict[str, float] | None = None
     for batch in loader:
         if max_steps is not None and global_step >= max_steps:
             break
@@ -1361,6 +1441,16 @@ def train_one_epoch(
                 loss_weight_state["c_len"] = float(base_loss_weights["c_len"]) * factor
             _apply_loss_weights(model, loss_weight_state)
         optimizer.zero_grad(set_to_none=True)
+        # Update cond_max schedule if requested
+        if cond_max_schedule is not None:
+            start = cond_max_schedule["start"]
+            end = cond_max_schedule["end"]
+            steps_sched = cond_max_schedule["steps"]
+            mode = cond_max_schedule["schedule"]
+            current = _schedule_value(global_step, steps_sched, start, end, mode)
+            model.loss_fn.cfg.cond_max = float(current)
+            if hasattr(model, "cfg") and hasattr(model.cfg, "diffusion"):
+                model.cfg.diffusion.cond_max = float(current)
         loss, _, _, _, metrics = model(
             z,
             frac,
@@ -1384,6 +1474,7 @@ def train_one_epoch(
             or wandb_run is not None
         ):
             grad_norm = _grad_norm(model.parameters())
+            grad_prefix_norms = _grad_norm_by_prefix(model, debug_grad_prefixes)
         optimizer.step()
         if ema is not None:
             ema.update(model)
@@ -1592,6 +1683,49 @@ def train_one_epoch(
                     payload["pred_angle_out_rate"] = float(metrics["pred_angle_out_rate"].item())
                 if "pred_cond_mean" in metrics:
                     payload["pred_cond_mean"] = float(metrics["pred_cond_mean"].item())
+                if "cond_valid_rate" in metrics:
+                    payload["cond_valid_rate"] = float(metrics["cond_valid_rate"].item())
+                if "cond_gram_mean" in metrics:
+                    payload.update(
+                        {
+                            "cond_gram_mean": float(metrics["cond_gram_mean"].item()),
+                            "cond_gram_p50": float(metrics["cond_gram_p50"].item()),
+                            "cond_gram_p95": float(metrics["cond_gram_p95"].item()),
+                            "cond_gram_max": float(metrics["cond_gram_max"].item()),
+                            "cond_gram_violation_rate": float(
+                                metrics["cond_gram_violation_rate"].item()
+                            ),
+                        }
+                    )
+                if "cond_lattice_mean" in metrics:
+                    payload.update(
+                        {
+                            "cond_lattice_mean": float(metrics["cond_lattice_mean"].item()),
+                            "cond_lattice_p50": float(metrics["cond_lattice_p50"].item()),
+                            "cond_lattice_p95": float(metrics["cond_lattice_p95"].item()),
+                            "cond_lattice_max": float(metrics["cond_lattice_max"].item()),
+                            "cond_lattice_violation_rate": float(
+                                metrics["cond_lattice_violation_rate"].item()
+                            ),
+                        }
+                    )
+                if "cond_gram_lattice_spearman" in metrics:
+                    payload["cond_gram_lattice_spearman"] = float(
+                        metrics["cond_gram_lattice_spearman"].item()
+                    )
+                if "cond_diff_abs_mean" in metrics:
+                    payload.update(
+                        {
+                            "cond_diff_abs_mean": float(metrics["cond_diff_abs_mean"].item()),
+                            "cond_diff_abs_p95": float(metrics["cond_diff_abs_p95"].item()),
+                            "cond_diff_rel_mean": float(metrics["cond_diff_rel_mean"].item()),
+                            "cond_diff_rel_p95": float(metrics["cond_diff_rel_p95"].item()),
+                        }
+                    )
+                if grad_prefix_norms:
+                    for prefix, value in grad_prefix_norms.items():
+                        key = f"grad_{prefix.replace('.', '_')}"
+                        payload[key] = value
                 if "chol_bound_rate" in metrics:
                     payload["chol_bound_rate"] = float(metrics["chol_bound_rate"].item())
                 if "min_dist_pred_mean" in metrics:
@@ -1607,7 +1741,9 @@ def train_one_epoch(
                 if "thickness_gap_mean" in metrics:
                     payload["thickness_gap_mean"] = float(metrics["thickness_gap_mean"].item())
                 if "lengths_std_mean" in metrics:
-                    payload["lengths_std_mean"] = float(metrics["lengths_std_mean"].item())
+                    lengths_std_mean = float(metrics["lengths_std_mean"].item())
+                    if math.isfinite(lengths_std_mean):
+                        payload["lengths_std_mean"] = lengths_std_mean
                 if "pred_x0_f_mean" in metrics:
                     payload.update(
                         {
@@ -2141,6 +2277,8 @@ def main() -> None:
     denoiser_cfg.diffusion.lambda_angle = float(args.angle_loss_weight)
     denoiser_cfg.diffusion.angle_min = float(args.angle_min)
     denoiser_cfg.diffusion.angle_max = float(args.angle_max)
+    denoiser_cfg.diffusion.angle_param_mode = str(args.angle_param_mode)
+    denoiser_cfg.diffusion.angle_sigmoid_tau = float(args.angle_sigmoid_tau)
     denoiser_cfg.diffusion.lambda_cond = float(args.cond_loss_weight)
     denoiser_cfg.diffusion.cond_max = float(args.cond_max)
     denoiser_cfg.diffusion.lambda_volume = float(args.volume_loss_weight)
@@ -2315,6 +2453,15 @@ def main() -> None:
     else:
         steps_per_epoch = math.ceil(dataset_len / max(1, args.batch_size))
     total_steps = args.max_steps if args.max_steps is not None else args.epochs * steps_per_epoch
+    cond_max_schedule = None
+    if args.cond_max_start is not None:
+        cond_max_schedule = {
+            "start": float(args.cond_max_start),
+            "end": float(args.cond_max_end) if args.cond_max_end is not None else float(args.cond_max),
+            "steps": int(args.cond_max_steps) if args.cond_max_steps is not None else total_steps,
+            "schedule": str(args.cond_max_schedule),
+        }
+    debug_grad_prefixes = [p.strip() for p in args.debug_grad_submodules.split(",") if p.strip()]
     for epoch in range(args.epochs):
         print(f"Epoch {epoch + 1}/{args.epochs}")
         if args.curriculum_collision and base_indices is not None and min_dist_all is not None:
@@ -2364,6 +2511,8 @@ def main() -> None:
             volume_c_len_warmup_steps=int(args.volume_c_len_warmup_steps),
             volume_c_len_warmup_start=float(args.volume_c_len_warmup_start),
             volume_c_len_warmup_end=float(args.volume_c_len_warmup_end),
+            cond_max_schedule=cond_max_schedule,
+            debug_grad_prefixes=debug_grad_prefixes,
         )
         print(f"[epoch {epoch + 1}] mean loss={epoch_loss:.4f}")
 

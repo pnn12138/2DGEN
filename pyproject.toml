@@ -25,3 +25,6 @@ dependencies = [
 twodgen-train = "twodgen.scrip.train_tokens:main"
 twodgen-sample = "twodgen.scrip.sample_tokens:main"
 twodgen-eval = "twodgen.evaluate.eval_samples:main"
+
+[tool.pytest.ini_options]
+norecursedirs = ["data/JARVIS"]

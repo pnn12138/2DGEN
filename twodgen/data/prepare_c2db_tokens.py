@@ -129,7 +129,8 @@ def row_to_tokens(
         "low_vacuum_risk": np.asarray(int(low_vacuum_risk), dtype=np.int64),
         "cross_vacuum_bond": np.asarray(int(cross_vacuum_bond), dtype=np.int64),
         "spacegroup_number": np.asarray(spacegroup_number, dtype=np.int64),
-        "spacegroup_symbol": np.asarray(spacegroup_symbol, dtype=np.unicode_),
+        # np.unicode_ was removed in NumPy 2.0; np.str_ preserves a stable unicode dtype.
+        "spacegroup_symbol": np.asarray(spacegroup_symbol, dtype=np.str_),
     }
 
     if num_atoms > 0:
@@ -258,6 +259,8 @@ def build_dataset(
     vacuum_list: List[np.ndarray] = []
     low_vacuum_list: List[np.ndarray] = []
     cross_vacuum_list: List[np.ndarray] = []
+    spacegroup_number_list: List[np.ndarray] = []
+    spacegroup_symbol_list: List[np.ndarray] = []
 
     error_examples: List[str] = []
     for row in df.itertuples(index=False):
@@ -299,6 +302,8 @@ def build_dataset(
         vacuum_list.append(result["slab_vacuum"])
         low_vacuum_list.append(result["low_vacuum_risk"])
         cross_vacuum_list.append(result["cross_vacuum_bond"])
+        spacegroup_number_list.append(result["spacegroup_number"])
+        spacegroup_symbol_list.append(result["spacegroup_symbol"])
         if "z_canon" in result:
             z_canon_list.append(result["z_canon"])
             if "f_canon" in result:
@@ -346,6 +351,8 @@ def build_dataset(
         "slab_vacuum": np.stack(vacuum_list, axis=0).astype(np.float32),
         "low_vacuum_risk": np.stack(low_vacuum_list, axis=0).astype(np.int64),
         "cross_vacuum_bond": np.stack(cross_vacuum_list, axis=0).astype(np.int64),
+        "spacegroup_number": np.stack(spacegroup_number_list, axis=0).astype(np.int64),
+        "spacegroup_symbol": np.stack(spacegroup_symbol_list, axis=0),
     }
     if z_canon_list:
         extras.update(

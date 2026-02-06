@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import math
 from typing import Optional, Tuple
 
 import torch
@@ -47,6 +48,8 @@ class AtomDiffusionConfig:
     lambda_angle: float = 0.1
     angle_min: float = 30.0
     angle_max: float = 150.0
+    angle_param_mode: str = "raw"  # raw | cos | sigmoid
+    angle_sigmoid_tau: float = 10.0
     lambda_cond: float = 0.01
     cond_max: float = 1e3
     lambda_chol_bound: float = 0.0
@@ -560,7 +563,7 @@ class AtomVelocityLoss(nn.Module):
                     aniso_min = float(self.cfg.anisotropy_min_std)
                     aniso_gap = _hinge(aniso_min - lengths_std) / max(aniso_min, 1e-8)
                     loss_anisotropy = torch.nanmean(aniso_gap)
-        if self.cfg.lambda_angle > 0.0 or self.cfg.lambda_cond > 0.0:
+        if True:
             g_scale = getattr(getattr(model, "cfg", None), "g_scale", 1.0)
             if self.cfg.cell_rep == "cholesky6":
                 log_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
@@ -586,37 +589,116 @@ class AtomVelocityLoss(nn.Module):
                 cos_gamma = (a_vec * b_vec).sum(dim=-1) / (
                     a_vec.norm(dim=-1) * b_vec.norm(dim=-1)
                 ).clamp_min(1e-8)
-                cos_alpha = cos_alpha.clamp(-1.0, 1.0)
-                cos_beta = cos_beta.clamp(-1.0, 1.0)
-                cos_gamma = cos_gamma.clamp(-1.0, 1.0)
+                mode = str(self.cfg.angle_param_mode).lower()
+                if mode == "cos":
+                    cos_alpha = cos_alpha.clamp(-0.99, 0.99)
+                    cos_beta = cos_beta.clamp(-0.99, 0.99)
+                    cos_gamma = cos_gamma.clamp(-0.99, 0.99)
+                elif mode == "sigmoid":
+                    tau = max(float(self.cfg.angle_sigmoid_tau), 1e-6)
+                    cos_alpha = 2.0 * torch.sigmoid(cos_alpha / tau) - 1.0
+                    cos_beta = 2.0 * torch.sigmoid(cos_beta / tau) - 1.0
+                    cos_gamma = 2.0 * torch.sigmoid(cos_gamma / tau) - 1.0
+                else:
+                    cos_alpha = cos_alpha.clamp(-1.0, 1.0)
+                    cos_beta = cos_beta.clamp(-1.0, 1.0)
+                    cos_gamma = cos_gamma.clamp(-1.0, 1.0)
                 alpha = torch.rad2deg(torch.acos(cos_alpha))
                 beta = torch.rad2deg(torch.acos(cos_beta))
                 gamma = torch.rad2deg(torch.acos(cos_gamma))
                 angle_min = float(self.cfg.angle_min)
                 angle_max = float(self.cfg.angle_max)
+                beta_sp = float(self.cfg.loss_softplus_beta)
+
+                def _barrier(delta: torch.Tensor) -> torch.Tensor:
+                    return F.softplus(delta, beta=beta_sp)
+
                 viol = torch.stack(
                     [
-                        (angle_min - alpha).clamp_min(0.0),
-                        (alpha - angle_max).clamp_min(0.0),
-                        (angle_min - beta).clamp_min(0.0),
-                        (beta - angle_max).clamp_min(0.0),
-                        (angle_min - gamma).clamp_min(0.0),
-                        (gamma - angle_max).clamp_min(0.0),
+                        _barrier(angle_min - alpha),
+                        _barrier(alpha - angle_max),
+                        _barrier(angle_min - beta),
+                        _barrier(beta - angle_max),
+                        _barrier(angle_min - gamma),
+                        _barrier(gamma - angle_max),
                     ],
                     dim=-1,
                 )
                 if self.cfg.lambda_angle > 0.0:
-                    loss_angle = (viol ** 2).mean()
-                angle_out_rate = (viol.max(dim=-1).values > 0).float().mean()
+                    loss_angle = viol.mean()
+                angle_out_rate = (
+                    (alpha < angle_min) | (alpha > angle_max) | (beta < angle_min) | (beta > angle_max) | (gamma < angle_min) | (gamma > angle_max)
+                ).float().mean()
 
-                if self.cfg.lambda_cond > 0.0:
+                # ---- condition number metrics (always compute for monitoring) ----
+                cond_max = float(self.cfg.cond_max)
+                cond_mean = torch.tensor(float("nan"), device=lattice.device)
+                cond_gram_mean = torch.tensor(float("nan"), device=lattice.device)
+                cond_gram_p50 = torch.tensor(float("nan"), device=lattice.device)
+                cond_gram_p95 = torch.tensor(float("nan"), device=lattice.device)
+                cond_gram_max = torch.tensor(float("nan"), device=lattice.device)
+                cond_lattice_mean = torch.tensor(float("nan"), device=lattice.device)
+                cond_lattice_p50 = torch.tensor(float("nan"), device=lattice.device)
+                cond_lattice_p95 = torch.tensor(float("nan"), device=lattice.device)
+                cond_lattice_max = torch.tensor(float("nan"), device=lattice.device)
+                cond_gram_violation_rate = torch.tensor(float("nan"), device=lattice.device)
+                cond_lattice_violation_rate = torch.tensor(float("nan"), device=lattice.device)
+                cond_spearman = torch.tensor(float("nan"), device=lattice.device)
+                cond_diff_abs_mean = torch.tensor(float("nan"), device=lattice.device)
+                cond_diff_abs_p95 = torch.tensor(float("nan"), device=lattice.device)
+                cond_diff_rel_mean = torch.tensor(float("nan"), device=lattice.device)
+                cond_diff_rel_p95 = torch.tensor(float("nan"), device=lattice.device)
+                cond_valid_rate = torch.tensor(float("nan"), device=lattice.device)
+
+                if valid.any():
+                    cond_valid_rate = valid.float().mean()
                     gram = lattice[valid] @ lattice[valid].transpose(-1, -2)
                     eigvals = torch.linalg.eigvalsh(gram)
-                    cond = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
-                    cond_mean = cond.mean()
-                    cond_max = float(self.cfg.cond_max)
-                    cond_violation = (cond - cond_max).clamp_min(0.0) / max(cond_max, 1e-8)
-                    loss_cond_number = (cond_violation ** 2).mean()
+                    # For a Gram matrix G = L L^T, eigvals correspond to squared singular values of lattice L.
+                    # Take sqrt to keep this metric in the same scale as cond_lattice (σ_max/σ_min).
+                    cond_gram_raw = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
+                    cond_gram = torch.sqrt(cond_gram_raw)
+                    cond_gram_mean = cond_gram.mean()
+                    cond_gram_p50 = torch.quantile(cond_gram, 0.5)
+                    cond_gram_p95 = torch.quantile(cond_gram, 0.95)
+                    cond_gram_max = cond_gram.max()
+                    cond_gram_violation_rate = (cond_gram > cond_max).float().mean()
+
+                    sv = torch.linalg.svdvals(lattice[valid])
+                    cond_lattice = sv.max(dim=-1).values / sv.min(dim=-1).values.clamp_min(1e-8)
+                    cond_lattice_mean = cond_lattice.mean()
+                    cond_lattice_p50 = torch.quantile(cond_lattice, 0.5)
+                    cond_lattice_p95 = torch.quantile(cond_lattice, 0.95)
+                    cond_lattice_max = cond_lattice.max()
+                    cond_lattice_violation_rate = (cond_lattice > cond_max).float().mean()
+
+                    if cond_gram.numel() > 1:
+                        # Spearman correlation between gram/lattice cond (batch-level)
+                        def _rank(x: torch.Tensor) -> torch.Tensor:
+                            return torch.argsort(torch.argsort(x)).float()
+
+                        cg_rank = _rank(cond_gram)
+                        cl_rank = _rank(cond_lattice)
+                        cg_rank = cg_rank - cg_rank.mean()
+                        cl_rank = cl_rank - cl_rank.mean()
+                        # avoid division by zero
+                        denom = (cg_rank.norm() * cl_rank.norm()).clamp_min(1e-8)
+                        cond_spearman = (cg_rank * cl_rank).sum() / denom
+
+                    diff_abs = (cond_gram - cond_lattice).abs()
+                    cond_diff_abs_mean = diff_abs.mean()
+                    cond_diff_abs_p95 = torch.quantile(diff_abs, 0.95)
+                    diff_rel = diff_abs / cond_lattice.clamp_min(1e-8)
+                    cond_diff_rel_mean = diff_rel.mean()
+                    cond_diff_rel_p95 = torch.quantile(diff_rel, 0.95)
+
+                    cond_mean = cond_lattice_mean
+
+                    if self.cfg.lambda_cond > 0.0:
+                        log_cond = torch.log(cond_gram.clamp_min(1e-8))
+                        log_max = float(math.log(max(cond_max, 1e-12)))
+                        cond_violation = F.softplus(log_cond - log_max, beta=float(self.cfg.loss_softplus_beta))
+                        loss_cond_number = cond_violation.mean()
 
         if self.cfg.lambda_chol_bound > 0.0:
             chol_min = self.cfg.chol_log_min_vec if self.cfg.chol_log_min_vec is not None else self.cfg.chol_log_min
@@ -784,6 +866,22 @@ class AtomVelocityLoss(nn.Module):
             "loss_anisotropy": loss_anisotropy.detach(),
             "pred_angle_out_rate": angle_out_rate.detach(),
             "pred_cond_mean": cond_mean.detach(),
+            "cond_gram_mean": cond_gram_mean.detach(),
+            "cond_gram_p50": cond_gram_p50.detach(),
+            "cond_gram_p95": cond_gram_p95.detach(),
+            "cond_gram_max": cond_gram_max.detach(),
+            "cond_lattice_mean": cond_lattice_mean.detach(),
+            "cond_lattice_p50": cond_lattice_p50.detach(),
+            "cond_lattice_p95": cond_lattice_p95.detach(),
+            "cond_lattice_max": cond_lattice_max.detach(),
+            "cond_gram_violation_rate": cond_gram_violation_rate.detach(),
+            "cond_lattice_violation_rate": cond_lattice_violation_rate.detach(),
+            "cond_gram_lattice_spearman": cond_spearman.detach(),
+            "cond_diff_abs_mean": cond_diff_abs_mean.detach(),
+            "cond_diff_abs_p95": cond_diff_abs_p95.detach(),
+            "cond_diff_rel_mean": cond_diff_rel_mean.detach(),
+            "cond_diff_rel_p95": cond_diff_rel_p95.detach(),
+            "cond_valid_rate": cond_valid_rate.detach(),
             "chol_bound_rate": chol_bound_rate.detach(),
             "min_dist_pred_mean": min_dist_pred_mean.detach(),
             "min_dist_pred_p10": min_dist_pred_p10.detach(),

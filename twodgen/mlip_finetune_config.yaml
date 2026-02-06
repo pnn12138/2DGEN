@@ -1,0 +1,56 @@
+# Optional Workstream C (template only): MLIP finetune config stub.
+#
+# This file is intentionally framework-agnostic. If/when we implement training,
+# we should map these fields into the actual trainer/config system.
+
+run:
+  seed: 123
+  out_dir: outputs/mlip_finetune/template_run
+  notes: ""
+
+mlip:
+  name: CHGNet
+  base_version: ""
+  base_checkpoint: ""
+  finetuned_checkpoint_out: ""
+
+data:
+  source: ""  # jdft2d|c2db|samples
+  manifest_train: ""
+  manifest_val: ""
+  manifest_test: ""
+  filters:
+    success_geom_only: true
+    vacuum_min: 15.0
+    pbc_mask: [1, 1, 0]
+
+train:
+  max_epochs: 0
+  batch_size: 0
+  lr: 0.0
+  weight_decay: 0.0
+  grad_clip: 0.0
+  precision: "fp32"  # fp32|fp16|bf16
+  loss_weights:
+    force: 1.0
+    energy: 0.0
+    stress: 0.0
+
+eval:
+  force_mae: true
+  energy_mae: true
+  relax_success_rate: true
+  nan_rate: true
+  timing: true
+
+twodgen_regression:
+  enabled: true
+  # Use the same scripts/metrics as phase2.
+  eval_with_energy:
+    num_samples: 64
+    steps: 50
+    cond_max: 40
+    relax_steps: 30
+    relax_fmax: 0.1
+    relax_device: "cuda"
+

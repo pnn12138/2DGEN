@@ -292,6 +292,18 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         help="When using --quality-jsonl, keep only rows marked as hard pass.",
     )
     parser.add_argument("--num-samples", type=int, default=10)
+    parser.add_argument(
+        "--max-atoms",
+        type=int,
+        default=24,
+        help="Maximum number of atoms per sample (padding length).",
+    )
+    parser.add_argument(
+        "--num-atoms",
+        type=int,
+        default=None,
+        help="Optional fixed number of atoms per sample (defaults to conditioning rows or dataset histogram).",
+    )
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--method", type=str, default="heun", choices=["euler", "heun"])
     parser.add_argument(
@@ -314,6 +326,84 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         default=False,
         help="If set, project fractional coords and clip lattice every sampling step.",
     )
+    parser.add_argument(
+        "--project-every-step",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="Alias for --project-each-step (preferred name).",
+    )
+    parser.add_argument(
+        "--project-final",
+        action=argparse.BooleanOptionalAction,
+        default=None,
+        help="If set, project fractional coords and lattice after sampling.",
+    )
+    parser.add_argument(
+        "--project-gram-cond",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, project Gram matrices to SPD and clamp condition number.",
+    )
+    parser.add_argument(
+        "--project-gram-max-cond",
+        type=float,
+        default=1e3,
+        help="Maximum condition number used by Gram SPD projection.",
+    )
+    parser.add_argument(
+        "--project-gram-eps",
+        type=float,
+        default=1e-6,
+        help="Minimum eigenvalue used by Gram SPD projection.",
+    )
+    parser.add_argument(
+        "--project-gram-mode",
+        type=str,
+        default="log",
+        choices=["log", "linear"],
+        help="Projection mode for Gram SPD clamp (log or linear).",
+    )
+    parser.add_argument(
+        "--post-project",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, apply hard post-step lattice projections (angle/cond/inplane) as a guardrail.",
+    )
+    parser.add_argument(
+        "--post-project-interval",
+        type=int,
+        default=1,
+        help="Apply post-step projection every N sampling steps (1 = every step).",
+    )
+    parser.add_argument(
+        "--post-project-keys",
+        type=str,
+        default="angle,cond,inplane",
+        help="Comma-separated projection keys: angle,cond,inplane,volume.",
+    )
+    parser.add_argument(
+        "--post-project-cond-max",
+        type=float,
+        default=None,
+        help="Cond clamp threshold (Gram cond). Defaults to --project-gram-max-cond when gram projection is enabled.",
+    )
+    parser.add_argument(
+        "--post-project-v-min",
+        type=float,
+        default=None,
+        help="If set and post_project_keys contains 'volume', clamp volume >= v_min by scaling in-plane lattice vectors.",
+    )
+    parser.add_argument(
+        "--post-project-v-max",
+        type=float,
+        default=None,
+        help="If set and post_project_keys contains 'volume', clamp volume <= v_max by scaling in-plane lattice vectors.",
+    )
+    parser.add_argument("--post-project-inplane-a-min", type=float, default=2.0)
+    parser.add_argument("--post-project-inplane-b-min", type=float, default=2.0)
+    parser.add_argument("--post-project-inplane-gamma-min", type=float, default=30.0)
+    parser.add_argument("--post-project-inplane-gamma-max", type=float, default=150.0)
+    parser.add_argument("--post-project-inplane-area-min", type=float, default=4.0)
     parser.add_argument(
         "--min-dist-project",
         action=argparse.BooleanOptionalAction,
@@ -418,6 +508,8 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         coord_frame="canon",
         pbc_mask=None,
         project_each_step=True,
+        project_every_step=None,
+        project_final=None,
         project_geometry=True,
         z_norm_clip=None,
         cond_index=None,
@@ -656,6 +748,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
         print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
         ckpt = torch.load(args.checkpoint, map_location=device, weights_only=False)
     else:
+        torch.serialization.add_safe_globals(
+            [AtomTransformerConfig, AtomDiffusionConfig]
+        )
         try:
             ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
         except Exception as exc:
@@ -766,14 +861,59 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if args.cell_init_noise is not None:
         denoiser_cfg.diffusion.cell_init_noise = args.cell_init_noise
     denoiser_cfg.neighbor_update_steps = max(args.neighbor_update_steps, 1)
-    denoiser_cfg.project_each_step = args.project_each_step
+    project_every_step = args.project_every_step if args.project_every_step is not None else args.project_each_step
+    project_final = args.project_final if args.project_final is not None else project_every_step
+    denoiser_cfg.project_each_step = bool(project_every_step)
+    denoiser_cfg.project_final = bool(project_final)
     denoiser_cfg.project_geometry = args.project_geometry
     denoiser_cfg.z_clamp = bool(args.z_clamp)
     denoiser_cfg.z_clamp_min_t = float(args.z_clamp_min_t)
     denoiser_cfg.z_clamp_max_t = (
         float(args.z_clamp_max_t) if args.z_clamp_max_t is not None else None
     )
+    denoiser_cfg.project_gram_cond = bool(args.project_gram_cond)
+    denoiser_cfg.project_gram_max_cond = float(args.project_gram_max_cond)
+    denoiser_cfg.project_gram_eps = float(args.project_gram_eps)
+    denoiser_cfg.project_gram_mode = str(args.project_gram_mode)
+    denoiser_cfg.post_project = bool(args.post_project)
+    denoiser_cfg.post_project_interval = int(args.post_project_interval)
+    denoiser_cfg.post_project_keys = str(args.post_project_keys)
+    denoiser_cfg.post_project_cond_max = float(args.post_project_cond_max) if args.post_project_cond_max is not None else None
+    # Volume clamp defaults to training-data bounds (p1/p99) when available.
+    post_project_keys = {k.strip().lower() for k in str(args.post_project_keys).split(",") if k.strip()}
+    pp_v_min = float(args.post_project_v_min) if args.post_project_v_min is not None else None
+    pp_v_max = float(args.post_project_v_max) if args.post_project_v_max is not None else None
+    if ("volume" in post_project_keys) and (pp_v_min is None or pp_v_max is None) and (vol_bounds is not None):
+        v_lo, v_hi = vol_bounds
+        if pp_v_min is None:
+            pp_v_min = float(v_lo)
+        if pp_v_max is None:
+            pp_v_max = float(v_hi)
+    denoiser_cfg.post_project_v_min = pp_v_min
+    denoiser_cfg.post_project_v_max = pp_v_max
+    denoiser_cfg.post_project_inplane_a_min = float(args.post_project_inplane_a_min)
+    denoiser_cfg.post_project_inplane_b_min = float(args.post_project_inplane_b_min)
+    denoiser_cfg.post_project_inplane_gamma_min = float(args.post_project_inplane_gamma_min)
+    denoiser_cfg.post_project_inplane_gamma_max = float(args.post_project_inplane_gamma_max)
+    denoiser_cfg.post_project_inplane_area_min = float(args.post_project_inplane_area_min)
     sampling_config["cond_drop_prob"] = float(getattr(denoiser_cfg.diffusion, "cond_drop_prob", 0.0))
+    sampling_config["project_every_step"] = bool(project_every_step)
+    sampling_config["project_final"] = bool(project_final)
+    sampling_config["project_gram_cond"] = bool(args.project_gram_cond)
+    sampling_config["project_gram_max_cond"] = float(args.project_gram_max_cond)
+    sampling_config["project_gram_eps"] = float(args.project_gram_eps)
+    sampling_config["project_gram_mode"] = str(args.project_gram_mode)
+    sampling_config["post_project"] = bool(args.post_project)
+    sampling_config["post_project_interval"] = int(args.post_project_interval)
+    sampling_config["post_project_keys"] = str(args.post_project_keys)
+    sampling_config["post_project_cond_max"] = float(args.post_project_cond_max) if args.post_project_cond_max is not None else None
+    sampling_config["post_project_v_min"] = pp_v_min
+    sampling_config["post_project_v_max"] = pp_v_max
+    sampling_config["post_project_inplane_a_min"] = float(args.post_project_inplane_a_min)
+    sampling_config["post_project_inplane_b_min"] = float(args.post_project_inplane_b_min)
+    sampling_config["post_project_inplane_gamma_min"] = float(args.post_project_inplane_gamma_min)
+    sampling_config["post_project_inplane_gamma_max"] = float(args.post_project_inplane_gamma_max)
+    sampling_config["post_project_inplane_area_min"] = float(args.post_project_inplane_area_min)
     z_norm_clip = args.z_norm_clip
     if z_norm_clip is None and args.npz is not None:
         z_norm_clip = _load_npz_z_norm_clip(args.npz)
@@ -1027,6 +1167,27 @@ def run_sampling(args: argparse.Namespace) -> Path:
     lattice_param_np = None
     slab_t_np = None
     chol_log_clamp_flags = None
+    project_cond_before_np = None
+    project_cond_after_np = None
+    project_delta_cond_np = None
+    project_angle_out_before_np = None
+    project_angle_out_after_np = None
+    project_trigger_np = None
+    post_project_trigger_any_np = None
+    post_project_delta_norm_np = None
+    post_project_inplane_degen_before_np = None
+    post_project_inplane_degen_after_np = None
+    post_project_angle_oob_before_np = None
+    post_project_angle_oob_after_np = None
+    post_project_cond_before_np = None
+    post_project_cond_after_np = None
+    post_project_vol_before_np = None
+    post_project_vol_after_np = None
+    post_project_vol_scale_inplane_np = None
+    project_step_stats_sum = None
+    project_step_stats_count = 0
+    post_project_step_stats_sum = None
+    post_project_step_stats_count = 0
     chol_log_min = getattr(model_cfg, "chol_log_min_vec", None) or getattr(model_cfg, "chol_log_min", None)
     chol_log_max = getattr(model_cfg, "chol_log_max_vec", None) or getattr(model_cfg, "chol_log_max", None)
     if (
@@ -1071,6 +1232,90 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 guidance_scale=float(args.force_guidance_scale),
             )
             lattice = model.gram6_to_lattice(gram6)
+            project_stats = getattr(model, "last_project_stats", None)
+            if project_stats:
+                if "cond_before" in project_stats:
+                    if project_cond_before_np is None:
+                        project_cond_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        project_cond_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        project_delta_cond_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        project_angle_out_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        project_angle_out_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        project_trigger_np = np.zeros((args.num_samples,), dtype=np.float32)
+                    project_cond_before_np[idxs] = project_stats["cond_before"].detach().cpu().numpy()
+                    project_cond_after_np[idxs] = project_stats["cond_after"].detach().cpu().numpy()
+                    project_delta_cond_np[idxs] = project_stats["delta_cond"].detach().cpu().numpy()
+                    project_angle_out_before_np[idxs] = project_stats["angle_out_before"].detach().cpu().numpy()
+                    project_angle_out_after_np[idxs] = project_stats["angle_out_after"].detach().cpu().numpy()
+                    project_trigger_np[idxs] = project_stats["project_trigger"].detach().cpu().numpy()
+                if "post_project_trigger_any" in project_stats:
+                    if post_project_trigger_any_np is None:
+                        post_project_trigger_any_np = np.zeros((args.num_samples,), dtype=np.float32)
+                        post_project_delta_norm_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_inplane_degen_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_inplane_degen_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_angle_oob_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_angle_oob_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_cond_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_cond_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vol_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vol_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vol_scale_inplane_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                    post_project_trigger_any_np[idxs] = project_stats["post_project_trigger_any"].detach().cpu().numpy()
+                    post_project_delta_norm_np[idxs] = project_stats["post_project_delta_norm"].detach().cpu().numpy()
+                    post_project_inplane_degen_before_np[idxs] = project_stats["post_project_inplane_degen_before"].detach().cpu().numpy()
+                    post_project_inplane_degen_after_np[idxs] = project_stats["post_project_inplane_degen_after"].detach().cpu().numpy()
+                    post_project_angle_oob_before_np[idxs] = project_stats["post_project_angle_oob_before"].detach().cpu().numpy()
+                    post_project_angle_oob_after_np[idxs] = project_stats["post_project_angle_oob_after"].detach().cpu().numpy()
+                    post_project_cond_before_np[idxs] = project_stats["post_project_cond_before"].detach().cpu().numpy()
+                    post_project_cond_after_np[idxs] = project_stats["post_project_cond_after"].detach().cpu().numpy()
+                    post_project_vol_before_np[idxs] = project_stats["post_project_vol_before"].detach().cpu().numpy()
+                    post_project_vol_after_np[idxs] = project_stats["post_project_vol_after"].detach().cpu().numpy()
+                    post_project_vol_scale_inplane_np[idxs] = project_stats["post_project_vol_scale_inplane"].detach().cpu().numpy()
+                if "angle_out_before_steps" in project_stats:
+                    steps_list = project_stats["angle_out_before_steps"]
+                    if isinstance(steps_list, list) and steps_list:
+                        if project_step_stats_sum is None:
+                            project_step_stats_sum = {
+                                "angle_out_before_steps": [0.0 for _ in steps_list],
+                                "angle_out_after_steps": [0.0 for _ in steps_list],
+                                "cond_before_steps": [0.0 for _ in steps_list],
+                                "cond_after_steps": [0.0 for _ in steps_list],
+                                "project_trigger_steps": [0.0 for _ in steps_list],
+                            }
+                        for key in project_step_stats_sum:
+                            values = project_stats.get(key)
+                            if isinstance(values, list) and len(values) == len(project_step_stats_sum[key]):
+                                project_step_stats_sum[key] = [
+                                    project_step_stats_sum[key][j] + float(values[j])
+                                    for j in range(len(values))
+                                ]
+                        project_step_stats_count += 1
+                if "post_project_trigger_any_steps" in project_stats:
+                    steps_list = project_stats["post_project_trigger_any_steps"]
+                    if isinstance(steps_list, list) and steps_list:
+                        if post_project_step_stats_sum is None:
+                            post_project_step_stats_sum = {
+                                "post_project_trigger_any_steps": [0.0 for _ in steps_list],
+                                "post_project_delta_norm_steps": [0.0 for _ in steps_list],
+                                "post_project_inplane_degen_before_steps": [0.0 for _ in steps_list],
+                                "post_project_inplane_degen_after_steps": [0.0 for _ in steps_list],
+                                "post_project_angle_oob_before_steps": [0.0 for _ in steps_list],
+                                "post_project_angle_oob_after_steps": [0.0 for _ in steps_list],
+                                "post_project_cond_before_steps": [0.0 for _ in steps_list],
+                                "post_project_cond_after_steps": [0.0 for _ in steps_list],
+                                "post_project_vol_before_steps": [0.0 for _ in steps_list],
+                                "post_project_vol_after_steps": [0.0 for _ in steps_list],
+                                "post_project_vol_scale_inplane_steps": [0.0 for _ in steps_list],
+                            }
+                        for key in post_project_step_stats_sum:
+                            values = project_stats.get(key)
+                            if isinstance(values, list) and len(values) == len(post_project_step_stats_sum[key]):
+                                post_project_step_stats_sum[key] = [
+                                    post_project_step_stats_sum[key][j] + float(values[j])
+                                    for j in range(len(values))
+                                ]
+                        post_project_step_stats_count += 1
             if chol_log_clamp_flags is not None:
                 diag = gram6_to_cholesky6(gram6, log_min=None, log_max=None)[:, :3]
                 diag_np = diag.detach().cpu().numpy()
@@ -1117,14 +1362,20 @@ def run_sampling(args: argparse.Namespace) -> Path:
     else:
         v_min, v_max = None, None
 
+    fail_counts: dict[str, int] = {}
+    angle_min = float(getattr(denoiser_cfg.diffusion, "angle_min", 30.0))
+    angle_max = float(getattr(denoiser_cfg.diffusion, "angle_max", 150.0))
+    cond_max_eval = float(args.project_gram_max_cond) if args.project_gram_cond else None
     for i in range(args.num_samples):
-        is_valid = True
+        reasons: list[str] = []
         mask = (mask_np[i] > 0.5) & (z_np[i] > 0)
         zs = z_np[i][mask].astype(int).tolist()
         coords_np = frac_np[i][mask]
         lattice_mat = lattice_np[i]
         if not zs:
-            is_valid = False
+            reasons.append("empty_atoms")
+            for reason in reasons:
+                fail_counts[reason] = fail_counts.get(reason, 0) + 1
             continue
 
         if args.niggli_reduce:
@@ -1172,25 +1423,55 @@ def run_sampling(args: argparse.Namespace) -> Path:
             )
             if np.ndim(dist_3d) == 0:
                 cross_vacuum_np[i] = 0
-                continue
-            edges = np.where(dist_3d < float(args.eval_bond_cut))
-            cross_vac = False
-            for a, b in zip(edges[0].tolist(), edges[1].tolist()):
-                if a >= b:
-                    continue
-                if abs(float(shifts_3d[a, b, c_idx])) > 0.0:
-                    cross_vac = True
-                    break
-            cross_vacuum_np[i] = int(cross_vac)
-            if cross_vac:
-                is_valid = False
+            else:
+                edges = np.where(dist_3d < float(args.eval_bond_cut))
+                cross_vac = False
+                for a, b in zip(edges[0].tolist(), edges[1].tolist()):
+                    if a >= b:
+                        continue
+                    if abs(float(shifts_3d[a, b, c_idx])) > 0.0:
+                        cross_vac = True
+                        break
+                cross_vacuum_np[i] = int(cross_vac)
+                if cross_vac:
+                    reasons.append("cross_vacuum_bond")
         if args.vacuum_min is not None and np.isfinite(vacuum) and float(vacuum) < float(args.vacuum_min):
-            is_valid = False
+            reasons.append("vacuum_too_small")
 
         if v_min is not None and v_max is not None:
             vol = abs(np.linalg.det(lattice_mat))
             if vol < v_min or vol > v_max:
-                is_valid = False
+                reasons.append("bad_volume")
+        vol = float(np.linalg.det(lattice_mat))
+        if not np.isfinite(vol) or vol <= 0.0:
+            reasons.append("det_nonpos")
+        gram = lattice_mat @ lattice_mat.T
+        eigvals = np.linalg.eigvalsh(gram)
+        if not np.all(np.isfinite(eigvals)) or np.any(eigvals <= 0.0):
+            reasons.append("non_spd")
+            cond_val = float("inf")
+        else:
+            cond_val = float(eigvals.max() / max(eigvals.min(), 1e-12))
+        if cond_max_eval is not None and np.isfinite(cond_val) and cond_val > cond_max_eval:
+            reasons.append("cond_overflow")
+        lengths = np.linalg.norm(lattice_mat, axis=1)
+        if np.all(lengths > 0):
+            a_vec, b_vec, c_vec = lattice_mat
+            cos_alpha = np.sum(b_vec * c_vec) / (np.linalg.norm(b_vec) * np.linalg.norm(c_vec))
+            cos_beta = np.sum(a_vec * c_vec) / (np.linalg.norm(a_vec) * np.linalg.norm(c_vec))
+            cos_gamma = np.sum(a_vec * b_vec) / (np.linalg.norm(a_vec) * np.linalg.norm(b_vec))
+            cos_alpha = float(np.clip(cos_alpha, -1.0, 1.0))
+            cos_beta = float(np.clip(cos_beta, -1.0, 1.0))
+            cos_gamma = float(np.clip(cos_gamma, -1.0, 1.0))
+            alpha = float(np.degrees(np.arccos(cos_alpha)))
+            beta = float(np.degrees(np.arccos(cos_beta)))
+            gamma = float(np.degrees(np.arccos(cos_gamma)))
+            if (
+                alpha < angle_min or alpha > angle_max
+                or beta < angle_min or beta > angle_max
+                or gamma < angle_min or gamma > angle_max
+            ):
+                reasons.append("angle_out_of_range")
         if len(zs) > 1:
             frac_t = torch.tensor(coords_np, device=device).unsqueeze(0)
             lat_t = torch.tensor(lattice_mat, device=device).unsqueeze(0)
@@ -1200,14 +1481,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
             if np.isfinite(min_dist):
                 min_dist_post_np[i] = float(min_dist)
             if min_dist < min_dist_cut:
-                is_valid = False
+                reasons.append("collision")
         elements: List[Element] = [Element.from_Z(z) for z in zs]
         structure = Structure(lattice=lattice_mat, species=elements, coords=coords_np, coords_are_cartesian=False)
 
+        is_valid = len(reasons) == 0
         if is_valid:
             valid_flags[i] = 1
             for z_val in zs:
                 element_counts[z_val] = element_counts.get(z_val, 0) + 1
+        else:
+            for reason in reasons:
+                fail_counts[reason] = fail_counts.get(reason, 0) + 1
 
         if args.save_cif:
             if args.cif_filter == "valid" and not is_valid:
@@ -1323,6 +1608,28 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "vacuum": vacuum_np,
         "cross_vacuum_bond": cross_vacuum_np,
     }
+    if project_cond_before_np is not None:
+        payload["project_cond_before"] = project_cond_before_np
+        payload["project_cond_after"] = project_cond_after_np
+        payload["project_delta_cond"] = project_delta_cond_np
+        payload["project_angle_out_before"] = project_angle_out_before_np
+        payload["project_angle_out_after"] = project_angle_out_after_np
+        payload["project_trigger"] = project_trigger_np
+        payload["project_gram_max_cond"] = np.array(float(args.project_gram_max_cond), dtype=np.float32)
+        payload["project_gram_eps"] = np.array(float(args.project_gram_eps), dtype=np.float32)
+        payload["project_gram_mode"] = np.array(str(args.project_gram_mode))
+    if post_project_trigger_any_np is not None:
+        payload["post_project_trigger_any"] = post_project_trigger_any_np
+        payload["post_project_delta_norm"] = post_project_delta_norm_np
+        payload["post_project_inplane_degen_before"] = post_project_inplane_degen_before_np
+        payload["post_project_inplane_degen_after"] = post_project_inplane_degen_after_np
+        payload["post_project_angle_oob_before"] = post_project_angle_oob_before_np
+        payload["post_project_angle_oob_after"] = post_project_angle_oob_after_np
+        payload["post_project_cond_before"] = post_project_cond_before_np
+        payload["post_project_cond_after"] = post_project_cond_after_np
+        payload["post_project_vol_before"] = post_project_vol_before_np
+        payload["post_project_vol_after"] = post_project_vol_after_np
+        payload["post_project_vol_scale_inplane"] = post_project_vol_scale_inplane_np
     if chol_log_clamp_flags is not None:
         clamp_rate = float(np.mean(chol_log_clamp_flags)) if chol_log_clamp_flags.size else 0.0
         chol_min_payload = float("nan")
@@ -1367,7 +1674,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
     if args.cond_split_json is not None:
         payload["cond_split"] = np.array(str(args.cond_split))
 
+    relaxed_flag = None
+    energy_mlip = None
+    min_dist_relax = None
+
     if args.relax:
+        print(f"[info] MLIP relax enabled for {frac_np.shape[0]} samples.")
         relax_out_dir = args.relax_out_dir or (args.out_dir / "relaxed")
         relax_out_dir.mkdir(parents=True, exist_ok=True)
         relaxed_frac = np.array(frac_np, copy=True)
@@ -1376,15 +1688,23 @@ def run_sampling(args: argparse.Namespace) -> Path:
         energy_mlip = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
         min_dist_relax = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
 
-        structures: List[Optional[Structure]] = []
-        index_map: List[List[int]] = []
+        # Relax is expensive; only run for geom-success candidates. This also keeps
+        # energy taxonomy interpretable (geom_fail => energy skipped).
+        candidates: List[int] = []
         for i in range(frac_np.shape[0]):
+            if int(valid_flags[i]) != 1:
+                continue
+            if int(cross_vacuum_np[i]) != 0:
+                continue
+            candidates.append(i)
+
+        cand_map: List[Tuple[int, List[int]]] = []
+        structures: List[Structure] = []
+        for i in candidates:
             z_i = z_np[i]
             mask_i = mask_np[i] if mask_np is not None else np.ones_like(z_i, dtype=float)
             valid_idx = np.where((mask_i > 0.5) & (z_i > 0))[0].tolist()
-            index_map.append(valid_idx)
             if not valid_idx:
-                structures.append(None)
                 continue
             zs = [int(z_i[idx]) for idx in valid_idx]
             coords = frac_np[i][valid_idx]
@@ -1402,47 +1722,61 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 lattice_mat, coords, float(args.relax_vacuum)
             )
             elements = [Element.from_Z(z) for z in zs]
-            structure = Structure(lattice=lattice_mat, species=elements, coords=coords, coords_are_cartesian=False)
+            structure = Structure(
+                lattice=lattice_mat,
+                species=elements,
+                coords=coords,
+                coords_are_cartesian=False,
+            )
+            cand_map.append((i, valid_idx))
             structures.append(structure)
 
-        to_relax = [s for s in structures if s is not None]
-        relaxed_structures, energies, flags = relax_batch(
-            to_relax, steps=int(args.relax_steps), fmax=float(args.relax_fmax), device=args.relax_device
-        )
-        relaxed_iter = iter(zip(relaxed_structures, energies, flags))
-
-        for i, valid_idx in enumerate(index_map):
-            if not valid_idx:
-                continue
-            structure, energy, ok = next(relaxed_iter)
-            if energy is not None:
-                energy_mlip[i] = float(energy)
-            relaxed_flag[i] = int(bool(ok))
-            if not valid_idx:
-                continue
-            relaxed_lattice[i] = np.asarray(structure.lattice.matrix, dtype=np.float32)
-            relaxed_frac[i][valid_idx] = np.asarray(structure.frac_coords, dtype=np.float32)
-            try:
-                min_dist, _, _ = min_dist_and_shifts(
-                    relaxed_frac[i][valid_idx], relaxed_lattice[i], pbc_mask=(1, 1, 0)
-                )
-                min_dist_relax[i] = float(min_dist)
-            except Exception:
-                pass
-            if args.save_cif:
+        if structures:
+            relaxed_structures, energies, flags = relax_batch(
+                structures,
+                steps=int(args.relax_steps),
+                fmax=float(args.relax_fmax),
+                device=args.relax_device,
+            )
+            for (i, valid_idx), structure, energy, ok in zip(cand_map, relaxed_structures, energies, flags):
+                if energy is not None:
+                    energy_mlip[i] = float(energy)
+                relaxed_flag[i] = int(bool(ok))
+                relaxed_lattice[i] = np.asarray(structure.lattice.matrix, dtype=np.float32)
+                relaxed_frac[i][valid_idx] = np.asarray(structure.frac_coords, dtype=np.float32)
                 try:
-                    writer = CifWriter(structure)
-                    writer.write_file(relax_out_dir / f"{args.cif_prefix}_{i}.cif")
+                    min_dist, _, _ = min_dist_and_shifts(
+                        relaxed_frac[i][valid_idx], relaxed_lattice[i], pbc_mask=(1, 1, 0)
+                    )
+                    min_dist_relax[i] = float(min_dist)
                 except Exception:
                     pass
+                if args.save_cif:
+                    try:
+                        writer = CifWriter(structure)
+                        writer.write_file(relax_out_dir / f"{args.cif_prefix}_{i}.cif")
+                    except Exception:
+                        pass
+
+        relax_success = int(np.sum(relaxed_flag)) if relaxed_flag is not None else 0
+        energy_count = int(np.sum(np.isfinite(energy_mlip))) if energy_mlip is not None else 0
+        print(
+            "[info] MLIP relax finished "
+            f"(success={relax_success}/{frac_np.shape[0]}, energy={energy_count}/{frac_np.shape[0]})."
+        )
 
         payload["frac_pre_relax"] = frac_np
         payload["lattice_pre_relax"] = lattice_np
         payload["frac"] = relaxed_frac
         payload["lattice"] = relaxed_lattice
-        payload["relaxed_flag"] = relaxed_flag
-        payload["energy_mlip"] = energy_mlip
-        payload["min_dist_relax"] = min_dist_relax
+    else:
+        relaxed_flag = np.zeros((frac_np.shape[0],), dtype=np.int64)
+        energy_mlip = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
+        min_dist_relax = np.full((frac_np.shape[0],), np.nan, dtype=np.float32)
+
+    payload["relaxed_flag"] = relaxed_flag
+    payload["energy_mlip"] = energy_mlip
+    payload["min_dist_relax"] = min_dist_relax
 
     np.savez_compressed(args.out_dir / "samples.npz", **payload)
     sampling_config["export"] = {
@@ -1459,12 +1793,26 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "min_dist_repulsion_iter": int(min_dist_iter),
         "min_dist_repulsion_strength": float(min_dist_strength),
     }
+    if fail_counts:
+        top3 = sorted(fail_counts.items(), key=lambda kv: kv[1], reverse=True)[:3]
+        sampling_config["export"]["fail_reason_counts"] = fail_counts
+        sampling_config["export"]["fail_reason_top3"] = top3
     if lattice_stats is not None:
         sampling_config["export"]["lattice_stats"] = lattice_stats
     if chol_log_clamp_flags is not None:
         sampling_config["export"]["chol_log_clamp_rate"] = float(
             np.mean(chol_log_clamp_flags) if chol_log_clamp_flags.size else 0.0
         )
+    if project_step_stats_sum is not None and project_step_stats_count > 0:
+        sampling_config["export"]["project_step_stats_mean"] = {
+            key: [v / project_step_stats_count for v in values]
+            for key, values in project_step_stats_sum.items()
+        }
+    if post_project_step_stats_sum is not None and post_project_step_stats_count > 0:
+        sampling_config["export"]["post_project_step_stats_mean"] = {
+            key: [v / post_project_step_stats_count for v in values]
+            for key, values in post_project_step_stats_sum.items()
+        }
     if cond_counts_vector is not None:
         num_elements = int(cond_counts_vector.shape[-1])
         gen_counts = np.zeros((args.num_samples, num_elements), dtype=np.int64)
@@ -1492,6 +1840,81 @@ def run_sampling(args: argparse.Namespace) -> Path:
         json.dumps(sampling_config, indent=2, ensure_ascii=True),
         encoding="utf-8",
     )
+
+    # Run-level metadata for eval to explain energy/projection availability.
+    mlip_meta = {
+        "name": "CHGNet" if (args.relax or args.force_guidance) else None,
+        "version": None,
+        "loaded_ok": bool(args.relax or args.force_guidance),
+        "error_if_failed": None,
+        "device": str(args.relax_device) if args.relax else (str(args.force_guidance_device) if args.force_guidance else None),
+        "dtype": None,
+    }
+    if args.relax or args.force_guidance:
+        try:
+            import chgnet  # type: ignore
+
+            mlip_meta["version"] = getattr(chgnet, "__version__", None)
+        except Exception as exc:  # pragma: no cover - environment dependent
+            mlip_meta["loaded_ok"] = False
+            mlip_meta["error_if_failed"] = f"{type(exc).__name__}: {exc}"
+    relax_meta = {
+        "enabled": bool(args.relax),
+        "max_steps": int(args.relax_steps),
+        "fmax_threshold": float(args.relax_fmax),
+        "vacuum": float(args.relax_vacuum),
+        "target_area_per_atom": float(args.relax_target_area_per_atom),
+        "min_scale": float(args.relax_min_scale),
+        "flatten_z": bool(args.relax_flatten_z),
+        "flatten_factor": float(args.relax_flatten_factor),
+        "device": str(args.relax_device) if args.relax_device is not None else None,
+        "cell_opt": False,
+        "constraints": "2d_default",
+    }
+    proj_meta = {
+        "project_gram_cond": bool(args.project_gram_cond),
+        "project_gram_max_cond": float(args.project_gram_max_cond),
+        "post_project": bool(args.post_project),
+        "post_project_interval": int(args.post_project_interval),
+        "post_project_keys": str(args.post_project_keys),
+        "post_project_cond_max": float(args.post_project_cond_max) if args.post_project_cond_max is not None else None,
+        "post_project_v_min": pp_v_min,
+        "post_project_v_max": pp_v_max,
+        "inplane_a_min": float(args.post_project_inplane_a_min),
+        "inplane_b_min": float(args.post_project_inplane_b_min),
+        "inplane_gamma_min": float(args.post_project_inplane_gamma_min),
+        "inplane_gamma_max": float(args.post_project_inplane_gamma_max),
+        "inplane_area_min": float(args.post_project_inplane_area_min),
+    }
+    run_meta = {
+        "run_metadata": sampling_config.get("run_metadata"),
+        "mlip": mlip_meta,
+        "relax": relax_meta,
+        "projection": proj_meta,
+    }
+    (args.out_dir / "run_metadata.json").write_text(
+        json.dumps(run_meta, indent=2, ensure_ascii=True),
+        encoding="utf-8",
+    )
+    if post_project_trigger_any_np is not None:
+        stats = {
+            "post_project_trigger_any_rate": float(np.mean(post_project_trigger_any_np)),
+            "post_project_delta_norm_mean": float(np.nanmean(post_project_delta_norm_np)),
+            "post_project_delta_norm_p95": float(np.nanpercentile(post_project_delta_norm_np, 95.0)),
+        }
+        if post_project_vol_scale_inplane_np is not None:
+            scaled = np.isfinite(post_project_vol_scale_inplane_np) & (np.abs(post_project_vol_scale_inplane_np - 1.0) > 1e-6)
+            stats.update(
+                {
+                    "post_project_volume_scale_rate": float(np.mean(scaled)),
+                    "post_project_vol_before_mean": float(np.nanmean(post_project_vol_before_np)) if post_project_vol_before_np is not None else None,
+                    "post_project_vol_after_mean": float(np.nanmean(post_project_vol_after_np)) if post_project_vol_after_np is not None else None,
+                }
+            )
+        (args.out_dir / "projection_stats.json").write_text(
+            json.dumps(stats, indent=2, ensure_ascii=True),
+            encoding="utf-8",
+        )
 
     print(
         f"Saved {args.num_samples} samples to {args.out_dir} "
@@ -1542,6 +1965,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
             atomic_ref_map=atomic_ref_map,
             formation_energy_threshold=0.0,
             success_top_k=10,
+            cond_max=float(args.project_gram_max_cond) if args.project_gram_cond else None,
         )
         eval_params = eval_samples_mod.build_eval_params(
             min_dist_cut=float(args.eval_min_dist),
@@ -1553,6 +1977,7 @@ def run_sampling(args: argparse.Namespace) -> Path:
             pbc_mask=eval_pbc_mask,
             formation_energy_threshold=0.0,
             element_refs_path=element_refs_path,
+            cond_max=float(args.project_gram_max_cond) if args.project_gram_cond else None,
         )
         eval_samples_mod.write_eval_outputs(
             out_dir=eval_out_dir,

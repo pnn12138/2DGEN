@@ -15,11 +15,14 @@ from twodgen.common.crystal import (
     frac_mic_dist_with_shifts,
     gram6_to_cholesky6,
     gram6_to_lattice,
+    gram6_to_gram_matrix,
     lattice_to_gram6,
+    project_gram_cond_spd,
     niggli_reduce_lattice,
     reduce_lattice_simple,
 )
 from twodgen.common.geometry_torch import choose_vacuum_axis_torch
+from twodgen.common.projection import post_step_project
 from twodgen.model.atom_transformer import AtomTransformer, AtomTransformerConfig
 from twodgen.model.cell_net import CellNet
 from twodgen.model.tail_adapters import EgNNTailAdapter
@@ -35,7 +38,25 @@ class AtomDenoiserConfig:
     reduce_lattice: bool = False
     niggli_reduce: bool = False
     project_each_step: bool = False
+    project_final: bool = False
     project_geometry: bool = False
+    project_gram_cond: bool = False
+    project_gram_max_cond: float = 1e3
+    project_gram_eps: float = 1e-6
+    project_gram_mode: str = "log"
+
+    # Post-step hard projection (sampling-time guardrail)
+    post_project: bool = False
+    post_project_interval: int = 1
+    post_project_keys: str = "angle,cond,inplane"
+    post_project_cond_max: Optional[float] = None
+    post_project_v_min: Optional[float] = None
+    post_project_v_max: Optional[float] = None
+    post_project_inplane_a_min: float = 2.0
+    post_project_inplane_b_min: float = 2.0
+    post_project_inplane_gamma_min: float = 30.0
+    post_project_inplane_gamma_max: float = 150.0
+    post_project_inplane_area_min: float = 4.0
     z_norm_clip: float = 1.5
     min_dist_iter: int = 0
     min_dist_strength: float = 0.03
@@ -56,6 +77,7 @@ class AtomDenoiser(nn.Module):
         self.cfg = cfg
         self.model = AtomTransformer(cfg.model)
         self.loss_fn = AtomVelocityLoss(cfg.diffusion, self.model.mask_id)
+        self.last_project_stats: Optional[dict[str, torch.Tensor | float | list[float]]] = None
         self.tail_adapter: Optional[nn.Module] = None
         self.cell_net: Optional[nn.Module] = None
         if cfg.model.tail_adapter and cfg.model.tail_adapter != "none":
@@ -276,7 +298,8 @@ class AtomDenoiser(nn.Module):
                 else:
                     denom_t = expand_t(1.0 - t, slab_t.ndim).clamp_min(self.cfg.diffusion.t_eps)
                     geom_preds["t"] = (geom_preds["t"] - slab_t) / denom_t
-        return pred_v_f, pred_v_g, logits_z, geom_preds
+            return pred_v_f, pred_v_g, logits_z, geom_preds
+        return pred_v_f, pred_v_g, logits_z
 
     def _cell_to_lattice(self, cell: torch.Tensor) -> torch.Tensor:
         if self.cfg.diffusion.cell_rep == "cholesky6":
@@ -286,6 +309,109 @@ class AtomDenoiser(nn.Module):
             lattice = lattice * float(self.cfg.model.g_scale) ** 0.5
             return lattice
         return gram6_to_lattice(cell * self.cfg.model.g_scale)
+
+    def _cell_to_gram6(self, cell: torch.Tensor, *, relaxed_bounds: bool = False) -> torch.Tensor:
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            if relaxed_bounds:
+                chol_min, chol_max = self._relaxed_chol_bounds()
+            else:
+                chol_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+                chol_max = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
+            return cholesky6_to_gram6(cell, log_min=chol_min, log_max=chol_max)
+        return cell
+
+    def _gram6_to_cell(self, gram6: torch.Tensor, *, relaxed_bounds: bool = False) -> torch.Tensor:
+        if self.cfg.diffusion.cell_rep == "cholesky6":
+            if relaxed_bounds:
+                chol_min, chol_max = self._relaxed_chol_bounds()
+            else:
+                chol_min = self.cfg.model.chol_log_min_vec if self.cfg.model.chol_log_min_vec is not None else self.cfg.model.chol_log_min
+                chol_max = self.cfg.model.chol_log_max_vec if self.cfg.model.chol_log_max_vec is not None else self.cfg.model.chol_log_max
+            return gram6_to_cholesky6(gram6, log_min=chol_min, log_max=chol_max)
+        return gram6
+
+    def _lattice_to_cell(self, lattice: torch.Tensor, *, relaxed_bounds: bool = False) -> torch.Tensor:
+        # lattice is in physical scale; convert to model-scale gram6 then to cell rep.
+        gram6_phys = lattice_to_gram6(lattice)
+        gram6_model = gram6_phys / float(self.cfg.model.g_scale)
+        return self._gram6_to_cell(gram6_model, relaxed_bounds=relaxed_bounds)
+
+    def _post_project_step(
+        self,
+        cell: torch.Tensor,
+        *,
+        keys: list[str],
+        record_stats: bool = False,
+    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]] | tuple[torch.Tensor, None]:
+        if not keys:
+            return (cell, {} if record_stats else None)  # type: ignore[return-value]
+        lattice_phys = self._cell_to_lattice(cell)
+        cond_max = self.cfg.post_project_cond_max
+        if cond_max is None and self.cfg.project_gram_cond:
+            cond_max = float(self.cfg.project_gram_max_cond)
+        lat_proj, stats = post_step_project(
+            lattice_phys,
+            keys=keys,
+            pbc_mask=self.cfg.model.pbc_mask,
+            angle_min=float(self.cfg.diffusion.angle_min),
+            angle_max=float(self.cfg.diffusion.angle_max),
+            cond_max=float(cond_max) if cond_max is not None else None,
+            vol_min=float(self.cfg.post_project_v_min) if self.cfg.post_project_v_min is not None else None,
+            vol_max=float(self.cfg.post_project_v_max) if self.cfg.post_project_v_max is not None else None,
+            inplane_a_min=float(self.cfg.post_project_inplane_a_min),
+            inplane_b_min=float(self.cfg.post_project_inplane_b_min),
+            inplane_gamma_min=float(self.cfg.post_project_inplane_gamma_min),
+            inplane_gamma_max=float(self.cfg.post_project_inplane_gamma_max),
+            inplane_area_min=float(self.cfg.post_project_inplane_area_min),
+        )
+        cell_new = self._lattice_to_cell(lat_proj, relaxed_bounds=True)
+        if record_stats:
+            return cell_new, stats
+        return cell_new, None
+
+    def _gram6_cond_and_angle_out(
+        self, gram6: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+        gram = gram6_to_gram_matrix(gram6)
+        eigvals = torch.linalg.eigvalsh(gram)
+        spd_ok = torch.isfinite(eigvals).all(dim=-1) & (eigvals.min(dim=-1).values > 0.0)
+        cond = eigvals.max(dim=-1).values / eigvals.min(dim=-1).values.clamp_min(1e-8)
+        cond = torch.where(spd_ok, cond, torch.tensor(float("inf"), device=cond.device, dtype=cond.dtype))
+
+        lattice = gram6_to_lattice(gram6 * float(self.cfg.model.g_scale))
+        lengths = torch.linalg.norm(lattice, dim=-1)
+        valid = torch.isfinite(lengths).all(dim=-1) & (lengths > 0).all(dim=-1)
+        angle_out = torch.ones_like(cond, dtype=torch.bool)
+        if valid.any():
+            lat = lattice[valid]
+            a_vec = lat[:, 0]
+            b_vec = lat[:, 1]
+            c_vec = lat[:, 2]
+            cos_alpha = (b_vec * c_vec).sum(dim=-1) / (b_vec.norm(dim=-1) * c_vec.norm(dim=-1)).clamp_min(1e-8)
+            cos_beta = (a_vec * c_vec).sum(dim=-1) / (a_vec.norm(dim=-1) * c_vec.norm(dim=-1)).clamp_min(1e-8)
+            cos_gamma = (a_vec * b_vec).sum(dim=-1) / (a_vec.norm(dim=-1) * b_vec.norm(dim=-1)).clamp_min(1e-8)
+            mode = str(self.cfg.diffusion.angle_param_mode).lower()
+            if mode == "cos":
+                cos_alpha = cos_alpha.clamp(-0.99, 0.99)
+                cos_beta = cos_beta.clamp(-0.99, 0.99)
+                cos_gamma = cos_gamma.clamp(-0.99, 0.99)
+            elif mode == "sigmoid":
+                tau = max(float(self.cfg.diffusion.angle_sigmoid_tau), 1e-6)
+                cos_alpha = 2.0 * torch.sigmoid(cos_alpha / tau) - 1.0
+                cos_beta = 2.0 * torch.sigmoid(cos_beta / tau) - 1.0
+                cos_gamma = 2.0 * torch.sigmoid(cos_gamma / tau) - 1.0
+            else:
+                cos_alpha = cos_alpha.clamp(-1.0, 1.0)
+                cos_beta = cos_beta.clamp(-1.0, 1.0)
+                cos_gamma = cos_gamma.clamp(-1.0, 1.0)
+            alpha = torch.rad2deg(torch.acos(cos_alpha))
+            beta = torch.rad2deg(torch.acos(cos_beta))
+            gamma = torch.rad2deg(torch.acos(cos_gamma))
+            angle_min = float(self.cfg.diffusion.angle_min)
+            angle_max = float(self.cfg.diffusion.angle_max)
+            out = (alpha < angle_min) | (alpha > angle_max) | (beta < angle_min) | (beta > angle_max) | (gamma < angle_min) | (gamma > angle_max)
+            angle_out[valid] = out
+        return cond, angle_out, spd_ok
 
     def _predict_velocity_guided(
         self,
@@ -442,32 +568,58 @@ class AtomDenoiser(nn.Module):
         return uv_angle, z_norm
 
     def _project_step(
-        self, frac: torch.Tensor, cell: torch.Tensor
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        *,
+        record_stats: bool = False,
+        reduce_stats: bool = False,
+    ) -> Tuple[torch.Tensor, torch.Tensor] | Tuple[torch.Tensor, torch.Tensor, dict[str, torch.Tensor | float]]:
         frac = frac - torch.floor(frac)
-        if self.cfg.diffusion.cell_rep == "cholesky6":
-            chol_min, chol_max = self._relaxed_chol_bounds()
-            if chol_min is not None or chol_max is not None:
-                cell = cell.clone()
-                min_bound = (
-                    torch.tensor(chol_min, device=cell.device, dtype=cell.dtype)
-                    if isinstance(chol_min, (tuple, list))
-                    else chol_min
-                )
-                max_bound = (
-                    torch.tensor(chol_max, device=cell.device, dtype=cell.dtype)
-                    if isinstance(chol_max, (tuple, list))
-                    else chol_max
-                )
-                cell[:, :3] = torch.clamp(cell[:, :3], min=min_bound, max=max_bound)
-            lattice = cholesky6_to_lattice(cell, log_min=chol_min, log_max=chol_max)
-            sqrt_g = float(self.cfg.model.g_scale) ** 0.5
-            lattice_phys = lattice * sqrt_g
-            gram6 = lattice_to_gram6(lattice_phys) / float(self.cfg.model.g_scale)
-            cell = gram6_to_cholesky6(gram6, log_min=chol_min, log_max=chol_max)
-            return frac, cell
-        lattice = gram6_to_lattice(cell * self.cfg.model.g_scale)
-        cell = lattice_to_gram6(lattice) / self.cfg.model.g_scale
+        gram6 = self._cell_to_gram6(cell, relaxed_bounds=True)
+
+        stats: dict[str, torch.Tensor | float] | None = None
+        if record_stats:
+            cond_before, angle_out_before, spd_ok = self._gram6_cond_and_angle_out(gram6)
+        else:
+            cond_before = angle_out_before = spd_ok = None  # type: ignore[assignment]
+
+        gram6_proj = gram6
+        if self.cfg.project_gram_cond:
+            gram6_proj = project_gram_cond_spd(
+                gram6,
+                kappa_max=float(self.cfg.project_gram_max_cond),
+                eps=float(self.cfg.project_gram_eps),
+                mode=str(self.cfg.project_gram_mode),
+            )
+        cell = self._gram6_to_cell(gram6_proj, relaxed_bounds=True)
+
+        if record_stats:
+            cond_after, angle_out_after, _ = self._gram6_cond_and_angle_out(gram6_proj)
+            trigger = torch.zeros_like(cond_after, dtype=torch.bool)
+            if self.cfg.project_gram_cond:
+                max_cond = float(self.cfg.project_gram_max_cond)
+                trigger = (~spd_ok) | (cond_before > max_cond)
+            delta_cond = cond_after - cond_before
+            stats = {
+                "cond_before": cond_before,
+                "cond_after": cond_after,
+                "delta_cond": delta_cond,
+                "angle_out_before": angle_out_before.float(),
+                "angle_out_after": angle_out_after.float(),
+                "project_trigger": trigger.float(),
+            }
+            if reduce_stats:
+                stats = {
+                    "cond_before": float(torch.nanmean(cond_before).item()),
+                    "cond_after": float(torch.nanmean(cond_after).item()),
+                    "delta_cond": float(torch.nanmean(delta_cond).item()),
+                    "angle_out_before": float(angle_out_before.float().mean().item()),
+                    "angle_out_after": float(angle_out_after.float().mean().item()),
+                    "project_trigger": float(trigger.float().mean().item()),
+                }
+        if record_stats:
+            return frac, cell, stats  # type: ignore[return-value]
         return frac, cell
 
     def _z_clamp_step(
@@ -509,8 +661,13 @@ class AtomDenoiser(nn.Module):
         frac: torch.Tensor,
         cell: torch.Tensor,
         atom_mask: torch.Tensor,
+        *,
+        iters: Optional[int] = None,
+        strength: Optional[float] = None,
     ) -> torch.Tensor:
-        if self.cfg.min_dist_iter <= 0 or self.cfg.min_dist_strength <= 0.0:
+        iter_count = int(self.cfg.min_dist_iter if iters is None else iters)
+        strength_val = float(self.cfg.min_dist_strength if strength is None else strength)
+        if iter_count <= 0 or strength_val <= 0.0:
             return frac
         if self.cfg.min_dist_cut <= 0.0:
             return frac
@@ -529,8 +686,8 @@ class AtomDenoiser(nn.Module):
             return frac
 
         cut = float(self.cfg.min_dist_cut)
-        strength = float(self.cfg.min_dist_strength)
-        for _ in range(int(self.cfg.min_dist_iter)):
+        strength = strength_val
+        for _ in range(iter_count):
             dist, shifts = frac_mic_dist_with_shifts(
                 frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask
             )
@@ -698,6 +855,7 @@ class AtomDenoiser(nn.Module):
         method = method or self.cfg.sampling_method
         steps = steps if steps is not None else self.cfg.num_sampling_steps
         device = self.model.z_embed.weight.device
+        self.last_project_stats = None
 
         atom_mask = torch.zeros(batch_size, max_atoms, device=device)
         atom_mask[:, :num_atoms] = 1.0
@@ -853,7 +1011,76 @@ class AtomDenoiser(nn.Module):
                 raise ValueError(f"Unknown sampling method: {method}")
 
             if self.cfg.project_each_step:
-                frac, cell = self._project_step(frac, cell)
+                if self.last_project_stats is None:
+                    self.last_project_stats = {
+                        "angle_out_before_steps": [],
+                        "angle_out_after_steps": [],
+                        "cond_before_steps": [],
+                        "cond_after_steps": [],
+                        "project_trigger_steps": [],
+                    }
+                frac, cell, step_stats = self._project_step(
+                    frac, cell, record_stats=True, reduce_stats=True
+                )
+                if isinstance(self.last_project_stats, dict) and step_stats is not None:
+                    self.last_project_stats["angle_out_before_steps"].append(float(step_stats["angle_out_before"]))  # type: ignore[index]
+                    self.last_project_stats["angle_out_after_steps"].append(float(step_stats["angle_out_after"]))  # type: ignore[index]
+                    self.last_project_stats["cond_before_steps"].append(float(step_stats["cond_before"]))  # type: ignore[index]
+                    self.last_project_stats["cond_after_steps"].append(float(step_stats["cond_after"]))  # type: ignore[index]
+                    self.last_project_stats["project_trigger_steps"].append(float(step_stats["project_trigger"]))  # type: ignore[index]
+            if self.cfg.post_project and int(self.cfg.post_project_interval) > 0:
+                if i % int(self.cfg.post_project_interval) == 0:
+                    if self.last_project_stats is None:
+                        self.last_project_stats = {}
+                    if isinstance(self.last_project_stats, dict):
+                        # Ensure list keys exist even when other projections already initialized last_project_stats.
+                        self.last_project_stats.setdefault("post_project_trigger_any_steps", [])
+                        self.last_project_stats.setdefault("post_project_delta_norm_steps", [])
+                        self.last_project_stats.setdefault("post_project_inplane_degen_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_inplane_degen_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_angle_oob_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_angle_oob_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_cond_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_cond_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_vol_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_vol_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_vol_scale_inplane_steps", [])
+                    keys = [k.strip() for k in str(self.cfg.post_project_keys).split(",") if k.strip()]
+                    cell, post_stats = self._post_project_step(cell, keys=keys, record_stats=True)
+                    if isinstance(self.last_project_stats, dict) and post_stats is not None:
+                        self.last_project_stats["post_project_trigger_any_steps"].append(
+                            float(torch.mean(post_stats["trigger_any"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_delta_norm_steps"].append(
+                            float(torch.quantile(post_stats["delta_norm"], 0.95).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_inplane_degen_before_steps"].append(
+                            float(torch.mean(post_stats["inplane_degen_before"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_inplane_degen_after_steps"].append(
+                            float(torch.mean(post_stats["inplane_degen_after"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_angle_oob_before_steps"].append(
+                            float(torch.mean(post_stats["angle_oob_before"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_angle_oob_after_steps"].append(
+                            float(torch.mean(post_stats["angle_oob_after"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_cond_before_steps"].append(
+                            float(torch.nanmean(post_stats["cond_before"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_cond_after_steps"].append(
+                            float(torch.nanmean(post_stats["cond_after"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_vol_before_steps"].append(
+                            float(torch.nanmean(post_stats["vol_before"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_vol_after_steps"].append(
+                            float(torch.nanmean(post_stats["vol_after"]).item())
+                        )  # type: ignore[index]
+                        self.last_project_stats["post_project_vol_scale_inplane_steps"].append(
+                            float(torch.quantile(post_stats["vol_scale_inplane"], 0.95).item())
+                        )  # type: ignore[index]
             if self.cfg.project_geometry and uv_angle is not None and z_norm is not None:
                 uv_angle, z_norm = self._project_geometry_step(uv_angle, z_norm, atom_mask)
             if self.cfg.z_clamp:
@@ -894,8 +1121,44 @@ class AtomDenoiser(nn.Module):
                             remaining_counts[b, token.item() - 1] -= 1
                         z[b, idx] = token
 
-        if self.cfg.project_each_step:
-            frac, cell = self._project_step(frac, cell)
+        if self.cfg.project_each_step or self.cfg.project_final:
+            frac, cell, final_stats = self._project_step(frac, cell, record_stats=True)
+            if final_stats is not None:
+                if self.last_project_stats is None:
+                    self.last_project_stats = {}
+                self.last_project_stats.update(  # type: ignore[union-attr]
+                    {
+                        "cond_before": final_stats["cond_before"],
+                        "cond_after": final_stats["cond_after"],
+                        "delta_cond": final_stats["delta_cond"],
+                        "angle_out_before": final_stats["angle_out_before"],
+                        "angle_out_after": final_stats["angle_out_after"],
+                        "project_trigger": final_stats["project_trigger"],
+                    }
+                )
+
+        if self.cfg.post_project and self.cfg.project_final:
+            keys = [k.strip() for k in str(self.cfg.post_project_keys).split(",") if k.strip()]
+            cell, post_stats = self._post_project_step(cell, keys=keys, record_stats=True)
+            if post_stats is not None:
+                if self.last_project_stats is None:
+                    self.last_project_stats = {}
+                # Per-sample arrays for export.
+                self.last_project_stats.update(  # type: ignore[union-attr]
+                    {
+                        "post_project_trigger_any": post_stats["trigger_any"],
+                        "post_project_delta_norm": post_stats["delta_norm"],
+                        "post_project_inplane_degen_before": post_stats["inplane_degen_before"],
+                        "post_project_inplane_degen_after": post_stats["inplane_degen_after"],
+                        "post_project_angle_oob_before": post_stats["angle_oob_before"],
+                        "post_project_angle_oob_after": post_stats["angle_oob_after"],
+                        "post_project_cond_before": post_stats["cond_before"],
+                        "post_project_cond_after": post_stats["cond_after"],
+                        "post_project_vol_before": post_stats["vol_before"],
+                        "post_project_vol_after": post_stats["vol_after"],
+                        "post_project_vol_scale_inplane": post_stats["vol_scale_inplane"],
+                    }
+                )
 
         frac = frac - torch.floor(frac)
         frac_pre = frac.clone()
@@ -911,6 +1174,32 @@ class AtomDenoiser(nn.Module):
         min_dist_pre = dist_pre.amin(dim=(1, 2))
 
         frac = self._apply_min_dist_repulsion(frac, cell, atom_mask)
+        # If volume clamp shrunk the in-plane lattice a lot, run an extra repulsion
+        # pass for those samples to offset increased collision risk.
+        if (
+            isinstance(self.last_project_stats, dict)
+            and "post_project_vol_scale_inplane" in self.last_project_stats
+        ):
+            try:
+                vol_scale = self.last_project_stats["post_project_vol_scale_inplane"]
+                if isinstance(vol_scale, torch.Tensor) and vol_scale.numel() == frac.shape[0]:
+                    # More aggressive: even moderate in-plane shrink can raise collision risk.
+                    need = vol_scale < 0.98
+                    if bool(need.any().item()):
+                        idx = need.nonzero(as_tuple=False).flatten()
+                        frac_sub = frac.index_select(0, idx)
+                        cell_sub = cell.index_select(0, idx)
+                        mask_sub = atom_mask.index_select(0, idx)
+                        frac_sub = self._apply_min_dist_repulsion(
+                            frac_sub,
+                            cell_sub,
+                            mask_sub,
+                            iters=int(self.cfg.min_dist_iter) + 20,
+                            strength=1.5 * float(self.cfg.min_dist_strength),
+                        )
+                        frac[idx] = frac_sub
+            except Exception:
+                pass
         dist_post = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
         min_dist_post = dist_post.amin(dim=(1, 2))
         if self.cfg.diffusion.cell_rep == "cholesky6":

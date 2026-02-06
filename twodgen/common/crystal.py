@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional, Sequence, Tuple, Union
+import math
 
 import torch
 
@@ -47,6 +48,86 @@ def _clamp_diag(
     return torch.clamp(diag, max=max_bound)
 
 
+def gram6_to_gram_matrix(g: torch.Tensor) -> torch.Tensor:
+    """
+    Convert Gram 6D vectors to symmetric Gram matrices.
+    """
+    if g.ndim != 2 or g.shape[-1] != 6:
+        raise ValueError(f"Expected g shape (B,6), got {tuple(g.shape)}")
+    g11, g22, g33, g12, g13, g23 = [g[:, i] for i in range(6)]
+    return torch.stack(
+        [
+            torch.stack([g11, g12, g13], dim=-1),
+            torch.stack([g12, g22, g23], dim=-1),
+            torch.stack([g13, g23, g33], dim=-1),
+        ],
+        dim=-2,
+    )
+
+
+def gram_matrix_to_gram6(gram: torch.Tensor) -> torch.Tensor:
+    """
+    Convert Gram matrices to Gram 6D vectors.
+    """
+    if gram.ndim != 3 or gram.shape[-2:] != (3, 3):
+        raise ValueError(f"Expected gram shape (B,3,3), got {tuple(gram.shape)}")
+    return torch.stack(
+        [
+            gram[:, 0, 0],
+            gram[:, 1, 1],
+            gram[:, 2, 2],
+            gram[:, 0, 1],
+            gram[:, 0, 2],
+            gram[:, 1, 2],
+        ],
+        dim=-1,
+    )
+
+
+def project_gram_cond_spd(
+    g: torch.Tensor,
+    *,
+    kappa_max: Optional[float],
+    eps: float = 1e-6,
+    mode: str = "log",
+) -> torch.Tensor:
+    """
+    Project Gram matrices onto SPD space and clamp condition number.
+
+    Args:
+        g: (B,6) Gram 6D vectors.
+        kappa_max: Maximum allowed condition number; <=0 disables cond projection.
+        eps: Minimum eigenvalue.
+        mode: "log" rescales eigenvalues in log-space; "linear" clamps min eig via max/kappa.
+    """
+    gram = gram6_to_gram_matrix(g)
+    gram = 0.5 * (gram + gram.transpose(-1, -2))
+    eigvals, eigvecs = torch.linalg.eigh(gram)
+    eigvals = eigvals.clamp_min(eps)
+
+    if kappa_max is not None and float(kappa_max) > 0.0:
+        kappa = float(kappa_max)
+        if mode == "log":
+            log_vals = torch.log(eigvals)
+            log_min = log_vals.min(dim=-1, keepdim=True).values
+            log_max = log_vals.max(dim=-1, keepdim=True).values
+            log_range = (log_max - log_min).clamp_min(1e-12)
+            target = float(math.log(max(kappa, 1e-12)))
+            scale = torch.ones_like(log_range)
+            scale = torch.where(log_range > target, target / log_range, scale)
+            mean = log_vals.mean(dim=-1, keepdim=True)
+            log_new = mean + (log_vals - mean) * scale
+            log_new = torch.clamp(log_new, min=float(math.log(max(eps, 1e-12))))
+            eigvals = torch.exp(log_new)
+        elif mode == "linear":
+            max_eig = eigvals.max(dim=-1, keepdim=True).values
+            min_target = max_eig / max(kappa, 1e-12)
+            eigvals = torch.maximum(eigvals, min_target)
+        else:
+            raise ValueError(f"Unknown projection mode: {mode}")
+
+    gram_proj = eigvecs @ torch.diag_embed(eigvals) @ eigvecs.transpose(-1, -2)
+    return gram_matrix_to_gram6(gram_proj)
 
 
 def gram6_to_lattice(
@@ -401,6 +482,9 @@ def niggli_reduce_lattice(lattice: torch.Tensor) -> torch.Tensor:
 
 
 __all__ = [
+    "gram6_to_gram_matrix",
+    "gram_matrix_to_gram6",
+    "project_gram_cond_spd",
     "gram6_to_lattice",
     "gram6_to_cholesky6",
     "cholesky6_to_gram6",

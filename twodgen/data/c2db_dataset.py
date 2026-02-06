@@ -136,6 +136,8 @@ class C2DBTokenNPZDataset(Dataset):
             value = np.asarray(data[key])
             if value.ndim == 0 or value.shape[0] != self.z.shape[0]:
                 continue
+            if value.dtype.kind not in {"i", "u", "f", "b"}:
+                continue
             self.extra[key] = torch.from_numpy(value)
 
     def __len__(self) -> int:

@@ -4,9 +4,12 @@ import argparse
 import json
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Literal, Tuple
 
 import numpy as np
+
+
+SelectionMode = Literal["success", "geom", "geom_energy"]
 
 
 def _run(cmd: List[str]) -> None:
@@ -41,7 +44,7 @@ def _lattice_to_gram6(lattice: np.ndarray) -> np.ndarray:
     ).astype(np.float32)
 
 
-def _load_success_indices(per_sample_path: Path) -> List[int]:
+def _load_success_indices(per_sample_path: Path, *, mode: SelectionMode) -> List[int]:
     indices: List[int] = []
     with per_sample_path.open("r", encoding="utf-8") as f:
         for line in f:
@@ -49,13 +52,32 @@ def _load_success_indices(per_sample_path: Path) -> List[int]:
             if not line:
                 continue
             row = json.loads(line)
-            if row.get("success"):
+            ok = False
+            if mode == "success":
+                ok = bool(row.get("success"))
+            elif mode == "geom":
+                ok = bool(row.get("success_geom"))
+            elif mode == "geom_energy":
+                ok = bool(row.get("success_geom")) and bool(row.get("success_energy")) and bool(row.get("energy_available"))
+            else:  # pragma: no cover - defensive
+                raise ValueError(f"Unknown selection mode: {mode!r}")
+            if ok:
                 indices.append(int(row["id"]))
     return indices
 
 
 def _filter_samples(samples: Dict[str, np.ndarray], indices: List[int]) -> Dict[str, np.ndarray]:
-    return {k: np.asarray(v)[indices] for k, v in samples.items() if np.asarray(v).shape[0] >= max(indices, default=-1) + 1}
+    # Only index tensors that are per-sample arrays (leading dim == num_samples).
+    # Keep scalars / metadata arrays as-is.
+    out: Dict[str, np.ndarray] = {}
+    n = int(np.asarray(samples["z"]).shape[0])
+    for key, val in samples.items():
+        arr = np.asarray(val)
+        if arr.ndim >= 1 and arr.shape[0] == n:
+            out[key] = arr[indices]
+        else:
+            out[key] = arr
+    return out
 
 
 def _merge_npz(base: Dict[str, np.ndarray], extra: Dict[str, np.ndarray]) -> Dict[str, np.ndarray]:
@@ -72,12 +94,36 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Self-train loop: sample -> eval -> append dataset.")
     parser.add_argument("--checkpoint", type=Path, required=True)
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument(
+        "--npz",
+        type=Path,
+        default=None,
+        help="Optional token cache passed to sample_tokens (--npz). Required if checkpoint expects conditioning.",
+    )
+    parser.add_argument(
+        "--cond-npz",
+        type=Path,
+        default=None,
+        help="Optional conditioning token cache passed to sample_tokens (--cond-npz).",
+    )
     parser.add_argument("--num-samples", type=int, default=200)
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--sample-args", type=str, default="")
     parser.add_argument("--eval-args", type=str, default="")
     parser.add_argument("--base-npz", type=Path, default=None)
     parser.add_argument("--max-atoms", type=int, default=24)
+    parser.add_argument(
+        "--select",
+        type=str,
+        default="success",
+        choices=["success", "geom", "geom_energy"],
+        help=(
+            "Which criterion to select samples for self-train: "
+            "success=success_geom && (success_energy if energy available), "
+            "geom=success_geom only, "
+            "geom_energy=success_geom && success_energy && energy_available."
+        ),
+    )
     return parser.parse_args()
 
 
@@ -103,6 +149,10 @@ def main() -> None:
         "--max-atoms",
         str(args.max_atoms),
     ]
+    if args.npz is not None:
+        sample_cmd += ["--npz", str(args.npz)]
+    if args.cond_npz is not None:
+        sample_cmd += ["--cond-npz", str(args.cond_npz)]
     if args.sample_args:
         sample_cmd += args.sample_args.split()
     _run(sample_cmd)
@@ -120,7 +170,7 @@ def main() -> None:
         eval_cmd += args.eval_args.split()
     _run(eval_cmd)
 
-    success_indices = _load_success_indices(eval_dir / "per_sample.jsonl")
+    success_indices = _load_success_indices(eval_dir / "per_sample.jsonl", mode=str(args.select))  # type: ignore[arg-type]
     samples = dict(np.load(sample_dir / "samples.npz"))
     if not success_indices:
         summary = {"selected": 0, "total": int(samples["z"].shape[0])}

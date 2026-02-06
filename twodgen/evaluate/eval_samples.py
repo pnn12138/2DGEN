@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import shlex
+import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -18,7 +19,9 @@ VALID_CRITERIA = [
     "n_atoms >= 3",
     "non-empty atoms",
     "volume within [v_min, v_max] when provided",
+    "determinant > 0",
     "lattice Gram matrix is SPD",
+    "condition number <= cond_max when provided (in-plane Gram for 2D slabs)",
     "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
     "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
     "angles alpha/beta/gamma within [30, 150] degrees",
@@ -27,6 +30,69 @@ VALID_CRITERIA = [
 
 _ELEMENT_SYMBOLS = [None] + [Element.from_Z(z).symbol for z in range(1, 119)]
 _SPACEGROUP_MAX = 230
+
+# Fail reason priority used to choose a single "main" geom failure.
+_FAIL_REASON_GEOM_PRIORITY = [
+    "collision",
+    "angle_out_of_range",
+    "inplane_degenerate",
+    "cond_overflow",
+    "bad_volume",
+    "non_spd",
+    "det_nonpos",
+    "duplicate_coord",
+    "low_atoms",
+    "empty_atoms",
+]
+
+
+def _main_fail_reason(reasons: List[str], priority: List[str]) -> str:
+    if not reasons:
+        return ""
+    seen = set(reasons)
+    for key in priority:
+        if key in seen:
+            return key
+    return reasons[0]
+
+
+def _inplane_metrics(
+    lattice: np.ndarray,
+    *,
+    pbc_mask: Tuple[int, int, int],
+) -> Tuple[float, float, float, float]:
+    axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+    if len(axes) != 2:
+        return float("nan"), float("nan"), float("nan"), float("nan")
+    a_vec = lattice[axes[0]]
+    b_vec = lattice[axes[1]]
+    a_len = float(np.linalg.norm(a_vec))
+    b_len = float(np.linalg.norm(b_vec))
+    denom = max(a_len * b_len, 1e-12)
+    cos_g = float(np.dot(a_vec, b_vec) / denom)
+    cos_g = float(np.clip(cos_g, -1.0, 1.0))
+    gamma = float(np.degrees(np.arccos(cos_g)))
+    area = float(np.linalg.norm(np.cross(a_vec, b_vec)))
+    return a_len, b_len, gamma, area
+
+
+def _cond_gram_inplane(lattice: np.ndarray, *, pbc_mask: Tuple[int, int, int]) -> float:
+    """
+    In-plane Gram condition number for 2D slabs (two periodic axes).
+    Returns inf if the in-plane Gram is not SPD / numeric.
+    """
+    axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+    if len(axes) != 2:
+        return float("nan")
+    sub = lattice[axes]  # (2,3) row-basis
+    gram = sub @ sub.T  # (2,2)
+    try:
+        eigvals = np.linalg.eigvalsh(gram)
+    except Exception:
+        return float("inf")
+    if not np.all(np.isfinite(eigvals)) or np.any(eigvals <= 0.0):
+        return float("inf")
+    return float(eigvals.max() / max(float(eigvals.min()), 1e-12))
 
 
 def _spacegroup_number(
@@ -101,6 +167,7 @@ def build_eval_params(
     element_refs_path: Optional[Path],
     target_spacegroup: Optional[int] = None,
     spacegroup_symprec: float = 1e-2,
+    cond_max: Optional[float] = None,
 ) -> Dict[str, Any]:
     return {
         "min_dist_cut": float(min_dist_cut),
@@ -114,6 +181,7 @@ def build_eval_params(
         "element_refs_path": str(element_refs_path) if element_refs_path is not None else None,
         "target_spacegroup": int(target_spacegroup) if target_spacegroup is not None else None,
         "spacegroup_symprec": float(spacegroup_symprec),
+        "cond_max": float(cond_max) if cond_max is not None else None,
     }
 
 
@@ -239,6 +307,7 @@ def _eval_samples(
     success_top_k: int = 10,
     target_spacegroup: Optional[int] = None,
     spacegroup_symprec: float = 1e-2,
+    cond_max: Optional[float] = None,
 ) -> Tuple[List[Dict[str, Any]], Dict[str, Any], Dict[str, Any], List[Dict[str, Any]]]:
     z = samples["z"]
     frac = samples["frac"]
@@ -254,6 +323,8 @@ def _eval_samples(
             cond_source_value = str(cond_source)
     cond_metrics = None
     cond_match_suspect = False
+    exact_match = np.array([], dtype=bool)
+    l1 = np.array([], dtype=float)
     if cond_counts_vector is not None:
         num_elements = int(cond_counts_vector.shape[1])
         gen_counts = _counts_from_samples(z, atom_mask, num_elements=num_elements)
@@ -280,7 +351,13 @@ def _eval_samples(
             "comp_l1": comp_l1,
             "comp_cos": comp_cos,
         }
-    if cond_source_value is None and exact_match.size and np.all(exact_match) and np.all(l1 == 0):
+    if (
+        cond_metrics is not None
+        and cond_source_value is None
+        and exact_match.size
+        and np.all(exact_match)
+        and np.all(l1 == 0)
+    ):
         cond_match_suspect = True
 
     per_sample: List[Dict[str, Any]] = []
@@ -291,11 +368,16 @@ def _eval_samples(
     collision_min_dists: List[float] = []
     volumes: List[float] = []
     conds: List[float] = []
+    conds_full: List[float] = []
+    cond_overflow_flags: List[int] = []
     n_atoms_list: List[int] = []
     angles_alpha: List[float] = []
     angles_beta: List[float] = []
     angles_gamma: List[float] = []
     angle_out_flags: List[int] = []
+    inplane_degen_flags: List[int] = []
+    inplane_area_stats: List[float] = []
+    inplane_gamma_stats: List[float] = []
     same_elem_min_dists: List[float] = []
 
     thicknesses: List[float] = []
@@ -309,10 +391,31 @@ def _eval_samples(
     valid_2d_flags: List[int] = []
 
     counts_batch = _counts_from_samples(z, atom_mask, num_elements=len(_ELEMENT_SYMBOLS) - 1)
+    project_cond_before = samples.get("project_cond_before")
+    project_cond_after = samples.get("project_cond_after")
+    project_delta_cond = samples.get("project_delta_cond")
+    project_angle_out_before = samples.get("project_angle_out_before")
+    project_angle_out_after = samples.get("project_angle_out_after")
+    project_trigger = samples.get("project_trigger")
+    post_project_trigger_any = samples.get("post_project_trigger_any")
+    post_project_delta_norm = samples.get("post_project_delta_norm")
+    post_project_vol_before = samples.get("post_project_vol_before")
+    post_project_vol_after = samples.get("post_project_vol_after")
+    post_project_vol_scale_inplane = samples.get("post_project_vol_scale_inplane")
     energy_mlip_values = samples.get("energy_mlip")
+    relaxed_flag_values = samples.get("relaxed_flag")
+    min_dist_relax_values = samples.get("min_dist_relax")
     energy_stats: List[float] = []
     formation_stats: List[float] = []
     success_flags: List[int] = []
+    success_geom_flags: List[int] = []
+    success_energy_flags: List[int] = []
+    energy_available_flags: List[int] = []
+    energy_skipped_geom_flags: List[int] = []
+    energy_skipped_mlip_flags: List[int] = []
+    energy_fail_reason_counts: Dict[str, int] = {}
+    relaxed_flags: List[int] = []
+    min_dist_relax_stats: List[float] = []
     sg_numbers: List[Optional[int]] = []
     sg_match_flags: List[int] = []
     sg_violation_flags: List[int] = []
@@ -333,7 +436,10 @@ def _eval_samples(
         if n_atoms < 3:
             reasons.append("low_atoms")
 
-        vol = float(abs(np.linalg.det(lattice_i)))
+        det = float(np.linalg.det(lattice_i))
+        vol = float(abs(det))
+        if not np.isfinite(det) or det <= 0.0:
+            reasons.append("det_nonpos")
         if v_min is not None and v_max is not None:
             if vol < v_min or vol > v_max:
                 reasons.append("bad_volume")
@@ -342,9 +448,23 @@ def _eval_samples(
         eigvals = np.linalg.eigvalsh(gram)
         if not np.all(np.isfinite(eigvals)) or np.any(eigvals <= 0.0):
             reasons.append("non_spd")
-            cond = float("inf")
+            cond_full = float("inf")
         else:
-            cond = float(eigvals.max() / max(eigvals.min(), 1e-12))
+            cond_full = float(eigvals.max() / max(eigvals.min(), 1e-12))
+
+        # For 2D slabs, use in-plane Gram cond for cond_max checks.
+        axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+        if len(axes) == 2:
+            cond = _cond_gram_inplane(lattice_i, pbc_mask=pbc_mask)
+        else:
+            cond = cond_full
+
+        cond_lattice = float(math.sqrt(cond)) if np.isfinite(cond) and cond >= 0 else float("nan")
+        if cond_max is not None and np.isfinite(cond) and cond > float(cond_max):
+            reasons.append("cond_overflow")
+            cond_overflow_flags.append(1)
+        else:
+            cond_overflow_flags.append(0)
 
         if n_atoms > 0:
             min_dist, dist, shifts = min_dist_and_shifts(frac_i, lattice_i, pbc_mask=pbc_mask)
@@ -394,6 +514,30 @@ def _eval_samples(
             angle_out_flags.append(angle_out)
             if angle_out:
                 reasons.append("angle_out_of_range")
+        else:
+            angles_alpha.append(float("nan"))
+            angles_beta.append(float("nan"))
+            angles_gamma.append(float("nan"))
+            angle_out_flags.append(0)
+
+        # in-plane degeneracy (2D guardrail) based on pbc_mask periodic axes
+        a_len_in, b_len_in, gamma_in, area_in = _inplane_metrics(lattice_i, pbc_mask=pbc_mask)
+        inplane_gamma_stats.append(gamma_in)
+        inplane_area_stats.append(area_in)
+        inplane_degen = int(
+            (not np.isfinite(a_len_in))
+            or (a_len_in < 2.0)
+            or (not np.isfinite(b_len_in))
+            or (b_len_in < 2.0)
+            or (not np.isfinite(gamma_in))
+            or (gamma_in < 30.0)
+            or (gamma_in > 150.0)
+            or (not np.isfinite(area_in))
+            or (area_in < 4.0)
+        )
+        inplane_degen_flags.append(inplane_degen)
+        if inplane_degen:
+            reasons.append("inplane_degenerate")
         c_idx, c_len, _ = choose_vacuum_axis(lattice_i)
         if n_atoms > 0:
             thickness, vacuum = thickness_vacuum(frac_i[:, c_idx], c_len)
@@ -432,6 +576,7 @@ def _eval_samples(
 
         volumes.append(vol)
         conds.append(cond)
+        conds_full.append(cond_full)
         n_atoms_list.append(n_atoms)
         thicknesses.append(thickness)
         vacuums.append(vacuum)
@@ -449,6 +594,22 @@ def _eval_samples(
             energy_raw = energy_mlip_values[i]
             if np.isfinite(float(energy_raw)):
                 energy_val = float(energy_raw)
+        relaxed_flag_value = None
+        if relaxed_flag_values is not None:
+            try:
+                relaxed_flag_value = int(relaxed_flag_values[i])
+            except Exception:
+                relaxed_flag_value = 0
+            relaxed_flags.append(relaxed_flag_value)
+        min_dist_relax_value = None
+        if min_dist_relax_values is not None:
+            try:
+                min_dist_relax_val = float(min_dist_relax_values[i])
+                if np.isfinite(min_dist_relax_val):
+                    min_dist_relax_value = min_dist_relax_val
+                    min_dist_relax_stats.append(min_dist_relax_val)
+            except Exception:
+                pass
         formation_energy: Optional[float] = None
         if atomic_ref_map is not None:
             formation_energy = _formation_energy_per_atom(
@@ -480,31 +641,65 @@ def _eval_samples(
             sg_violation_flags.append(int(symmetry_violation))
         sg_numbers.append(sg_number)
 
-        low_energy = (
-            formation_energy is not None and formation_energy <= float(formation_energy_threshold)
-        )
+        # Energy taxonomy:
+        # - energy_available: whether MLIP energy exists (independent of element refs)
+        # - success_energy: relax succeeded + numeric sanity (+ optional formation energy threshold)
+        energy_available = energy_val is not None
+        low_energy = (formation_energy is None) or (formation_energy <= float(formation_energy_threshold))
         symmetry_ok = True if target_sg is None else bool(sg_match)
-        success_flag = bool(valid and valid_2d and cond_ok and low_energy and symmetry_ok)
-        success_reasons: List[str] = []
-        if not valid:
-            success_reasons.append("invalid")
-        if not valid_2d:
-            success_reasons.append("invalid_2d")
-        if not cond_ok:
-            success_reasons.append("cond_mismatch")
-        if not low_energy:
-            if formation_energy is None:
-                success_reasons.append("missing_energy")
+        success_geom = bool(valid and valid_2d and cond_ok and symmetry_ok)
+        energy_skipped_reason = None
+        fail_reason_energy = None
+        if not success_geom:
+            energy_skipped_reason = "geom_fail"
+            energy_skipped_geom_flags.append(1)
+            energy_skipped_mlip_flags.append(0)
+            success_energy = None
+        elif not energy_available:
+            energy_skipped_reason = "mlip_unavailable"
+            energy_skipped_geom_flags.append(0)
+            energy_skipped_mlip_flags.append(1)
+            success_energy = None
+            fail_reason_energy = "missing"
+        else:
+            energy_skipped_geom_flags.append(0)
+            energy_skipped_mlip_flags.append(0)
+            ok_relax = bool(relaxed_flag_value) if relaxed_flag_value is not None else True
+            if not np.isfinite(float(energy_val)):
+                ok_relax = False
+                fail_reason_energy = "nan_energy"
+            if not ok_relax:
+                success_energy = False
+                fail_reason_energy = fail_reason_energy or "non_converge"
             else:
+                success_energy = bool(low_energy)
+                if not success_energy:
+                    fail_reason_energy = "high_energy"
+        success_flag = bool(success_geom and (bool(success_energy) if success_energy is not None else True))
+        if fail_reason_energy is not None:
+            energy_fail_reason_counts[fail_reason_energy] = energy_fail_reason_counts.get(fail_reason_energy, 0) + 1
+        success_reasons: List[str] = []
+        if not success_flag:
+            if not valid:
+                success_reasons.append("invalid")
+            if not valid_2d:
+                success_reasons.append("invalid_2d")
+            if not cond_ok:
+                success_reasons.append("cond_mismatch")
+            if not symmetry_ok:
+                success_reasons.append("spacegroup_mismatch")
+            if energy_available and not low_energy:
                 success_reasons.append("high_energy")
-        if not symmetry_ok:
-            success_reasons.append("spacegroup_mismatch")
 
         if energy_val is not None:
             energy_stats.append(energy_val)
         if formation_energy is not None:
             formation_stats.append(formation_energy)
         success_flags.append(int(success_flag))
+        success_geom_flags.append(int(success_geom))
+        if success_energy is not None:
+            success_energy_flags.append(int(bool(success_energy)))
+        energy_available_flags.append(int(energy_available))
 
         row = {
             "id": int(i),
@@ -524,12 +719,25 @@ def _eval_samples(
             "fail_reason": "+".join(reasons) if reasons else "",
             "energy_mlip": energy_val,
             "formation_energy_per_atom": formation_energy,
+            "relaxed_flag": relaxed_flag_value,
+            "min_dist_relax": min_dist_relax_value,
             "success": success_flag,
+            "success_geom": success_geom,
+            "success_energy": success_energy,
+            "energy_available": energy_available,
+            "energy_skipped_reason": energy_skipped_reason,
+            "fail_reason_energy": fail_reason_energy,
             "success_fail_reason": "+".join(success_reasons) if success_reasons else "",
             "spacegroup_number": sg_number,
             "spacegroup_match": sg_match if sg_match is not None else None,
             "symmetry_violation": symmetry_violation,
         }
+        row["cond_gram"] = cond
+        row["cond_gram_full"] = cond_full
+        row["cond_lattice"] = cond_lattice
+        row["inplane_gamma"] = gamma_in
+        row["inplane_area"] = area_in
+        row["fail_reason_geom"] = _main_fail_reason(reasons, _FAIL_REASON_GEOM_PRIORITY)
         if cond_metrics is not None:
             row.update(
                 {
@@ -550,21 +758,68 @@ def _eval_samples(
         "min_dist_collision": _summary_stats(collision_min_dists),
         "min_dist_same_elem": _summary_stats(same_elem_min_dists),
         "volume": _summary_stats(volumes),
-        "cond": _summary_stats(conds),
-        "spd_rate": float(np.mean([c < float("inf") for c in conds])) if conds else 0.0,
+        "cond": _summary_stats(conds),  # Gram cond (eig ratio); in-plane for 2D slabs
+        "cond_full": _summary_stats(conds_full),  # full 3x3 Gram cond (debug)
+        "cond_lattice": _summary_stats([float(math.sqrt(c)) for c in conds if c is not None and np.isfinite(c) and c >= 0]),
+        "spd_rate": float(np.mean([c < float("inf") for c in conds_full])) if conds_full else 0.0,
         "energy_mlip": _summary_stats(energy_stats),
         "formation_energy_per_atom": _summary_stats(formation_stats),
+        "relaxed_rate": float(np.mean(relaxed_flags)) if relaxed_flags else None,
+        "min_dist_relax": _summary_stats(min_dist_relax_stats),
         "success_rate": float(np.mean(success_flags)) if success_flags else 0.0,
+        "success_geom_rate": float(np.mean(success_geom_flags)) if success_geom_flags else 0.0,
+        "success_energy_rate": float(np.mean(success_energy_flags)) if success_energy_flags else None,
+        "energy_available_rate": float(np.mean(energy_available_flags)) if energy_available_flags else None,
+        "energy_skipped_geom_rate": float(np.mean(energy_skipped_geom_flags)) if energy_skipped_geom_flags else None,
+        "energy_skipped_mlip_rate": float(np.mean(energy_skipped_mlip_flags)) if energy_skipped_mlip_flags else None,
+        "fail_reason_energy_counts": energy_fail_reason_counts,
         "spacegroup_match_rate": float(np.mean(sg_match_flags)) if sg_match_flags else None,
         "symmetry_violation_rate": float(np.mean(sg_violation_flags)) if sg_violation_flags else None,
         "angle_alpha": _summary_stats(angles_alpha),
         "angle_beta": _summary_stats(angles_beta),
         "angle_gamma": _summary_stats(angles_gamma),
         "angle_out_of_range_rate": float(np.mean(angle_out_flags)) if angle_out_flags else 0.0,
+        "inplane_degen_rate": float(np.mean(inplane_degen_flags)) if inplane_degen_flags else 0.0,
+        "inplane_area": _summary_stats(inplane_area_stats),
+        "inplane_gamma": _summary_stats(inplane_gamma_stats),
         "n_atoms": _summary_stats(n_atoms_list),
         "element_counts": elem_counts,
         "total_samples": int(z.shape[0]),
     }
+    if fail_counts:
+        top3 = sorted(fail_counts.items(), key=lambda kv: kv[1], reverse=True)[:3]
+        tier0["fail_reason_top3"] = top3
+    if cond_max is not None and cond_overflow_flags:
+        tier0["cond_violation_rate"] = float(np.mean(cond_overflow_flags))
+        tier0["cond_lattice_violation_rate"] = float(
+            np.mean([int(np.isfinite(c) and c > float(cond_max)) for c in conds])
+        )
+    if project_trigger is not None:
+        tier0["project_trigger_rate"] = float(np.mean(project_trigger))
+    if project_delta_cond is not None:
+        tier0["project_delta_cond"] = _summary_stats(project_delta_cond.tolist())
+    if project_angle_out_before is not None and project_angle_out_after is not None:
+        tier0["project_angle_out_rate_before"] = float(np.mean(project_angle_out_before))
+        tier0["project_angle_out_rate_after"] = float(np.mean(project_angle_out_after))
+    if post_project_trigger_any is not None:
+        tier0["post_project_trigger_any_rate"] = float(np.mean(post_project_trigger_any))
+    if post_project_delta_norm is not None:
+        try:
+            tier0["post_project_delta_norm"] = _summary_stats(post_project_delta_norm.tolist())
+        except Exception:
+            pass
+    if post_project_vol_scale_inplane is not None:
+        try:
+            tier0["post_project_vol_scale_inplane"] = _summary_stats(post_project_vol_scale_inplane.tolist())
+            tier0["post_project_vol_scaled_rate"] = float(np.mean(np.abs(post_project_vol_scale_inplane - 1.0) > 1e-6))
+        except Exception:
+            pass
+    if post_project_vol_before is not None and post_project_vol_after is not None:
+        try:
+            tier0["post_project_vol_before"] = _summary_stats(post_project_vol_before.tolist())
+            tier0["post_project_vol_after"] = _summary_stats(post_project_vol_after.tolist())
+        except Exception:
+            pass
     if cond_metrics is not None:
         tier0["cond_match"] = {
             "exact_match_rate": float(np.mean(cond_metrics["exact_match"]))
@@ -611,8 +866,14 @@ def _eval_samples(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate token-based samples (Tier-0/1).")
-    parser.add_argument("--samples", type=Path, required=True, help="Path to samples.npz")
+    parser.add_argument("--samples", type=Path, default=None, help="Path to samples.npz")
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
+    parser.add_argument(
+        "--self-check",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Run a minimal MIC sanity check and exit (does not require --samples).",
+    )
     parser.add_argument("--stats-npz", type=Path, default=None, help="NPZ for volume bounds (p1/p99).")
     parser.add_argument(
         "--vacuum-min",
@@ -646,6 +907,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--target-spacegroup", type=int, default=None)
     parser.add_argument("--spacegroup-symprec", type=float, default=1e-2)
+    parser.add_argument(
+        "--cond-max",
+        type=float,
+        default=None,
+        help="If set, mark samples invalid when Gram condition exceeds this value.",
+    )
     parser.set_defaults(
         min_dist=1.5,
         eval_min_dist=None,
@@ -733,6 +1000,13 @@ def main() -> None:
         element_refs_path = None
     element_refs = _load_element_refs(element_refs_path)
     atomic_ref_map = _atomic_ref_map(element_refs, float(args.formation_energy_default_mu))
+    cond_max = args.cond_max
+    if cond_max is None:
+        if "project_gram_max_cond" in samples:
+            try:
+                cond_max = float(np.asarray(samples["project_gram_max_cond"]).reshape(-1)[0])
+            except Exception:
+                cond_max = None
 
     per_sample, tier0, tier1, success_manifest = _eval_samples(
         samples,
@@ -748,6 +1022,7 @@ def main() -> None:
         success_top_k=args.success_top_k,
         target_spacegroup=args.target_spacegroup,
         spacegroup_symprec=args.spacegroup_symprec,
+        cond_max=cond_max,
     )
     eval_params = build_eval_params(
         min_dist_cut=float(args.min_dist),
@@ -761,6 +1036,7 @@ def main() -> None:
         element_refs_path=element_refs_path,
         target_spacegroup=args.target_spacegroup,
         spacegroup_symprec=args.spacegroup_symprec,
+        cond_max=cond_max,
     )
     write_eval_outputs(
         out_dir=out_dir,

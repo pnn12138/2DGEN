@@ -1,0 +1,17 @@
+{
+  "schema_version": "model_registry_v1",
+  "models": [
+    {
+      "id": "chgnet_baseline",
+      "type": "mlip",
+      "name": "CHGNet",
+      "version": "",
+      "checkpoint": "",
+      "sha256": "",
+      "date": "2026-02-06",
+      "notes": "Baseline entry (fill when wiring the exact checkpoint/hash).",
+      "metrics": {}
+    }
+  ]
+}
+

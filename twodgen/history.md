@@ -73,3 +73,27 @@
 - 2026-01-31: symmetry loss 保留为指标但不再叠加到训练 loss，避免不可导常量项误导训练日志。
 - 2026-01-31: eval cache 增加 `CACHE_VERSION/bond_cut/pbc_mask/samples mtime+size` 校验并对齐 cross-vacuum 的 pbc_mask 逻辑，缓存参数变更自动重建。
 - 2026-01-31: 修复 `C2DBTokenNPZDataset` 在缺失 canonical 字段回退时的 `warnings` 导入缺失，避免 NameError 崩溃。
+- 2026-02-01: 修复 eval_samples 在缺失 cond_counts_vector 时的匹配判定崩溃，并加入 success_geom/success_energy/energy_available 以避免缺能量时 success 归零。
+- 2026-02-01: 训练日志仅在 lengths_std_mean 为有限值时写入，避免 NaN 污染指标汇总。
+- 2026-02-01: 训练启动时优先复用 npz 自带 min_dist 缓存，避免重复全量重算。
+- 2026-02-01: 采样输出始终写入 energy_mlip/relaxed_flag/min_dist_relax 占位或真实值，并在评估中汇总 relaxed_rate 与 min_dist_relax 统计。
+- 2026-02-01: eval_samples per-sample 记录 relaxed_flag/min_dist_relax，新增对应回归测试覆盖能量缺失与成功率统计。
+- 2026-02-01: 权威 lattice 表示统一为 gram6（投影/损失口径统一），新增 Gram SPD+cond 投影与采样侧 `--project-gram-*` 入口。
+- 2026-02-01: angle/cond 约束改为 softplus barrier（cond 使用 log 空间），并新增 angle_param_mode=raw|cos|sigmoid CLI。
+- 2026-02-01: 采样投影支持 every-step/final 模式，输出投影前后 cond/angle 统计与 Top3 fail reasons；评估侧新增 cond_violation/project_trigger/delta_cond 指标。
+- 2026-02-01: 新增 gram6 梯度与投影回归测试（`tests/test_crystal.py`）。
+- 2026-02-01: 修复 AtomDenoiser 在未启用几何 head 时返回未定义 geom_preds 的崩溃；补充 spacegroup 字段写入缓存并让数据集忽略非数值 extra 字段。
+- 2026-02-05: E0 cond warmup 对照短跑（seed=123, batch=64, cond_max=40, warmup=80）完成：`outputs/debug_cond_trigger_warmup/20260205_163235`（cond on） vs `outputs/debug_cond_trigger_warmup_off/20260205_170907`（cond loss weight=0，num_workers=0）。对照结果：on 组 `loss_cond_number` 均值 ~0.10、`pred_cond_mean` ~27；off 组 `loss_cond_number` 全零且 `pred_cond_mean` 记录为 NaN；主要几何/碰撞指标无明显副作用。
+- 2026-02-06: 完成 phase1b 余项：cond 监控解耦并新增 cond_gram/lattice diff 统计（abs/rel）、valid_rate；train CLI 增加 cond_max schedule 与 grad prefix 调试开关；新增 cond 约束单测 `tests/test_cond_constraint.py` 确认坏晶格触发 loss、好晶格为零。
+- 2026-02-06: cond_gram 与 cond_lattice 对齐（cond_gram 取 sqrt），训练短跑 on 组 `loss_cond_number` 可触发且收敛；采样对照 `cond_on_fix` vs `cond_off_baseline`（64 样本，steps=50）显示 cond_violation_rate 从 0.203→0.094，cond_overflow 失败 13→6，满足 phase1b A1/A2/A3。
+- 2026-02-06: self-train loop 支持按 `success/geom/geom_energy` 三种口径筛选；修复 self_train_loop 对 npz 元数据标量字段索引导致的 IndexError；sample_tokens 补齐 `--max-atoms/--num-atoms` CLI 并让 self_train_loop 可透传 `--npz/--cond-npz`，完成“几何+能量”二级筛选闭环（demo: `outputs/self_train_demo_geom_energy_v4`）。
+- 2026-02-06: phase2 MVP 落地（采样投影兜底 + 评估失败原因/统计 + 能量 taxonomy + 回归脚本 + 单测）：新增 `twodgen/common/projection.py` 与 `AtomDenoiser` 的 `--post-project*`；`sample_tokens` 输出 `run_metadata.json/projection_stats.json`；`eval_samples` 增加 inplane_degenerate、fail_reason_geom 主因优先级、energy_skipped_reason/fail_reason_energy 与对应 tier0 汇总；新增脚本 `twodgen/scrip/sampling_projection_ab.sh`/`eval_with_energy.sh`；新增测试 `tests/test_sampling_projection.py`/`tests/test_energy_chain.py`，并修复 `tests/test_c2db_clean_2d.py` 旧 import；`uv run pytest` 通过。
+- 2026-02-06: phase2 修复/补强：2D slab cond 口径切换为 in-plane Gram cond（同时保留 full 3x3 Gram cond 作为 debug 字段），避免真空轴主导 cond_max 判定并与采样端 post-step cond clamp 同口径。
+- 2026-02-06: phase2 新增 volume clamp 护栏：`post_project_keys` 支持 `volume`，默认从训练 `--npz` 读取 volume bounds（p1/p99），仅缩放 in-plane 两个 lattice 向量以压制 `bad_volume`；`eval_samples`/`samples.npz`/`projection_stats.json` 输出对应统计字段。
+- 2026-02-06: phase2 副作用修正：volume clamp 缩小 in-plane 后，针对缩放幅度较大的样本追加一轮更强的 min_dist repulsion（额外 iters），在不牺牲 bad_volume 修复收益的前提下将 A/B 对照的 collision 从 26 降到 23（见 `outputs/ab_proj_phase2_v6`）。
+- 2026-02-06: phase2 继续调参：将“缩放样本额外 repulsion”门槛提升到 `post_project_vol_scale_inplane<0.98`，并提高额外 repulsion 强度（iters=`min_dist_iter+20`、strength=`1.5x`），A/B 对照 collision 进一步降到 20（接近 baseline 19），同时维持 `success_geom_rate=0.484` 与 `bad_volume=47/128`（见 `outputs/ab_proj_phase2_v8`）。
+- 2026-02-06: Workstream C（可选）补齐 go/no-go 产物模板：新增 `twodgen/mlip_finetune_report.md`、`twodgen/mlip_finetune_config.yaml` 与 `twodgen/model_registry.json`（模板/登记文件，尚未启动 finetune 训练）。
+- 2026-02-07: 修复 `prepare_c2db_tokens.py` 在 NumPy 2.0 环境下因 `np.unicode_` 被移除而导致全量解析失败的问题（改为 `np.str_`）；重建 `data/C2DB/cache/c2db_tokens_2d_based.npz` 后可正常生成 split（`twodgen/data/create_c2db_split.py`）。
+- 2026-02-07: 放宽 `create_c2db_split.py` 对输入 token cache 的字段假设：当缺失 `counts_vector` 时可从 `z/atom_mask` 计算；当缓存为空时给出包含 keys 的明确报错提示。
+- 2026-02-07: 允许 `eval_samples.py --self-check` 不依赖 `--samples`（此前 parser 未暴露 self-check 且强制 required samples，README 中的自检命令无法执行）。
+- 2026-02-06: phase2 能量链路一致性：`sample_tokens.py` 仅对几何成功样本尝试 CHGNet relax（valid 且 non-cross-vacuum），减少算力浪费并使 `energy_skipped_reason` 更一致；示例闭环输出：`outputs/eval_energy_phase2/eval`。

@@ -2,51 +2,148 @@
 
 > 说明：本清单以 milps-plan 的 Phase 1/2/3 为主线；**优先用“Fixer（MLIP + 几何约束）”把有效率拉到可用**，再做训练侧约束与架构升级。已完成条目已从本清单移除。
 
-## 当前阶段目标（来自 milps-plan）
-- Phase 1：Collision Rate < 5%，Valid 2D Rate > 80%
-- Phase 2：Valid 2D Rate > 90%，并显著降低对后处理的依赖
-- Phase 3：进一步提升稳定性与条件控制（成分/空间群等）
+## 状态
+- todo
+- review
+- done
 
-## Phase 1：物理有效性修复（Fixer / Fast Win）
+## phase1（目标2：修正晶格角度与条件数畸变）
+### 1.1 todo（代码级实施规划，按落地顺序）
+（已全部完成，见 1.3）
 
-| 优先级 | 状态 | 任务标题 | 任务描述（可落代码 + 验收口径） |
-|---|---|---|---|
-| P0 | DONE | 集成 MLIP 后处理弛豫（Relax） | `twodgen/scrip/sample_tokens.py` 已实现 `--relax`（CHGNet/BFGS）并写入 `energy_mlip/relaxed_flag/min_dist_relax`，采样结果可在 `outputs/samples_tokens/.../samples.npz` 与 `eval` 中对比。 |
-| P0 | DONE | 采样时 2D 真空几何约束（Z clamp） | `AtomDenoiser`、`sample_tokens.py` 已实现 `--z-clamp`（`Z` 约束）、`z_clamp` 栏位，在采样时进行了 STF z 限制，相关统计写入 eval。 |
-| P0 | DONE | Tier-0/1 自动评估基准固化 | `twodgen/evaluate/run_pipeline.py`/`eval_samples.py` 已成熟；可生成 tier0/tier1/per_sample。 |
-| P0 | DONE | 基于 MLIP 能量的筛选与重排序 | `eval_samples.py` 现在读取 `energy_mlip`、`data/ref_energies.json` 计算 formation energy per atom，产出 `success_rate`+`success_manifest.json`（Top-k 结构）并写入 `tier0_metrics.json`；manifest 记录 `formation_energy`, `energy_mlip`, `success`, `fail_reason`。 |
-| P2 | TODO | 训练数据微调 MLIP（可选） | 若通用 MLIP 对层状材料适配度不足：用 `P_TASK/data` 的 trajectory/force 片段微调 CHGNet（或同类），并导出权重用于 relax / force guidance；先跑小规模验证集对比（能量/力误差 + relax 成功率）。 |
+### 1.2 review
+- 对照 1.1 的输出逐条验收：日志/指标是否出现、统计是否改善、是否影响采样稳定性与多样性。
 
-### Phase 1 验证任务
-- `uv run python -m twodgen.scrip.sample_tokens --checkpoint outputs/checkpoints/20260122_134725/atomdenoiser_last.pt --unsafe-load --npz data/C2DB/cache/c2db_tokens_2d_based.npz --num-samples 1 --steps 2 --out-dir outputs/samples_tokens/20260122_134725_smoke`：确认能生成 `samples.npz`、`eval/`，并观察 min_dist pre/post stats 及 collision log，证明 MLIP relax、z_clamp、repulsion 生效。
-- Minimal helper check（see earlier script calling `_filter_indices_by_quality`, `_atom_counts`, `_material_id_for`）确认训练质量过滤链路不再触发 NameError。
+### 1.3 done
+- 1.1.1 收敛“修复入口”到唯一 lattice 表示（权威表示）
+  - 权威表示定义为 `gram6`，投影/损失统一走 Gram 表示；`_project_step` 只对 Gram 做投影。
+  - 输出“权威表示规范表”（见 `twodgen/process.md` 0.1）。
+- 1.1.2 梯度路径表 + 最小 autograd 断言（防断梯度）
+  - 新增 `tests/test_crystal.py` 里的 `test_gram6_roundtrip_has_gradients` 覆盖 SPD→Gram→lattice→Gram 的梯度回传。
+- 1.1.3 cond 硬投影（SPD 特征值投影）
+  - 新增 `project_gram_cond_spd`（log/linear 模式），采样 CLI 支持 `--project-gram-cond/--project-gram-max-cond` 并写出 cond 前后统计。
+- 1.1.4 角度有界映射（优先输出 cos，再 arccos）
+  - 角度计算支持 `angle_param_mode=raw|cos|sigmoid`，CLI 已接入。
+- 1.1.5 训练侧惩罚改为“分段光滑 barrier”
+  - angle/cond 换成 softplus barrier，cond 走 log 空间。
+- 1.1.6 采样端投影位置与模式
+  - 支持 `--project-every-step/--project-final`，采样导出每步投影统计均值。
+- 1.1.7 合法性检查 + 标准化 fail_reason
+  - 标准化 `angle_out_of_range/non_spd/cond_overflow/det_nonpos`，采样/评估输出 Top3 统计。
+- 1.1.8 统计工具与回归验证
+  - `eval_samples.py` 增加 cond_violation/project_trigger/delta_cond 统计；新增投影与梯度回归测试。
 
-## Phase 2：模型内建约束优化（Constraint / Training）
+---
 
-| 优先级 | 状态 | 任务标题 | 任务描述（可落代码 + 验收口径） |
-|---|---|---|---|
-| P0 | DONE | 真空/体积损失唤醒（Hinge） | 启用并调大 `lambda_vacuum`；实现/接入 `hinge(c_axis)`：`max(0, c_min - c_axis)`（如 `c_min=15A` 或 20A），并在训练日志输出 `loss_vacuum`/`vacuum_gap_mean`；目标是 vacuum_ok_rate 明显上升且 clamp 不再“压扁”。 |
-| P0 | DONE | 多对碰撞惩罚（Multi-pair Repulsion） | 升级 `min_dist_loss`：对所有 `dist < d0`（如 2.0A）的原子对累计惩罚（含 mask 与 2D MIC）；配合 schedule 在训练后期逐步增大权重；验收：collision_rate 与 min_dist 分布整体右移。 |
-| P0 | DONE | 条件控制增强（CFG/Dropout，成分） | `twodgen/scrip/train_tokens.py` 训练时以 10-20% 概率 drop `counts_vector`；`twodgen/scrip/sample_tokens.py` 增加 CFG：`scale > 1`；验收：`cond_exact_match`/`cond_l1` 指标显著改善且不过度牺牲有效率。 |
-| P1 | DONE | 训练侧真空轴选择一致性 | 统一训练/采样/评估的 vacuum axis 选择规则（以“最长轴”为默认，或与 slab normal 一致），避免同一结构在不同环节被不同轴解释；至少保证 `loss_vacuum` 的 axis 与 z-clamp 的 axis 对齐。已验证：采样与训练侧日志未出现轴不一致告警。 |
-| P1 | DONE | 训练侧 cross-vacuum 风险惩罚 | 将 `cross_vacuum_proxy`（或等价近似）接入训练 loss，并结合 `cond_mask`/`atom_mask` 做正确屏蔽；验收：在不开 z-clamp 时 cross_vacuum_rate 也能下降。已验证：短跑训练日志中出现 `loss_cross_vacuum` 与 `cross_vacuum_rate`（功能链路确认）。 |
-| P1 | DONE | 训练动态诊断仪表板（TB/W&B） | 实时记录分布：`min_dist`、`vacuum_gap`、`chol_diag`、主要 loss 与梯度范数；前 1 万步能报警异常（塌缩/碰撞飙升/真空不足）。已验证：TensorBoard 日志可写，短跑已触发 vacuum_gap 告警；未完成 1 万步长跑验收。 |
+## phase1b（目标2-补强：让 cond 约束“可触发且可验证”）
+> 对齐 `twodgen/process.md` 10.3/10.4 的现状结论，并落到 `twodgen/plan_cond_constraint.md`（v1.0 / 2026-02-05）的代码级 WBS。
 
-## Phase 3：条件控制与架构升级（Guidance / Architecture）
+### 2.1 done
+- 2.1.1 E0 on/off 短跑脚本 `twodgen/scrip/debug_cond_trigger.sh`，固定关键参数，验收口径写入脚本注释。
+- 2.1.2 训练日志新增 cond_p50/p95/max、violation_rate、valid_rate，JSON 同步。
+- 2.1.3 双口径 cond_gram / cond_lattice + abs/rel diff + Spearman，对齐评估口径。
+- 2.1.4 `--debug-grad-submodules` 梯度探针，log_interval 输出子模块 grad_norm。
+- 2.1.5 cond_max schedule（linear/cosine）CLI 接入，训练循环实时更新。
+- 2.1.6 回归测试 `tests/test_cond_constraint.py` 覆盖坏晶格触发、好晶格为零、统计均有限。
 
-| 优先级 | 状态 | 任务标题 | 任务描述（可落代码 + 验收口径） |
-|---|---|---|---|
-| P1 | DONE | MLIP 力引导采样（Energy/Force Guidance） | 在采样后段（如最后 20% steps）用 MLIP 估计 `grad(E)`，加入 score/velocity 更新（调 `lambda`）；目标：比纯 relax 更早抑制碰撞与局部畸变。 |
-| P1 | DONE | 空间群条件：数据侧写入 + 模型侧注入 | `twodgen/data/prepare_c2db_tokens.py` 写入 spacegroup 元数据；`AtomTransformer` 注入 one-hot/embedding；验收：`symmetry_violation` 与 `spacegroup_match`（先做评估口径）可用。 |
-| P2 | DONE | 空间群条件硬控制 | 在 `twodgen/model/atom_denoiser.py` 增加 `symmetry_residual_loss`（或采样时 projection），并在采样/评估输出 `symmetry_violation`。 |
-| P2 | DONE | EGNN/GVP/TFN 等变模块（可选） | 为 `AtomDenoiser` 增加可切换的等变 tail/adapter（minimal smoke test + ablation），用于缓解几何敏感与塌缩问题。 |
-| P2 | DONE | 晶胞生成解耦（CellNet，远期） | 训练独立 CellNet 生成 `a,b,c,alpha,beta,gamma`，流程变为 `Condition -> CellNet -> Lattice -> Atom Diffusion`；验收：晶格塌缩显著减少且更易施加真空约束。 |
+### 2.2 review
+- 对照 `twodgen/plan_cond_constraint.md` 的 A1/A2/A3：
+  - A1：短跑必触发（loss/violation 非零）
+  - A2：cond_gram vs cond_lattice 单调相关/差值极小
+  - A3：采样评估侧 `cond.p95` 与 angle/collision 失败率联动下降
 
-## 评估缓存与闭环（Metrics / Cache / Self-train）
+### 2.3 done
+- 2026-02-06：A1/A2/A3 验证完成。训练侧 cond_gram 取平方根与 cond_lattice 对齐（差值均值 <5e-6），短跑 on 组 `loss_cond_number` 早期触发（run=outputs/debug_cond_trigger/on_long_v2/20260205_222822）。采样评估对照：on 组 (`outputs/samples_tokens/cond_on_fix`) cond_violation_rate 0.094 vs off 组 (`outputs/samples_tokens/cond_off_baseline`) 0.203，且 cond_overflow 失败数从 13 → 6；角度/碰撞失败率持平，cond 改善已可观察。
+- （完成后把关键结论同步回写到 `twodgen/process.md` 的“下一步动作/实验矩阵”段落，并在 `twodgen/history.md` 追加条目化记录）
 
-| 优先级 | 状态 | 任务标题 | 任务描述（可落代码 + 验收口径） |
-|---|---|---|---|
-| P1 | DONE | 统一评估输出读取入口 | 新增 `twodgen/evaluate/io.py`，统一解析 `tier0_metrics.json`/`tier1_2d_metrics.json`/`per_sample.jsonl`，并兼容旧命名（给出 warning）。 |
-| P1 | DONE | 统一指标：`success_rate`（含 MLIP 能量） | 定义 `success_rate = valid_structure (Tier-0) & valid_2d (Tier-1) & low_energy (MLIP) & target_match (composition)`；输出 per-sample boolean/原因枚举，写入 metrics 与 manifest。 |
-| P1 | DONE | 评估缓存增加 `energy_mlip` 字段 | `twodgen/evaluate/cache.py` 为 `samples.npz` 增加缓存 key，并写入 `energy_mlip/relaxed_flag/cross_vacuum_flag` 等字段，便于快速筛查与复用。 |
-| P2 | DONE | 生成→筛选→再训练自回流闭环 | 实现 `twodgen/evaluate/self_train_loop.py`：固定 checkpoint 采样 -> MLIP 评估/energy tag -> 更新数据集 -> 再训练；全程记录 config+metrics，确保可复现。 |
+---
+
+## phase2（目标3：采样端硬约束投影兜底 + 能量评估链路补齐）
+> 对齐 `twodgen/plan_next_sampling_energy_mlip.md`（v1.0 / 2026-02-06）。本 phase 聚焦：P2-MVP（采样端 post-step 投影）+ P3-MVP（能量链路 run_metadata + failure taxonomy）；
+> 可选：P4（MLIP 微调）先只做“接口与 go/no-go 产物”，不强行推进训练。
+
+### 3.1 todo（代码级实施规划，按落地顺序）
+- 3.1.1 采样端 post-step 投影入口（MVP：angle/cond/inplane/volume）
+  - 新增模块 `twodgen/common/projection.py`（或同等位置）：
+    - **坐标一致性（必须写清楚）**：
+      - `coords_mode: "frac"|"cart"`：若为 cart，需同步 `cart -> frac(old) -> cart(new)`，避免投影后几何失真
+    - **cell 参数域投影（推荐做法，避免直接改 lattice）**：
+      - `lattice_to_cell(lattice)` / `cell_to_lattice(cell)`（含 handedness fix：`det>0`，以及 a/b/c 下界）
+      - `project_angles_cell(cell, angle_min, angle_max, mode="clamp")`
+      - `project_inplane_cell(cell, *, a_min, b_min, gamma_min, gamma_max, area_min)`（优先只修 in-plane）
+    - **cond 投影（与 angle/inplane 互相打架要处理）**：
+      - `project_cond_svd(lattice, cond_max)`：SVD 裁剪 `sigma_min >= sigma_max/cond_max`
+      - 顺序建议：`angle -> inplane -> cond -> (再做一次 angle/inplane clamp)`；或小循环（最多 2 次）直到满足或到上限
+      - 明确 cond 口径：与 `eval_samples.py` 一致；2D slab（pbc_mask=1,1,0）默认用 **in-plane Gram cond**（避免真空轴主导 cond）
+    - **volume 兜底（避免 bad_volume 统治失败原因）**：
+      - `project_volume_inplane(lattice, v_min, v_max, pbc_mask)`：只缩放/放大 in-plane 两个 lattice 向量，使 volume 回到训练数据 p1/p99 区间（不动真空轴）
+      - 约束：缩放下界必须保证 `a/b/area` 不掉到 `inplane_*_min` 以下（否则会立刻变成 inplane_degenerate）
+    - 返回 `(lattice_new, stats_dict)`：必须包含 before/after 的 angle_oob/cond/area/inplane_degen 与 `delta_norm`
+  - `twodgen/scrip/sample_tokens.py`：
+    - 新增 CLI：`--post-project --post-project-interval {0,1,5,10} --post-project-keys angle,cond,inplane,volume --post-project-v-min/--post-project-v-max`
+    - 在 sampler 主循环“更新 lattice 后”插入 `post_step_project()`（按 interval 与 keys 控制）
+    - 投影统计落盘建议：优先写 `run_metadata.json` 或 `projection_stats.json`（run-level 汇总），eval 侧合并写入 tier0/tier1（避免塞进 samples.npz 导致膨胀/口径漂移）
+
+- 3.1.2 评估侧增加 in-plane 退化判定 + 几何失败原因拆分
+  - 修改 `twodgen/evaluate/eval_samples.py`：
+    - 增加 `inplane_degen` 判定（a/b/gamma/area），并输出 `inplane_degen_rate`
+    - `fail_reason_geom` 细分：`angle_oob | cond_violation | inplane_degen | collision | bad_volume | ...`
+      - **主失败原因优先级（必须写死）**：建议 `collision > angle_oob > inplane_degen > cond_violation > bad_volume > other`
+      - （可选）保留 `fail_reasons_geom: list[str]` 作为附加诊断，但 tier0 用主原因
+    - tier0/tier1 增加：`cond_lattice_violation_rate`、`cond_lattice_p95/max`、`project_trigger_any_rate`、`project_delta_norm_p95`
+  - 验收口径：projection on 时 angle/cond/inplane 相关 fail_reason 显著下降，且 fail_reason 发生“可解释迁移”
+
+- 3.1.3 能量链路 run_metadata（采样时写入）+ energy failure taxonomy
+  - 修改 `twodgen/scrip/sample_tokens.py`：
+    - 在输出目录新增 `run_metadata.json`（或将 sampling_config.json 扩展为等价字段）：
+      - `mlip.name/version/loaded_ok/error_if_failed/device/dtype`
+      - `relax.max_steps/fmax/cell_opt/constraints/...`
+      - 复现增强（建议）：`git_commit`、`ase/pymatgen/chgnet` 版本号
+  - 修改 `twodgen/evaluate/eval_samples.py`：
+    - 输出 `energy_available`、`success_energy`、`fail_reason_energy`
+      - `mlip_missing | load_fail | runtime_error | non_converge | nan_energy | nan_force | ...`
+    - **必须区分“没跑” vs “跑了失败”**：
+      - 增加 `energy_skipped_reason = "geom_fail"|"mlip_unavailable"|None`
+      - 逻辑建议：仅 `success_geom==True` 才尝试 relax；否则能量标记为 skipped（避免算力浪费 + 统计一致）
+    - 保证 energy_available_rate=0 时可从 metadata 与 fail_reason_energy 解释（不再黑箱）
+
+- 3.1.4 A/B 一键脚本（回归最小实验矩阵）
+  - 新增 `twodgen/scrip/sampling_projection_ab.sh`：
+    - A：projection off
+    - B：`--post-project --project-interval 1 --project-keys angle,cond,inplane`
+    - 固定 seed、num_samples、steps、cond_max_eval 等，输出到同一父目录方便 diff
+  - 新增 `twodgen/scrip/eval_with_energy.sh`：检查 chgnet/ase 依赖，跑 sampling + eval，确保 energy_available 可解释
+
+- 3.1.5 最小回归测试
+  - 新增 `tests/test_sampling_projection.py`：
+    - 构造 angle_oob/cond_overflow/inplane_degen lattice，断言 projection 后指标回到阈值内且统计 finite
+  - 新增 `tests/test_energy_chain.py`：
+    - 模拟 mlip 缺失/加载失败：断言 `energy_available=false`、`fail_reason_energy` 分类正确、metadata 写 error
+    - mlip 可用 smoke（可选，标 `pytest.mark.slow`）：`--relax` 跑 1 个结构确保能量字段非空
+
+- 3.1.6 可选：采样 cond guidance（P2-2）
+  - `twodgen/scrip/sample_tokens.py` 新增 `--cond-guidance/--cond-guidance-scale/--cond-guidance-start`
+  - 验收：在 projection 触发率不显著上升的前提下，cond.p95/cond_violation 下降
+
+- 3.1.7 可选：MLIP 微调（P4-Optional，仅产物与 go/no-go）
+  - 新增文档 `twodgen/mlip_finetune_report.md`（或写入 process 段落）定义数据/指标与 go/no-go
+  - 若落地训练脚本：优先放在 `P_TASK/` 或 `twodgen/scrip/`（避免新增顶层目录）
+  - 2026-02-06：已新增模板与登记文件（未训练）：`twodgen/mlip_finetune_report.md`、`twodgen/mlip_finetune_config.yaml`、`twodgen/model_registry.json`
+
+### 3.2 review
+- A/B 对照：projection on 必须使 `angle_out_of_range_rate/cond_lattice_violation_rate/inplane_degen_rate` 明显下降，并抬升 `success_geom_rate`
+- 能量链路：`energy_available_rate` 与 `success_energy_rate` 可解释且 failure taxonomy 稳定输出
+- 投影副作用：`project_delta_norm_p95` 不应极端；若 collision 上升，调整投影顺序/幅度
+  - 2026-02-06：新增 volume clamp 后 A/B 已满足“success_geom 显著上升”的验收（见 `outputs/ab_proj_phase2_v8`：A success_geom_rate=0.133，B=0.484；bad_volume 98→47；post_project_trigger_any_rate=0.742；collision 19→20）。
+
+### 3.3 done
+- 2026-02-06：phase2 MVP 已落实（对应 `twodgen/plan_next_sampling_energy_mlip.md` Workstream A/B/C/D/E）：
+  - A（采样投影兜底）：新增 `twodgen/common/projection.py`；`twodgen/model/atom_denoiser.py` 支持 `--post-project/--post-project-interval/--post-project-keys`，并导出 per-sample & per-step 统计；`twodgen/scrip/sample_tokens.py` 写 `run_metadata.json` 与 `projection_stats.json`。
+    - 2D cond 口径修正：cond clamp 与 eval 统一为 **in-plane Gram cond**（pbc_mask=1,1,0）。
+    - 新增 `volume` 投影 key：默认从训练 npz 自动读取 volume bounds（p1/p99），只缩放 in-plane 以压制 bad_volume。
+  - B（评估失败原因/统计）：`twodgen/evaluate/eval_samples.py` 增加 `inplane_degenerate` 判定与 `fail_reason_geom` 主原因（固定优先级），输出 `cond_lattice/inplane_*` 与 post-project 统计字段。
+  - C（能量链路 taxonomy）：`eval_samples.py` 增加 `energy_skipped_reason/fail_reason_energy` 与跳过率统计（geom_fail vs mlip_unavailable），energy_available 由 energy_mlip 驱动而非依赖 element refs。
+    - relax gate：采样端仅对几何成功（valid & non-cross-vacuum）样本尝试 CHGNet relax，避免算力浪费并使 energy_skipped_reason 更一致。
+  - D（A/B 脚本）：新增 `twodgen/scrip/sampling_projection_ab.sh`、`twodgen/scrip/eval_with_energy.sh`。
+  - E（最小测试）：新增 `tests/test_sampling_projection.py`、`tests/test_energy_chain.py`，并修复旧测试 `tests/test_c2db_clean_2d.py` 的 import；`uv run pytest` 全通过。
+- 待做（可选）：3.1.6 cond guidance、3.1.7 MLIP 微调 go/no-go（保持可选即可）。

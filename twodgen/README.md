@@ -20,12 +20,16 @@ uv run python -m twodgen.data.prepare_c2db_tokens \
   --csv data/C2DB/c2db_summary.csv \
   --out data/C2DB/cache/c2db_tokens_2d_based.npz \
   --max-atoms 24 \
-  --g-scale 100
+  --g-scale 100 \
+  --pbc-mask 1,1,0 \
+  --vacuum-min 15.0 \
+  --bond-cut 3.0
 ```
 说明：
 - `lattice` 为行向量基矢，`cart = frac @ lattice`；Gram6 为 `G = lattice @ lattice^T`。
 - 旧版 `.npz` 缺少 `gram6_convention` 时请重新预处理生成新缓存。
 - 生成 canonical 字段后会自动把 `coord_frame=canon` 写入 metadata，有条件重新跑一次预处理即可让 downstream 确认 geometry heads 可用。
+- NumPy >= 2.0 环境下请使用最新代码生成缓存（历史版本曾因 `np.unicode_` 被移除导致解析全失败，表现为 saved 0 samples）。
 
 2) 生成 train/heldout 划分（供训练/采样使用）：
 ```bash
@@ -35,6 +39,8 @@ uv run python -m twodgen.data.create_c2db_split \
   --heldout-fraction 0.1 \
   --t-bins 10
 ```
+说明：
+- 若 `--npz` 是空缓存（0 samples），请先回到步骤 1 重新生成 token cache 再创建 split。
 
 3) 训练（默认使用 train split）：
 ```bash
@@ -64,7 +70,7 @@ uv run python -m twodgen.scrip.train_tokens \
 4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260122_015332/atomdenoiser_best.pt \
+  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260207_003347/atomdenoiser_best.pt \
   --num-samples 200 \
   --steps 50 \
   --method heun \
@@ -81,9 +87,13 @@ uv run python -m twodgen.scrip.sample_tokens \
 
 ## 评估（samples.npz）
 ```bash
+# 正常评估（输出 per_sample.jsonl 与 Tier-0/1）
 uv run python -m twodgen.evaluate.eval_samples \
   --samples outputs/samples_tokens/samples.npz \
   --out-dir outputs/samples_tokens/eval
+
+# MIC 自检（不依赖 samples.npz）
+uv run python -m twodgen.evaluate.eval_samples --self-check
 ```
 
 ## 快速自测
