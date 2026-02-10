@@ -1,0 +1,311 @@
+{
+  "run_metadata": {
+    "created_at_utc": "2026-02-10T05:03:25+00:00",
+    "argv": [
+      "/home/pnn/2dgen/twodgen/scrip/sample_tokens.py",
+      "--checkpoint",
+      "outputs/checkpoints/20260207_004939/atomdenoiser_last.pt",
+      "--out-dir",
+      "runs/E1_3_smoke_gscale_1p5/full_projection_seed0_n8/samples",
+      "--num-samples",
+      "8",
+      "--steps",
+      "5",
+      "--seed",
+      "0",
+      "--experiment-id",
+      "E1_3_smoke_gscale_1p5",
+      "--protocol",
+      "quick",
+      "--npz",
+      "data/C2DB/cache/c2db_tokens_2d_based.npz",
+      "--project-gram-cond",
+      "--project-gram-max-cond",
+      "40.0",
+      "--project-final",
+      "--post-project",
+      "--post-project-interval",
+      "1",
+      "--post-project-keys",
+      "angle,cond,inplane,volume",
+      "--post-project-cond-max",
+      "40.0",
+      "--g-scale",
+      "1.5",
+      "--override-g-scale"
+    ],
+    "python": "3.12.12",
+    "platform": {
+      "system": "Linux",
+      "release": "6.6.87.2-microsoft-standard-WSL2",
+      "machine": "x86_64"
+    },
+    "git": {
+      "commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+      "dirty": true
+    },
+    "numpy": "2.3.4",
+    "torch": "2.9.1+cu128",
+    "cuda_available": true
+  },
+  "checkpoint": "outputs/checkpoints/20260207_004939/atomdenoiser_last.pt",
+  "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
+  "cond_npz": null,
+  "cond_split_json": null,
+  "cond_split": "all",
+  "num_samples": 8,
+  "steps": 5,
+  "method": "heun",
+  "cfg_scale": 1.0,
+  "seed": 0,
+  "cond_drop_prob": 0.1,
+  "project_every_step": true,
+  "project_final": true,
+  "project_gram_cond": true,
+  "project_gram_max_cond": 40.0,
+  "project_gram_eps": 1e-06,
+  "project_gram_mode": "log",
+  "post_project": true,
+  "post_project_interval": 1,
+  "post_project_keys": "angle,cond,inplane,volume",
+  "post_project_cond_max": 40.0,
+  "post_project_v_min": 131.28549194335938,
+  "post_project_v_max": 2596.493408203125,
+  "post_project_inplane_a_min": 2.0,
+  "post_project_inplane_b_min": 2.0,
+  "post_project_inplane_gamma_min": 30.0,
+  "post_project_inplane_gamma_max": 150.0,
+  "post_project_inplane_area_min": 4.0,
+  "post_project_area_per_atom_min": 1.2710881233215332,
+  "post_project_area_per_atom_max": 3.20233416557312,
+  "cond_pool_size": 16838,
+  "cond_strategy": "random",
+  "export": {
+    "valid_rate_samples": 0.0,
+    "cif_rate_samples": 1.0,
+    "min_dist_pre_mean": 0.33459967374801636,
+    "min_dist_post_mean": 0.8070071339607239,
+    "min_dist_pre_p10": 0.09323138743638992,
+    "min_dist_post_p10": 0.5224875807762146,
+    "collision_pre": 8,
+    "collision_post": 8,
+    "min_dist_cut": 1.5,
+    "min_dist_repulsion_cut": 1.5,
+    "min_dist_repulsion_iter": 12,
+    "min_dist_repulsion_strength": 0.05,
+    "fail_reason_counts": {
+      "vacuum_too_small": 8,
+      "bad_volume": 8,
+      "collision": 8
+    },
+    "fail_reason_top3": [
+      [
+        "vacuum_too_small",
+        8
+      ],
+      [
+        "bad_volume",
+        8
+      ],
+      [
+        "collision",
+        8
+      ]
+    ],
+    "lattice_stats": {
+      "volume": {
+        "mean": 18.255081176757812,
+        "p10": 11.758441925048828,
+        "p90": 23.724843978881836
+      },
+      "angle_alpha": {
+        "mean": 89.2645263671875,
+        "p10": 84.8178482055664,
+        "p90": 92.21316528320312
+      },
+      "angle_beta": {
+        "mean": 90.02748107910156,
+        "p10": 89.99447631835938,
+        "p90": 90.09676361083984
+      },
+      "angle_gamma": {
+        "mean": 90.46924591064453,
+        "p10": 89.06208038330078,
+        "p90": 93.17438507080078
+      },
+      "gram6_var": [
+        0.08181498199701309,
+        0.17008423805236816,
+        11.454010009765625,
+        0.0619460828602314,
+        1.3647313608089462e-05,
+        0.1179150715470314
+      ]
+    },
+    "chol_log_clamp_rate": 1.0,
+    "project_step_stats_mean": {
+      "angle_out_before_steps": [
+        0.0,
+        0.0,
+        0.16666666666666666,
+        0.3888888905445735,
+        1.0
+      ],
+      "angle_out_after_steps": [
+        0.0,
+        0.0,
+        0.16666666666666666,
+        0.2222222238779068,
+        0.0
+      ],
+      "cond_before_steps": [
+        3.4538662433624268,
+        3.485398232936859,
+        10.856528043746948,
+        72.16486016909282,
+        Infinity
+      ],
+      "cond_after_steps": [
+        3.4538663625717163,
+        3.485398312409719,
+        10.85652490456899,
+        23.67825190226237,
+        40.000000635782875
+      ],
+      "project_trigger_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.4444444477558136,
+        1.0
+      ]
+    },
+    "post_project_step_stats_mean": {
+      "post_project_trigger_any_steps": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "post_project_delta_norm_steps": [
+        1.7182561258474986,
+        1.1807870864868164,
+        1.4223120510578156,
+        1.8478127717971802,
+        1.1177983383337657
+      ],
+      "post_project_inplane_degen_before_steps": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "post_project_inplane_degen_after_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "post_project_angle_oob_before_steps": [
+        0.0,
+        0.0,
+        0.16666666666666666,
+        0.2222222238779068,
+        0.0
+      ],
+      "post_project_angle_oob_after_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "post_project_cond_before_steps": [
+        2.054173151652018,
+        3.1041307846705117,
+        9.857565959294638,
+        19.85032574335734,
+        18.889030933380127
+      ],
+      "post_project_cond_after_steps": [
+        1.5819559494654338,
+        2.5717899998029075,
+        6.366123716036479,
+        8.546375036239624,
+        1.3682385285695393
+      ],
+      "post_project_vol_before_steps": [
+        2.2113717198371887,
+        4.1990805466969805,
+        3.171540896097819,
+        1.8016764918963115,
+        4.062045733133952
+      ],
+      "post_project_vol_after_steps": [
+        26.109850724538166,
+        26.91286849975586,
+        27.861191431681316,
+        28.319974899291992,
+        39.204418341318764
+      ],
+      "post_project_vol_scale_inplane_steps": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ],
+      "post_project_vacuum_before_steps": [
+        NaN,
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "post_project_vacuum_after_steps": [
+        NaN,
+        NaN,
+        NaN,
+        NaN,
+        NaN
+      ],
+      "post_project_vacuum_trigger_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "post_project_area_before_steps": [
+        1.3476398984591167,
+        2.437353034814199,
+        1.7657640377680461,
+        0.9579218129316965,
+        1.4589736809333165
+      ],
+      "post_project_area_after_steps": [
+        15.883589347203573,
+        15.88359022140503,
+        15.883589824040731,
+        15.883590459823608,
+        15.883589029312134
+      ],
+      "post_project_area_trigger_steps": [
+        1.0,
+        1.0,
+        1.0,
+        1.0,
+        1.0
+      ]
+    }
+  },
+  "composition": {
+    "hit_rate": 1.0,
+    "l1_mean": 0.0,
+    "l1_median": 0.0,
+    "cos_mean": 1.0
+  }
+}

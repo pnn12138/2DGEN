@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_TlSiTe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.32107639
+_cell_length_b   22.12306204
+_cell_length_c   31.36615058
+_cell_angle_alpha   90.05316191
+_cell_angle_beta   90.06420623
+_cell_angle_gamma   31.27736165
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlSiTe3
+_chemical_formula_sum   'Tl1 Si1 Te3'
+_cell_volume   3718.35077590
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.19321632  0.99711370  0.15979600  1
+  Te  Te1  1  0.95691586  0.74211502  0.92804587  1
+  Te  Te2  1  0.73637199  0.85036302  0.31513298  1
+  Tl  Tl3  1  0.62157440  0.83909559  0.74013615  1
+  Te  Te4  1  0.30852604  0.04913521  0.00644875  1

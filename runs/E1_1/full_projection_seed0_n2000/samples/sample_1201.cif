@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GaP2PdS6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.39413548
+_cell_length_b   13.94600661
+_cell_length_c   13.16416295
+_cell_angle_alpha   89.83631710
+_cell_angle_beta   90.00589691
+_cell_angle_gamma   91.89349933
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaP2PdS6
+_chemical_formula_sum   'Ga1 P2 Pd1 S6'
+_cell_volume   439.29156433
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  P  P0  1  0.20352674  0.94154263  0.14144105  1
+  S  S1  1  0.05076981  0.66244125  0.39066917  1
+  S  S2  1  0.17674537  0.28401184  0.52507162  1
+  S  S3  1  0.45165449  0.35393810  0.58806610  1
+  S  S4  1  0.49313879  0.23767471  0.99283093  1
+  Ga  Ga5  1  0.99494934  0.18337536  0.52142668  1
+  S  S6  1  0.05196381  0.33310127  0.25083265  1
+  S  S7  1  0.75017548  0.89250851  0.39646745  1
+  P  P8  1  0.81539965  0.71222210  0.19905490  1
+  Pd  Pd9  1  0.06320620  0.60655594  0.70873809  1

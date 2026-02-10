@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TePtO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.18685150
+_cell_length_b   14.50525681
+_cell_length_c   27.42156512
+_cell_angle_alpha   90.82116183
+_cell_angle_beta   89.93474024
+_cell_angle_gamma   96.06405732
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TePtO3
+_chemical_formula_sum   'Te2 Pt2 O6'
+_cell_volume   1655.86003722
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.31614780  0.80819225  0.49206018  1
+  O  O1  1  0.27588964  0.27637959  0.80104065  1
+  Pt  Pt2  1  0.53890324  0.52498436  0.61801529  1
+  O  O3  1  0.12348494  0.36863565  0.27243614  1
+  O  O4  1  0.63835549  0.12875175  0.92070508  1
+  Te  Te5  1  0.39523125  0.53559875  0.70759583  1
+  O  O6  1  0.04431438  0.71860886  0.28571701  1
+  Pt  Pt7  1  0.62808371  0.60614157  0.46585625  1
+  Te  Te8  1  0.73490810  0.03261232  0.26774645  1
+  O  O9  1  0.71185112  0.57959557  0.20957388  1

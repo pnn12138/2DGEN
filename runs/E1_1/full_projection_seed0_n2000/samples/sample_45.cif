@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnAg(SeBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24843192
+_cell_length_b   13.02815322
+_cell_length_c   13.24478318
+_cell_angle_alpha   90.49712395
+_cell_angle_beta   89.94364718
+_cell_angle_gamma   96.76254607
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnAg(SeBr)2
+_chemical_formula_sum   'Mn1 Ag1 Se2 Br2'
+_cell_volume   385.26452999
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.84825516  0.63654518  0.93651867  1
+  Br  Br1  1  0.97643661  0.04171753  0.25936174  1
+  Br  Br2  1  0.96225452  0.34687996  0.95362270  1
+  Ag  Ag3  1  0.09563065  0.48003769  0.03241235  1
+  Se  Se4  1  0.01384258  0.23399591  0.87140036  1
+  Se  Se5  1  0.44674778  0.89640641  0.65230656  1

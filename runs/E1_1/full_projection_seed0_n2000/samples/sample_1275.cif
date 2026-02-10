@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_TiTeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.44539046
+_cell_length_b   8.49371402
+_cell_length_c   22.03580977
+_cell_angle_alpha   90.82672779
+_cell_angle_beta   90.53317151
+_cell_angle_gamma   54.65467548
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiTeBr
+_chemical_formula_sum   'Ti1 Te1 Br1'
+_cell_volume   525.94400892
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.20303249  0.00182438  0.29842091  1
+  Br  Br1  1  0.11324787  0.47487640  0.68005657  1
+  Te  Te2  1  0.99266434  0.39707947  0.48829979  1

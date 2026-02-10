@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Cu2ReH6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.34423661
+_cell_length_b   7.66272874
+_cell_length_c   12.96883984
+_cell_angle_alpha   89.73341368
+_cell_angle_beta   89.97328307
+_cell_angle_gamma   84.45545722
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2ReH6
+_chemical_formula_sum   'Cu2 Re1 H6'
+_cell_volume   231.87005094
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.31030655  0.47171688  0.00692844  1
+  H  H1  1  0.45644569  0.48698568  0.20941734  1
+  H  H2  1  0.62375212  0.30855155  0.98230231  1
+  H  H3  1  0.38385439  0.56218719  0.98754263  1
+  H  H4  1  0.11340660  0.15165424  0.25504524  1
+  Cu  Cu5  1  0.03627292  0.84154218  0.53235072  1
+  Re  Re6  1  0.40417993  0.92818695  0.61214501  1
+  H  H7  1  0.97973680  0.19356775  0.37321556  1
+  H  H8  1  0.59277582  0.71015549  0.06579542  1

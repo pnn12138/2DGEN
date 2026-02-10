@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Cu2ReSIO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47294474
+_cell_length_b   7.91299477
+_cell_length_c   12.50644713
+_cell_angle_alpha   89.87106247
+_cell_angle_beta   90.01527455
+_cell_angle_gamma   99.92590728
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2ReSIO2
+_chemical_formula_sum   'Cu2 Re1 S1 I1 O2'
+_cell_volume   241.06727051
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.59088993  0.74794388  0.40194905  1
+  Re  Re1  1  0.19415474  0.42426491  0.29024297  1
+  I  I2  1  0.01478129  0.04673565  0.61276704  1
+  O  O3  1  0.33830562  0.58247489  0.00043523  1
+  S  S4  1  0.67908001  0.36571407  0.97703052  1
+  O  O5  1  0.41606012  0.11384021  0.53226298  1
+  Cu  Cu6  1  0.54265863  0.67719513  0.92178917  1

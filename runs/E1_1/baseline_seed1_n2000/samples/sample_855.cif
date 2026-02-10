@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_ZrIO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.71869993
+_cell_length_b   6.03389248
+_cell_length_c   11.76561109
+_cell_angle_alpha   89.52236371
+_cell_angle_beta   89.53498415
+_cell_angle_gamma   46.07723262
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrIO
+_chemical_formula_sum   'Zr4 I4 O4'
+_cell_volume   139.01274440
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.60431439  0.30782586  0.69093406  1
+  O  O1  1  0.94212532  0.01044512  0.21265817  1
+  Zr  Zr2  1  0.30748430  0.65020609  0.73388219  1
+  I  I3  1  0.86695254  0.45822001  0.64387965  1
+  I  I4  1  0.34585965  0.02178345  0.66554242  1
+  Zr  Zr5  1  0.07718883  0.43997663  0.76340407  1
+  Zr  Zr6  1  0.69430923  0.15266037  0.09672379  1
+  O  O7  1  0.68112242  0.08234141  0.47224393  1
+  I  I8  1  0.23245467  0.04382022  0.42271724  1
+  Zr  Zr9  1  0.62404263  0.91581082  0.32827571  1
+  O  O10  1  0.62838954  0.07137484  0.75572413  1
+  O  O11  1  0.94921255  0.30211914  0.51938111  1

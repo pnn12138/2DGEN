@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_NiRu(SCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.39265871
+_cell_length_b   13.23673005
+_cell_length_c   13.31077793
+_cell_angle_alpha   90.53447817
+_cell_angle_beta   89.96628214
+_cell_angle_gamma   93.64663856
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiRu(SCl)2
+_chemical_formula_sum   'Ni1 Ru1 S2 Cl2'
+_cell_volume   420.69349373
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.46321154  0.75162888  0.04508018  1
+  Cl  Cl1  1  0.61497080  0.69804955  0.78948069  1
+  S  S2  1  0.34317434  0.18535903  0.27321491  1
+  S  S3  1  0.75753069  0.66773224  0.27291298  1
+  Ru  Ru4  1  0.84075338  0.18303677  0.24311252  1
+  Ni  Ni5  1  0.74133486  0.80001831  0.34062386  1

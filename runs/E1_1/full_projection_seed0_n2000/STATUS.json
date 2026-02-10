@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "note": "full_projection finished (recovered)",
+  "schema_version": "run_layout_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:48:32+00:00",
+  "experiment_id": "E1_1",
+  "config_hash": "f660630174839ff4128387e70af374513c9aeb91de07bce442d98c96ff556bf6",
+  "seed": 0,
+  "protocol": "quick"
+}

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Nb2SeBrO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.52988315
+_cell_length_b   14.32468638
+_cell_length_c   14.07355951
+_cell_angle_alpha   90.05050490
+_cell_angle_beta   89.99830863
+_cell_angle_gamma   92.43147493
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Nb2SeBrO
+_chemical_formula_sum   'Nb4 Se2 Br2 O2'
+_cell_volume   509.56335363
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.95019150  0.16722107  0.20362568  1
+  O  O1  1  0.58270037  0.20520478  0.76594919  1
+  Br  Br2  1  0.10271049  0.34062576  0.95299804  1
+  O  O3  1  0.61875474  0.25738731  0.67590696  1
+  Se  Se4  1  0.05245447  0.13091850  0.46090466  1
+  Se  Se5  1  0.54022312  0.79279137  0.08837914  1
+  Nb  Nb6  1  0.05670643  0.00487947  0.21260548  1
+  Nb  Nb7  1  0.58319092  0.23012352  0.95351696  1
+  Nb  Nb8  1  0.63195229  0.17042065  0.01175174  1
+  Br  Br9  1  0.29551196  0.56468773  0.73655820  1

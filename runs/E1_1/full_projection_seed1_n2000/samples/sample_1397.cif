@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuAsIN2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.18733740
+_cell_length_b   10.99423851
+_cell_length_c   31.05849002
+_cell_angle_alpha   90.71482251
+_cell_angle_beta   89.79325334
+_cell_angle_gamma   95.32119441
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuAsIN2Cl
+_chemical_formula_sum   'Cu1 As1 I1 N2 Cl1'
+_cell_volume   1423.54984331
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.43820572  0.02246761  0.05706167  1
+  Cu  Cu1  1  0.07499123  0.11339211  0.77981877  1
+  Cl  Cl2  1  0.57511306  0.88222504  0.08192232  1
+  I  I3  1  0.88440633  0.84149170  0.06458995  1
+  N  N4  1  0.62256050  0.88058949  0.54883289  1
+  N  N5  1  0.38769197  0.60858536  0.91517943  1

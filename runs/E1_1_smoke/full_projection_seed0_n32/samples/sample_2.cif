@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnAsIO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.29605103
+_cell_length_b   10.14777450
+_cell_length_c   42.74381028
+_cell_angle_alpha   89.76395803
+_cell_angle_beta   90.27291609
+_cell_angle_gamma   110.03502019
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnAsIO2
+_chemical_formula_sum   'Mn2 As2 I2 O4'
+_cell_volume   2565.63540595
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.01466798  0.98596388  0.65718591  1
+  O  O1  1  0.90398407  0.63526917  0.94042110  1
+  As  As2  1  0.02720213  0.88029665  0.67855990  1
+  O  O3  1  0.16555786  0.85902882  0.55000305  1
+  I  I4  1  0.07128906  0.41597748  0.01690674  1
+  Mn  Mn5  1  0.77372742  0.58859253  0.76620483  1
+  Mn  Mn6  1  0.72947693  0.66609955  0.63404465  1
+  As  As7  1  0.08026123  0.39753723  0.62825012  1
+  O  O8  1  0.05122375  0.21940613  0.03770065  1
+  I  I9  1  0.09262085  0.23341179  0.84991455  1

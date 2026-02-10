@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_Sc3SeBr4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.98342347
+_cell_length_b   15.38737167
+_cell_length_c   24.35704550
+_cell_angle_alpha   90.35601914
+_cell_angle_beta   90.09637613
+_cell_angle_gamma   75.68409685
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sc3SeBr4
+_chemical_formula_sum   'Sc3 Se1 Br4'
+_cell_volume   1446.56257110
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sc  Sc0  1  0.57464695  0.96170926  0.18994522  1
+  Sc  Sc1  1  0.65935040  0.45932484  0.17487478  1
+  Br  Br2  1  0.95628738  0.94990587  0.15219820  1
+  Br  Br3  1  0.14196205  0.05181217  0.20029736  1
+  Br  Br4  1  0.31617165  0.13520813  0.79568076  1
+  Br  Br5  1  0.12701476  0.49548435  0.56045270  1
+  Sc  Sc6  1  0.47403526  0.64249802  0.37981939  1
+  Se  Se7  1  0.24645710  0.23654175  0.78022087  1

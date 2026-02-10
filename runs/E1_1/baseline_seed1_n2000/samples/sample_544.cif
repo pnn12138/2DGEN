@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_SrHCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   12.43102455
+_cell_length_b   16.77636635
+_cell_length_c   31.98533966
+_cell_angle_alpha   88.64802785
+_cell_angle_beta   91.27431024
+_cell_angle_gamma   149.99887007
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrHCl
+_chemical_formula_sum   'Sr2 H2 Cl2'
+_cell_volume   3334.39372392
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.76921558  0.98563004  0.62933314  1
+  Cl  Cl1  1  0.03630733  0.75228202  0.17087770  1
+  Sr  Sr2  1  0.74516106  0.11314678  0.62006855  1
+  Cl  Cl3  1  0.33744717  0.26944229  0.14555788  1
+  Sr  Sr4  1  0.84442425  0.53595304  0.98397255  1
+  H  H5  1  0.83308530  0.32706261  0.60571241  1

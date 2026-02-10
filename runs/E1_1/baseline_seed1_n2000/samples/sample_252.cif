@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Mo2NO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.43145943
+_cell_length_b   10.09296333
+_cell_length_c   11.99531784
+_cell_angle_alpha   84.42073922
+_cell_angle_beta   95.87470448
+_cell_angle_gamma   149.99883137
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo2NO2
+_chemical_formula_sum   'Mo2 N1 O2'
+_cell_volume   628.07184254
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.74949646  0.41009140  0.13099194  1
+  Mo  Mo1  1  0.74765015  0.85029602  0.71985722  1
+  Mo  Mo2  1  0.76457977  0.34736824  0.32781553  1
+  N  N3  1  0.49354768  0.48532581  0.82451987  1
+  O  O4  1  0.04859924  0.36977208  0.66534424  1

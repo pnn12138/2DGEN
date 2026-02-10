@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_RhSeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46107674
+_cell_length_b   10.98655231
+_cell_length_c   15.04034317
+_cell_angle_alpha   90.44368442
+_cell_angle_beta   89.88567983
+_cell_angle_gamma   104.54114828
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RhSeBr
+_chemical_formula_sum   'Rh2 Se2 Br2'
+_cell_volume   393.63355785
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.99528694  0.55275059  0.02217257  1
+  Se  Se1  1  0.63820171  0.68088722  0.63385153  1
+  Se  Se2  1  0.71428680  0.13383675  0.76334870  1
+  Rh  Rh3  1  0.14356422  0.94527245  0.32742071  1
+  Rh  Rh4  1  0.38341522  0.67646933  0.98946023  1
+  Br  Br5  1  0.88158846  0.81920338  0.38936740  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_ZrGeTe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.04471684
+_cell_length_b   14.39108418
+_cell_length_c   33.83679416
+_cell_angle_alpha   89.73220455
+_cell_angle_beta   90.12447561
+_cell_angle_gamma   96.02881202
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrGeTe4
+_chemical_formula_sum   'Zr2 Ge2 Te8'
+_cell_volume   2442.89888829
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zr  Zr0  1  0.11009455  0.80231619  0.97099257  1
+  Ge  Ge1  1  0.08130550  0.95354450  0.44820356  1
+  Te  Te2  1  0.71507168  0.89625740  0.38260794  1
+  Te  Te3  1  0.20968652  0.24556351  0.15030766  1
+  Ge  Ge4  1  0.58231354  0.73592758  0.00499725  1
+  Te  Te5  1  0.84101295  0.28653574  0.71323943  1
+  Te  Te6  1  0.93762398  0.82091904  0.89536357  1
+  Te  Te7  1  0.57067651  0.81015015  0.63806438  1
+  Zr  Zr8  1  0.54329634  0.04702950  0.84733105  1
+  Te  Te9  1  0.36121869  0.87579346  0.47963142  1
+  Te  Te10  1  0.60532379  0.72465038  0.85184240  1
+  Te  Te11  1  0.61799288  0.70765591  0.22691184  1

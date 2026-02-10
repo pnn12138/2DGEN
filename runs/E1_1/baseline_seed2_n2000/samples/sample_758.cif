@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_Au2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.19854927
+_cell_length_b   28.40750608
+_cell_length_c   29.35495395
+_cell_angle_alpha   90.13984496
+_cell_angle_beta   90.12063130
+_cell_angle_gamma   41.05837509
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Au2O
+_chemical_formula_sum   'Au2 O1'
+_cell_volume   3942.84375659
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.25258636  0.29952556  0.12082720  1
+  Au  Au1  1  0.74233246  0.23983860  0.30651093  1
+  Au  Au2  1  0.55188179  0.46913290  0.61713612  1

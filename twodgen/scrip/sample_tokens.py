@@ -7,6 +7,10 @@ from pathlib import Path
 from typing import Any, List, Optional, Tuple
 import sys
 
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import numpy as np
 import torch
 from pymatgen.core import Element, Structure
@@ -14,6 +18,13 @@ from pymatgen.io.cif import CifWriter
 
 from twodgen.common.crystal import frac_mic_dist, gram6_to_cholesky6
 from twodgen.evaluate import eval_samples as eval_samples_mod
+from twodgen.evaluate.run_layout import (
+    PROJECTION_STATS_SCHEMA_VERSION,
+    RUN_METADATA_SCHEMA_VERSION,
+    atomic_write_json,
+    config_hash,
+    make_schema_payload,
+)
 from twodgen.common.geometry_np import choose_vacuum_axis, min_dist_and_shifts, thickness_vacuum
 from twodgen.common.run_metadata import collect_run_metadata
 from twodgen.data.splits import load_c2db_split, select_split_indices, validate_split_indices
@@ -318,7 +329,32 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         default=None,
         help="Override checkpoint cond_drop_prob during sampling (defaults to 0 when cfg_scale > 1).",
     )
+    parser.add_argument(
+        "--g-scale",
+        type=float,
+        default=None,
+        help="Optional Gram scaling override. By default uses checkpoint g_scale.",
+    )
+    parser.add_argument(
+        "--override-g-scale",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="If set, force checkpoint model_cfg.g_scale to --g-scale.",
+    )
     parser.add_argument("--out-dir", type=Path, default=Path("outputs/samples_tokens"))
+    parser.add_argument(
+        "--experiment-id",
+        type=str,
+        default=None,
+        help="Optional experiment identifier recorded in run metadata schema payloads.",
+    )
+    parser.add_argument(
+        "--protocol",
+        type=str,
+        default=None,
+        choices=["quick", "final"],
+        help="Optional protocol label recorded in run metadata schema payloads.",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--project-each-step",
@@ -379,7 +415,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         "--post-project-keys",
         type=str,
         default="angle,cond,inplane",
-        help="Comma-separated projection keys: angle,cond,inplane,volume.",
+        help="Comma-separated projection keys: angle,cond,inplane,volume,vacuum.",
     )
     parser.add_argument(
         "--post-project-cond-max",
@@ -489,7 +525,7 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
         use_ema=True,
         max_atoms=24,
         num_atoms=None,
-        g_scale=100.0,
+        g_scale=None,
         min_dist=None,
         min_dist_iter=12,
         min_dist_strength=0.05,
@@ -562,6 +598,42 @@ def _load_npz_stats(
     v_min = float(np.percentile(vols, 1.0))
     v_max = float(np.percentile(vols, 99.0))
     return counts, (v_min, v_max)
+
+
+def _load_npz_area_bounds(
+    npz_path: Path,
+    coord_frame: str,
+    pbc_mask: Tuple[int, int, int],
+    *,
+    q_lo: float = 1.0,
+    q_hi: float = 99.0,
+) -> dict[int, Tuple[float, float]]:
+    data = np.load(npz_path)
+    mask = data["atom_mask"]
+    counts = mask.sum(axis=1).astype(int)
+    if coord_frame == "canon" and "lattice_canon" in data:
+        lattice = data["lattice_canon"]
+    else:
+        lattice = data["lattice"] if "lattice" in data else None
+    if lattice is None:
+        return {}
+    axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+    if len(axes) != 2:
+        return {}
+    a_vec = lattice[:, axes[0], :]
+    b_vec = lattice[:, axes[1], :]
+    area = np.linalg.norm(np.cross(a_vec, b_vec), axis=1)
+    out: dict[int, Tuple[float, float]] = {}
+    for n in np.unique(counts[counts > 0]):
+        idx = counts == n
+        vals = area[idx] / max(float(n), 1.0)
+        vals = vals[np.isfinite(vals)]
+        if vals.size == 0:
+            continue
+        lo = float(np.percentile(vals, q_lo))
+        hi = float(np.percentile(vals, q_hi))
+        out[int(n)] = (lo, hi)
+    return out
 
 
 def _load_npz_scube_stats(npz_path: Path, coord_frame: str) -> Optional[Tuple[float, float, float, float]]:
@@ -743,6 +815,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
     args.coord_frame_actual = coord_frame_actual
     if args.npz is not None:
         n_counts, vol_bounds = _load_npz_stats(args.npz, coord_frame=coord_frame_actual)
+    cfg_hash = config_hash(
+        {
+            "checkpoint": str(args.checkpoint),
+            "num_samples": int(args.num_samples),
+            "steps": int(args.steps),
+            "method": str(args.method),
+            "cfg_scale": float(args.cfg_scale),
+            "seed": int(args.seed),
+            "coord_frame": str(args.coord_frame),
+            "coord_frame_actual": str(coord_frame_actual),
+        }
+    )
 
     if args.unsafe_load:
         print("Warning: loading checkpoint with torch.load (weights_only=False). Use only trusted checkpoints.")
@@ -759,7 +843,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
             ) from exc
     model_cfg = ckpt.get("config")
     if model_cfg is None:
-        model_cfg = AtomTransformerConfig(num_elements=118, k_neighbors=32, g_scale=args.g_scale)
+        default_g = float(args.g_scale) if args.g_scale is not None else 100.0
+        model_cfg = AtomTransformerConfig(num_elements=118, k_neighbors=32, g_scale=default_g)
     else:
         if not hasattr(model_cfg, "cell_rep"):
             model_cfg.cell_rep = "gram6"
@@ -805,8 +890,26 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "[info] checkpoint_config "
         f"cell_rep={model_cfg.cell_rep} g_scale={model_cfg.g_scale} pbc_mask={model_cfg.pbc_mask}"
     )
-    if args.g_scale != model_cfg.g_scale:
-        print(f"[warn] args.g_scale={args.g_scale} differs from checkpoint g_scale={model_cfg.g_scale}")
+    if args.g_scale is not None and float(args.g_scale) != float(model_cfg.g_scale):
+        if args.override_g_scale:
+            old_g = float(model_cfg.g_scale)
+            model_cfg.g_scale = float(args.g_scale)
+            print(
+                f"[warn] overriding checkpoint g_scale {old_g} -> {model_cfg.g_scale} "
+                "due to --override-g-scale."
+            )
+        else:
+            print(
+                f"[warn] args.g_scale={args.g_scale} differs from checkpoint "
+                f"g_scale={model_cfg.g_scale} (ignored unless --override-g-scale)."
+            )
+    area_bounds_by_n = {}
+    if args.npz is not None:
+        area_bounds_by_n = _load_npz_area_bounds(
+            args.npz,
+            coord_frame=coord_frame_actual,
+            pbc_mask=model_cfg.pbc_mask,
+        )
     diff_cfg = ckpt.get("diffusion_config")
     cond_cfg = ckpt.get("cond_config", {})
     geom_cfg = ckpt.get("geometry_config", {})
@@ -896,6 +999,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
     denoiser_cfg.post_project_inplane_gamma_min = float(args.post_project_inplane_gamma_min)
     denoiser_cfg.post_project_inplane_gamma_max = float(args.post_project_inplane_gamma_max)
     denoiser_cfg.post_project_inplane_area_min = float(args.post_project_inplane_area_min)
+    denoiser_cfg.post_project_area_per_atom_min = None
+    denoiser_cfg.post_project_area_per_atom_max = None
     sampling_config["cond_drop_prob"] = float(getattr(denoiser_cfg.diffusion, "cond_drop_prob", 0.0))
     sampling_config["project_every_step"] = bool(project_every_step)
     sampling_config["project_final"] = bool(project_final)
@@ -914,6 +1019,8 @@ def run_sampling(args: argparse.Namespace) -> Path:
     sampling_config["post_project_inplane_gamma_min"] = float(args.post_project_inplane_gamma_min)
     sampling_config["post_project_inplane_gamma_max"] = float(args.post_project_inplane_gamma_max)
     sampling_config["post_project_inplane_area_min"] = float(args.post_project_inplane_area_min)
+    sampling_config["post_project_area_per_atom_min"] = None
+    sampling_config["post_project_area_per_atom_max"] = None
     z_norm_clip = args.z_norm_clip
     if z_norm_clip is None and args.npz is not None:
         z_norm_clip = _load_npz_z_norm_clip(args.npz)
@@ -1184,6 +1291,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
     post_project_vol_before_np = None
     post_project_vol_after_np = None
     post_project_vol_scale_inplane_np = None
+    post_project_vacuum_before_np = None
+    post_project_vacuum_after_np = None
+    post_project_vacuum_trigger_np = None
+    post_project_area_before_np = None
+    post_project_area_after_np = None
+    post_project_area_trigger_np = None
     project_step_stats_sum = None
     project_step_stats_count = 0
     post_project_step_stats_sum = None
@@ -1204,6 +1317,18 @@ def run_sampling(args: argparse.Namespace) -> Path:
             counts_tensor = None
             if cond_counts_vector is not None:
                 counts_tensor = torch.from_numpy(cond_counts_vector[idxs]).to(device)
+            denoiser_cfg.post_project_area_per_atom_min = None
+            denoiser_cfg.post_project_area_per_atom_max = None
+            if area_bounds_by_n:
+                bounds = area_bounds_by_n.get(int(num_atoms))
+                if bounds is not None:
+                    denoiser_cfg.post_project_area_per_atom_min = float(bounds[0])
+                    denoiser_cfg.post_project_area_per_atom_max = float(bounds[1])
+                    sampling_config["post_project_area_per_atom_min"] = float(bounds[0])
+                    sampling_config["post_project_area_per_atom_max"] = float(bounds[1])
+                else:
+                    sampling_config["post_project_area_per_atom_min"] = None
+                    sampling_config["post_project_area_per_atom_max"] = None
             (
                 z,
                 frac,
@@ -1261,6 +1386,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
                         post_project_vol_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
                         post_project_vol_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
                         post_project_vol_scale_inplane_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vacuum_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vacuum_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_vacuum_trigger_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_area_before_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_area_after_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
+                        post_project_area_trigger_np = np.full((args.num_samples,), np.nan, dtype=np.float32)
                     post_project_trigger_any_np[idxs] = project_stats["post_project_trigger_any"].detach().cpu().numpy()
                     post_project_delta_norm_np[idxs] = project_stats["post_project_delta_norm"].detach().cpu().numpy()
                     post_project_inplane_degen_before_np[idxs] = project_stats["post_project_inplane_degen_before"].detach().cpu().numpy()
@@ -1272,6 +1403,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
                     post_project_vol_before_np[idxs] = project_stats["post_project_vol_before"].detach().cpu().numpy()
                     post_project_vol_after_np[idxs] = project_stats["post_project_vol_after"].detach().cpu().numpy()
                     post_project_vol_scale_inplane_np[idxs] = project_stats["post_project_vol_scale_inplane"].detach().cpu().numpy()
+                    post_project_vacuum_before_np[idxs] = project_stats["post_project_vacuum_before"].detach().cpu().numpy()
+                    post_project_vacuum_after_np[idxs] = project_stats["post_project_vacuum_after"].detach().cpu().numpy()
+                    post_project_vacuum_trigger_np[idxs] = project_stats["post_project_vacuum_trigger"].detach().cpu().numpy()
+                    post_project_area_before_np[idxs] = project_stats["post_project_area_before"].detach().cpu().numpy()
+                    post_project_area_after_np[idxs] = project_stats["post_project_area_after"].detach().cpu().numpy()
+                    post_project_area_trigger_np[idxs] = project_stats["post_project_area_trigger"].detach().cpu().numpy()
                 if "angle_out_before_steps" in project_stats:
                     steps_list = project_stats["angle_out_before_steps"]
                     if isinstance(steps_list, list) and steps_list:
@@ -1307,6 +1444,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
                                 "post_project_vol_before_steps": [0.0 for _ in steps_list],
                                 "post_project_vol_after_steps": [0.0 for _ in steps_list],
                                 "post_project_vol_scale_inplane_steps": [0.0 for _ in steps_list],
+                                "post_project_vacuum_before_steps": [0.0 for _ in steps_list],
+                                "post_project_vacuum_after_steps": [0.0 for _ in steps_list],
+                                "post_project_vacuum_trigger_steps": [0.0 for _ in steps_list],
+                                "post_project_area_before_steps": [0.0 for _ in steps_list],
+                                "post_project_area_after_steps": [0.0 for _ in steps_list],
+                                "post_project_area_trigger_steps": [0.0 for _ in steps_list],
                             }
                         for key in post_project_step_stats_sum:
                             values = project_stats.get(key)
@@ -1630,6 +1773,12 @@ def run_sampling(args: argparse.Namespace) -> Path:
         payload["post_project_vol_before"] = post_project_vol_before_np
         payload["post_project_vol_after"] = post_project_vol_after_np
         payload["post_project_vol_scale_inplane"] = post_project_vol_scale_inplane_np
+        payload["post_project_vacuum_before"] = post_project_vacuum_before_np
+        payload["post_project_vacuum_after"] = post_project_vacuum_after_np
+        payload["post_project_vacuum_trigger"] = post_project_vacuum_trigger_np
+        payload["post_project_area_before"] = post_project_area_before_np
+        payload["post_project_area_after"] = post_project_area_after_np
+        payload["post_project_area_trigger"] = post_project_area_trigger_np
     if chol_log_clamp_flags is not None:
         clamp_rate = float(np.mean(chol_log_clamp_flags)) if chol_log_clamp_flags.size else 0.0
         chol_min_payload = float("nan")
@@ -1892,10 +2041,16 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "relax": relax_meta,
         "projection": proj_meta,
     }
-    (args.out_dir / "run_metadata.json").write_text(
-        json.dumps(run_meta, indent=2, ensure_ascii=True),
-        encoding="utf-8",
+    run_meta_wrapped = make_schema_payload(
+        schema_version=RUN_METADATA_SCHEMA_VERSION,
+        payload=run_meta,
+        experiment_id=getattr(args, "experiment_id", None),
+        seed=int(args.seed),
+        protocol=getattr(args, "protocol", None),
+        config_hash_value=cfg_hash,
+        run_metadata=sampling_config.get("run_metadata"),
     )
+    atomic_write_json(args.out_dir / "run_metadata.json", run_meta_wrapped)
     if post_project_trigger_any_np is not None:
         stats = {
             "post_project_trigger_any_rate": float(np.mean(post_project_trigger_any_np)),
@@ -1911,10 +2066,36 @@ def run_sampling(args: argparse.Namespace) -> Path:
                     "post_project_vol_after_mean": float(np.nanmean(post_project_vol_after_np)) if post_project_vol_after_np is not None else None,
                 }
             )
-        (args.out_dir / "projection_stats.json").write_text(
-            json.dumps(stats, indent=2, ensure_ascii=True),
-            encoding="utf-8",
+        if post_project_vacuum_before_np is not None:
+            stats.update(
+                {
+                    "vacuum_before_p50": float(np.nanpercentile(post_project_vacuum_before_np, 50.0)),
+                    "vacuum_before_p95": float(np.nanpercentile(post_project_vacuum_before_np, 95.0)),
+                    "vacuum_after_p50": float(np.nanpercentile(post_project_vacuum_after_np, 50.0)),
+                    "vacuum_after_p95": float(np.nanpercentile(post_project_vacuum_after_np, 95.0)),
+                    "vacuum_project_trigger_rate": float(np.nanmean(post_project_vacuum_trigger_np)),
+                }
+            )
+        if post_project_area_before_np is not None:
+            stats.update(
+                {
+                    "area_before_p50": float(np.nanpercentile(post_project_area_before_np, 50.0)),
+                    "area_before_p95": float(np.nanpercentile(post_project_area_before_np, 95.0)),
+                    "area_after_p50": float(np.nanpercentile(post_project_area_after_np, 50.0)),
+                    "area_after_p95": float(np.nanpercentile(post_project_area_after_np, 95.0)),
+                    "area_project_trigger_rate": float(np.nanmean(post_project_area_trigger_np)),
+                }
+            )
+        stats_wrapped = make_schema_payload(
+            schema_version=PROJECTION_STATS_SCHEMA_VERSION,
+            payload=stats,
+            experiment_id=getattr(args, "experiment_id", None),
+            seed=int(args.seed),
+            protocol=getattr(args, "protocol", None),
+            config_hash_value=cfg_hash,
+            run_metadata=sampling_config.get("run_metadata"),
         )
+        atomic_write_json(args.out_dir / "projection_stats.json", stats_wrapped)
 
     print(
         f"Saved {args.num_samples} samples to {args.out_dir} "
@@ -1991,6 +2172,10 @@ def run_sampling(args: argparse.Namespace) -> Path:
                 "samples": str(samples_path),
                 "cond_split": str(args.cond_split),
                 "cond_split_json": str(args.cond_split_json) if args.cond_split_json is not None else None,
+                "seed": int(args.seed),
+                "protocol": getattr(args, "protocol", None),
+                "experiment_id": getattr(args, "experiment_id", None),
+                "config_hash": cfg_hash,
             },
         )
         print(f"Saved eval outputs to {eval_out_dir}")

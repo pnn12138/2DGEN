@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sr2Te2AuI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.25972652
+_cell_length_b   12.05298396
+_cell_length_c   13.87831726
+_cell_angle_alpha   89.46463868
+_cell_angle_beta   90.09847139
+_cell_angle_gamma   99.74947527
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2Te2AuI2
+_chemical_formula_sum   'Sr2 Te2 Au1 I2'
+_cell_volume   372.52062769
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.79532814  0.59379196  0.45212078  1
+  Sr  Sr1  1  0.87005305  0.80962002  0.36456549  1
+  Te  Te2  1  0.75769639  0.92437530  0.97415197  1
+  I  I3  1  0.12887478  0.08776855  0.20972753  1
+  Au  Au4  1  0.39027023  0.92093658  0.75107241  1
+  Sr  Sr5  1  0.24400711  0.41514587  0.21374273  1
+  Te  Te6  1  0.80509567  0.11424422  0.90111196  1

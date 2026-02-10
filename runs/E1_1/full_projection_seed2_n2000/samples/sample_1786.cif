@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_LiHS
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.34290195
+_cell_length_b   14.26161090
+_cell_length_c   13.03334909
+_cell_angle_alpha   90.12408646
+_cell_angle_beta   89.99143070
+_cell_angle_gamma   93.67176604
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiHS
+_chemical_formula_sum   'Li2 H2 S2'
+_cell_volume   434.59558639
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.03079224  0.17176056  0.07589906  1
+  H  H1  1  0.11686420  0.12589455  0.97060251  1
+  S  S2  1  0.07370758  0.47195053  0.47909558  1
+  Li  Li3  1  0.19762230  0.32684422  0.21209407  1
+  Li  Li4  1  0.33110046  0.30914497  0.40465498  1
+  S  S5  1  0.08794403  0.64974213  0.26440853  1

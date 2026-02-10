@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Hf2CS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43718481
+_cell_length_b   7.55282172
+_cell_length_c   12.32709416
+_cell_angle_alpha   90.89142855
+_cell_angle_beta   89.61134407
+_cell_angle_gamma   107.34032330
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Hf2CS2
+_chemical_formula_sum   'Hf2 C1 S2'
+_cell_volume   216.57284899
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Hf  Hf0  1  0.30803680  0.35074997  0.83464813  1
+  Hf  Hf1  1  0.37919998  0.90711975  0.59248114  1
+  S  S2  1  0.12850213  0.15590701  0.44837368  1
+  C  C3  1  0.38819313  0.17422485  0.64667130  1
+  S  S4  1  0.77741790  0.03970305  0.38873732  1

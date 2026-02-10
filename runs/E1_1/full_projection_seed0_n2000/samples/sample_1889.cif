@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Co3Se4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53437853
+_cell_length_b   7.94846411
+_cell_length_c   12.81689503
+_cell_angle_alpha   89.97847376
+_cell_angle_beta   89.97118618
+_cell_angle_gamma   104.75353179
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Co3Se4
+_chemical_formula_sum   'Co3 Se4'
+_cell_volume   249.67638540
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.43104172  0.85139084  0.18995535  1
+  Se  Se1  1  0.88842392  0.37030411  0.32174206  1
+  Co  Co2  1  0.79505920  0.66868842  0.09025431  1
+  Se  Se3  1  0.63524848  0.29480878  0.85078627  1
+  Co  Co4  1  0.56056517  0.16557090  0.77817947  1
+  Co  Co5  1  0.58680916  0.91461945  0.80259848  1
+  Se  Se6  1  0.48870277  0.47674799  0.03538787  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Mn2INClO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59007215
+_cell_length_b   16.37540357
+_cell_length_c   12.49215524
+_cell_angle_alpha   90.45120453
+_cell_angle_beta   89.98988031
+_cell_angle_gamma   91.30756134
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mn2INClO
+_chemical_formula_sum   'Mn2 I1 N1 Cl1 O1'
+_cell_volume   529.68134614
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.23940659  0.70398712  0.77241647  1
+  Mn  Mn1  1  0.57307470  0.61681557  0.14372921  1
+  Mn  Mn2  1  0.24840224  0.04609299  0.17064476  1
+  N  N3  1  0.60646343  0.39141083  0.87488616  1
+  O  O4  1  0.37424374  0.69237137  0.20088220  1
+  I  I5  1  0.48689532  0.78441620  0.94796443  1

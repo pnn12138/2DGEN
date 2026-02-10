@@ -2,3 +2,5 @@
 ## P2（中优先级）
 - 待优化：训练/评估核心几何变换存在明显性能瓶颈。`twodgen/common/crystal.py::gram6_to_lattice/gram6_to_cholesky6` 仍是逐样本 Python 循环，后续考虑批量化/torch.linalg 批处理改写。
 - `twodgen/data/c2db_dataset.py` 的 `extra` 读入逻辑仍只接受数值 (`dtype.kind in {"i","u","f","b"}`)，如果后续预处理把 `spacegroup_symbol` 或其它字符串放入 `.npz`，dataset 会直接跳过无法复用，需要改为保留原始对象或单独存 metadata。
+- `twodgen/scrip/sampling_projection_ab.sh` 里 B 组使用 `--post-project-interval 0`，但 `AtomDenoiser.generate` 只在 `post_project_interval > 0` 时触发，导致 **B 组实际上未启用 post-project**，A/B 结果不可用。
+- `twodgen/evaluate/compare_scenarios.py` 读取 `per_sample.jsonl` 时使用旧字段 `cond_match` / `formation_pass`，而当前评估输出是 `cond_exact_match` / `success` / `success_geom` / `success_energy`，导致比较结果恒为 0 或缺失。

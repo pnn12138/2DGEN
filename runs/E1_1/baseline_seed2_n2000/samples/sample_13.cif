@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_H2Au
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.21802330
+_cell_length_b   7.03841071
+_cell_length_c   12.34185799
+_cell_angle_alpha   88.73780222
+_cell_angle_beta   90.27654449
+_cell_angle_gamma   101.63906824
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   H2Au
+_chemical_formula_sum   'H2 Au1'
+_cell_volume   188.66560921
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.79783344  0.83105087  0.68357927  1
+  H  H1  1  0.26757050  0.27887726  0.47929716  1
+  Au  Au2  1  0.02405167  0.17556000  0.24411154  1

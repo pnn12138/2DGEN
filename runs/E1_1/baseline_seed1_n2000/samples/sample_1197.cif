@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_AlAuBrClO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.07132959
+_cell_length_b   19.82998047
+_cell_length_c   31.49296408
+_cell_angle_alpha   90.18020453
+_cell_angle_beta   89.98064841
+_cell_angle_gamma   100.56600545
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlAuBrClO2
+_chemical_formula_sum   'Al1 Au1 Br1 Cl1 O2'
+_cell_volume   3113.35466790
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.35998726  0.22706747  0.19904041  1
+  Al  Al1  1  0.24643421  0.16436100  0.29276228  1
+  Br  Br2  1  0.95619297  0.90347815  0.06842947  1
+  O  O3  1  0.50368476  0.57869816  0.27813721  1
+  Au  Au4  1  0.20868397  0.12469387  0.54657221  1
+  Cl  Cl5  1  0.31659222  0.03586245  0.86513233  1

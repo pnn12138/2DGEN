@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_OsBr2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.34078074
+_cell_length_b   14.40554551
+_cell_length_c   13.02186465
+_cell_angle_alpha   89.76307034
+_cell_angle_beta   90.01219414
+_cell_angle_gamma   92.90821901
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   OsBr2O
+_chemical_formula_sum   'Os1 Br2 O1'
+_cell_volume   438.53091384
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.85998535  0.77639389  0.29165649  1
+  Br  Br1  1  0.28771591  0.58608246  0.19311380  1
+  Os  Os2  1  0.49494934  0.35270882  0.58614159  1
+  Br  Br3  1  0.19267654  0.97616577  0.54153514  1

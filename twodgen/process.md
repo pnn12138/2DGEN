@@ -247,3 +247,140 @@
 - 扩大回归规模：把 `outputs/ab_proj_phase2_v8` 的 num_samples 提到 512/2048，检查 `success_geom_rate/bad_volume/collision` 是否仍稳定（避免小样本偶然性）。
 - 若能量闭环要用于筛选：建议在 `eval_with_energy.sh` 固定 `--relax-device` 与 relax 超参，并记录运行耗时（后续为 go/no-go 提供成本项）。
 - Workstream C（可选）：已补齐 finetune 的 go/no-go 报告模板与 registry stub（见 `twodgen/mlip_finetune_report.md`、`twodgen/model_registry.json`），后续只需把训练脚本/数据 manifest 对齐并填表即可做决策。
+
+### 10.9 最新评估与代码复核（2026-02-09）
+- Run: `outputs/checkpoints/20260207_004939`（EMA）。采样 200、`project_gram_cond + post_project(angle/cond/inplane/volume) + min_dist_repulsion`：
+  - `valid_rate_eval=0.59`、`success_geom_rate=0.575`，主要失败仍是 `collision` 与 `bad_volume`。
+  - `vacuum_ok_rate=0.295`，真空不足仍是 2D 有效率瓶颈。
+- 同 checkpoint 的 relax 评估（`--relax`，200 样本）：
+  - `energy_available_rate=0.135`（27/200），`relaxed_rate=0.135`，`success_energy_rate=1.0`（有能量样本全部通过阈值）。
+  - 几何有效率接近未 relax 情况（`valid_rate_eval=0.575`、`valid_2d_rate=0.555`）。
+- 代码层面问题（已记录到 `problem.md`）：
+  - `sampling_projection_ab.sh` 的 `--post-project-interval 0` 实际会禁用 post-project，导致 A/B 失真。
+  - `evaluate/compare_scenarios.py` 使用了旧字段 `cond_match/formation_pass`，与当前 `per_sample.jsonl` 不匹配。
+
+### 10.10 phase1b 复跑与问题闭环（2026-02-09）
+- 修复问题：`sampling_projection_ab.sh` 已将 B 组 interval 改为 1（确保 post-project 实际生效），该问题已记入 history。
+- E0 on/off 复跑：
+  - on：`outputs/debug_cond_trigger/on/20260209_172341`
+  - off：`outputs/debug_cond_trigger/off/20260209_172730`
+  - 训练日志复核：on 组 `loss_cond_number` 均值 > 0（≈1.04e-4），off 组为 0；cond_gram/lattice 统计仍可输出。
+- 采样对照复跑（64 samples, steps=50, cond_max=40, project_final）：
+  - on：`outputs/samples_tokens/cond_on_fix_20260209`
+  - off：`outputs/samples_tokens/cond_off_baseline_20260209`
+- 复跑结论：本轮 on/off 的 cond_violation_rate 都为 0（与 2026-02-06 的差异反映抽样噪声+训练随机性），主要失败仍是 `bad_volume` 与 `collision`；建议后续将样本量提高到 >=512 再判断趋势。
+
+### 10.11 本轮训练结果补充（2026-02-09）
+- E0 on：`outputs/debug_cond_trigger/on/20260209_172341`
+  - 训练均值（train_metrics.jsonl 聚合）：`loss_cond_number≈1.04e-4`，`cond_gram_p95≈12.07`，`cond_gram_max≈18.12`，`cond_gram_violation_rate≈7.10e-4`。
+- E0 off：`outputs/debug_cond_trigger/off/20260209_172730`
+  - 训练均值（train_metrics.jsonl 聚合）：`loss_cond_number=0`，`cond_gram_p95≈12.08`，`cond_gram_max≈18.14`，`cond_gram_violation_rate≈7.10e-4`。
+
+### 10.12 vacuum post-project 进展（2026-02-09）
+- 采样侧新增 `vacuum` key：post-step 投影支持沿 c 轴扩展到 `vacuum_min`（或 c_len_min）并输出 vacuum before/after 统计。
+- `projection_stats.json` 新增 `vacuum_before/after_p50/p95` 与 `vacuum_project_trigger_rate`，用于观察护栏触发与模型自洽程度。
+- 512 样本复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_v2`）：
+  - `vacuum_ok_rate=0.4766`（较未修复版显著提升，但未达 0.6 目标）。
+  - `vacuum_project_trigger_rate=0.8359`，说明主要依赖护栏补真空，模型尚未学会。
+  - `post_project_trigger_any_rate=0.9082`、`post_project_delta_norm_p95=0.4196`，投影幅度偏大（仍需降低触发率与幅度）。
+  - 2D area_per_atom clamp 复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_area`）：
+    - `bad_volume` 145 → 97（下降），`valid_rate_eval=0.6465`、`valid_2d_rate=0.6191`。
+    - `vacuum_ok_rate=0.4316`、`vacuum_project_trigger_rate=0.8223`，真空仍主要依赖护栏，未达 0.6 目标。
+    - `area_project_trigger_rate=0.3516`，说明 area clamp 已在生效，但仍需减小 post-project 触发幅度。
+
+### 10.13 采样后段多次 repulsion + relax 复测（2026-02-10）
+- 采样侧改动：min_dist repulsion 改为“后段多次轻量”执行（最后 30% steps、每 2 step 触发），顺序固定为 **in-plane 轻微 expand → repulsion → angle/inplane 快速 clamp**。
+- 复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_area_repulse_relax`，512、同配置 + `--relax`）：
+  - `valid_rate_eval=0.7109`、`valid_2d_rate=0.6660`，主要失败仍是 `collision`（90）与 `bad_volume`（58）。
+  - `vacuum_ok_rate=0.3691`、`vacuum_project_trigger_rate=0.8516`（真空仍主要靠护栏）。
+  - `post_project_trigger_any_rate=0.8789`、`post_project_delta_norm_p95=0.4347`（投影触发仍偏高）。
+  - relax 成功率：`111/512=0.2168`（energy_available 同步为 0.2168）。
+- phase1b E0 on/off 复跑（`twodgen/scrip/debug_cond_trigger.sh`）：
+  - on：`outputs/debug_cond_trigger/on/20260210_082247`
+  - off：`outputs/debug_cond_trigger/off/20260210_082745`
+
+### 10.14 vacuum schedule 轻量扩展复测（2026-02-10）
+- 新增 vacuum schedule：采样后段每 2 step 轻量扩展 c 轴（上限 1.08x），尽量在 post-project 前消化真空不足。
+- 复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch_relax`，512、同配置 + `--relax`）：
+  - `valid_rate_eval=0.7090`、`valid_2d_rate=0.6621`（与上一轮接近）。
+  - `vacuum_ok_rate=0.3965`、`vacuum_project_trigger_rate=0.8555`（vacuum 仍主要靠护栏，触发率未下降）。
+  - `post_project_delta_norm_p95=0.3986`（较上一轮 0.4347 略降，投影幅度有所收敛）。
+  - relax 成功率：`115/512=0.2246`。
+
+### 10.15 vacuum schedule 分段目标复测（2026-02-10）
+- 将 vacuum schedule 的目标从 `0.6*vacuum_min` 线性拉满到 `1.0*vacuum_min`（后段逐步加强）。
+- 复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch2_relax`，512、同配置 + `--relax`）：
+  - `valid_rate_eval=0.7051`、`valid_2d_rate=0.6621`（与上一轮接近）。
+  - `vacuum_ok_rate=0.3965`、`vacuum_project_trigger_rate=0.8516`（vacuum 触发率仍高）。
+  - `post_project_delta_norm_p95=0.4042`（投影幅度未显著下降）。
+  - relax 成功率：`113/512=0.2207`。
+
+### 10.16 vacuum schedule 触发阈值复测（2026-02-10）
+- 增加触发阈值：仅当 `vacuum < 0.7 * vacuum_min` 才启用 schedule 扩展。
+- 复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch3_relax`，512、同配置 + `--relax`）：
+  - 指标基本与 10.15 重合：`valid_rate_eval=0.7051`、`valid_2d_rate=0.6621`。
+  - `vacuum_ok_rate=0.3965`、`vacuum_project_trigger_rate=0.8516`（触发率未下降）。
+  - `post_project_delta_norm_p95=0.4042`，relax 成功率 `113/512=0.2207`。
+
+### 10.17 近期修复与清理（2026-02-10）
+- **脚本直运行修复**：`sample_tokens.py`/`train_tokens.py`/`eval_checkpoints.py`/`test_tokens.py` 增加 repo 根目录注入 `sys.path`，解决 “直接运行脚本” 时 `ModuleNotFoundError: twodgen`。
+- **冗余清理**：清除 `twodgen/**/__pycache__` 与残留 `*.pyc`，保持仓库目录干净（不影响源码或 checkpoints）。
+- **vacuum schedule 结论**：三轮 schedule（轻量扩展/分段目标/触发阈值）均未显著降低 `vacuum_project_trigger_rate`（稳定在 ~0.85），`vacuum_ok_rate` 停留 ~0.396；说明“采样端补救”边际收益有限，需把重心移回 **训练侧 vacuum_loss 早触发** 或 **cell 参数化/初始化**。
+- **当前主要瓶颈**：
+  - `vacuum_ok_rate` 低 + `vacuum_project_trigger_rate` 高（真空仍主要依赖护栏）。
+  - `collision` 与 `bad_volume` 仍是 tier0 主失败（虽已被 clamp/repulsion 部分缓解）。
+  - `post_project_trigger_any_rate` 长期偏高，说明采样端仍在“重写分布”。
+- **下一步优先建议**：
+  1) 训练侧：缩短 vacuum warmup 或提高 `vacuum_loss_weight` 的早期权重，使模型更早学会 c 轴尺度。
+  2) 采样侧：尝试更大 `cell_init_scale` 或单独的 `c_len` 初始化（减少对 post-project 的依赖）。
+  3) 大样本回归：至少 2048 样本复测 `vacuum_ok_rate / collision / bad_volume`，确认趋势稳定性。
+
+## 11) Phase0 启动记录（2026-02-10）
+- 新增 phase0 基础模块：`twodgen/evaluate/run_layout.py`、`twodgen/evaluate/protocol.py`、`twodgen/evaluate/aggregate_runs.py`，用于统一 run 目录、协议参数（quick/final）与跨 run 聚合。
+- 新增 schema 文件目录 `twodgen/evaluate/schemas/`，补齐 `run_metadata/metrics_summary/failure_breakdown/projection_stats` 四类产物的版本化约束占位。
+- `eval_samples.py` 现可额外导出 `metrics_summary.json` 与 `failure_breakdown.json`，并通过 schema envelope 写入 `schema_version/git_commit/timestamp/experiment_id/config_hash/seed/protocol`。
+- `sample_tokens.py` 的 `run_metadata.json` 与 `projection_stats.json` 已切换为统一 schema envelope + 原子写入，支持 `--experiment-id/--protocol` 标签。
+- `evaluate/io.py` 已支持读取 `metrics_summary/failure_breakdown`，并按 `schema_version` 做兼容告警。
+- 新增入口别名 `twodgen/scripts/`（兼容 legacy `twodgen/scrip/`），为后续路径规范化迁移做准备。
+
+### 11.1 Phase0 E0 review 完成（2026-02-10）
+- 新增 `twodgen/evaluate/run_e0.py`：支持 `STATUS(running/success/failed)`、失败写 `error_trace.txt`、`--resume` 跳过 success、失败可重跑。
+- 新增 `twodgen/evaluate/validate_artifacts.py`：校验 `run_metadata/projection_stats/metrics_summary/failure_breakdown/STATUS` 的 schema 与必填字段，并要求 success 状态下无 `error_trace.txt`。
+- 修复 `eval_samples.py` 在构造 `metrics_summary` 时对可选指标 `None` 强转 `float` 导致崩溃的问题（如 `spacegroup_match_rate=None`）。
+- 完成 E0 实跑：`runs/E0/20260210_e0_seed0_n200`（`N=200, seed=0`）已通过 validator，且二次执行触发 `--resume` 正常跳过。
+- 0.2 review 验收结论：
+  - 标准产物齐全并可读；
+  - `STATUS.json` 正确落为 `success`；
+  - 可中断/失败后重跑，成功后可 resume 跳过且不污染 run 根目录状态。
+
+### 11.2 Phase1 部分落地（2026-02-10）
+- 新增 `twodgen/evaluate/ablation_runner.py`：统一执行 variant × seed 的 E1 消融，继承 phase0 的 run layout、status、artifact 校验，并在 `runs/<EXP>/_aggregate/` 输出 `summary.json` 与 `summary.csv`。
+- 新增脚本 `twodgen/scripts/exp_e1_baseline_vs_projection.sh`（含 legacy shim `twodgen/scrip/exp_e1_baseline_vs_projection.sh`）用于一键运行 E1.1（baseline vs full_projection）。
+- 新增 E1 配置骨架：
+  - `twodgen/configs/bench/E1_1.yaml`
+  - `twodgen/configs/bench/E1_2_cond_only.yaml`
+  - `twodgen/configs/bench/E1_2_angle_only.yaml`
+  - `twodgen/configs/bench/E1_2_volume_only.yaml`
+  - `twodgen/configs/bench/E1_2_cond_angle.yaml`
+  - `twodgen/configs/bench/E1_2_full.yaml`
+  - `twodgen/configs/bench/E1_3_gscale.yaml`
+- smoke 验证：`runs/E1_1_smoke`（32 samples, seed=0, steps=10）已完成 baseline/full_projection 两组并通过 artifact validator。
+  - 聚合结果：`delta_success_geom_rate_full_minus_baseline = 0.15625`（仅 smoke，不作为最终结论）。
+
+### 11.3 Phase1 继续完成（2026-02-10）
+- 新增 `twodgen/scripts/exp_e1_component_ablation.sh`（含 legacy shim）用于 E1.2 组件消融矩阵一键执行：`cond_only/angle_only/volume_only/cond_angle/full_projection`。
+- 新增 `twodgen/scripts/exp_e1_gscale_sweep.sh`（含 legacy shim）与 `twodgen/evaluate/collect_gscale_sweep.py`，用于 E1.3 g_scale sweep 汇总。
+- `sample_tokens.py` 新增 `--g-scale` 与 `--override-g-scale`：默认尊重 checkpoint，开启 override 时强制覆盖 model_cfg.g_scale，支持 E1.3 sweep。
+- smoke 验证：
+  - E1.2：`runs/E1_2_smoke/_aggregate/summary.json`（8 samples, seed=0, steps=5）
+  - E1.3：`runs/E1_3_smoke/_aggregate/summary.json`（g_scale={0.5,1.5}, 8 samples, seed=0, steps=5）
+- 两个 smoke run 均通过 artifact validator（示例：`runs/E1_2_smoke/full_projection_seed0_n8`、`runs/E1_3_smoke_gscale_0p5/full_projection_seed0_n8`）。
+
+### 11.4 E1.1 正式 quick 结果（2026-02-10）
+- 实验：`runs/E1_1`，`N=2000`、`seeds={0,1,2}`、`steps=50`。
+- 对照：`baseline`（post-project off） vs `full_projection`（post-project angle+cond+inplane+volume）。
+- 聚合结果（`runs/E1_1/_aggregate/summary.json`）：
+  - baseline: `success_geom_rate=0.3127±0.0105`, `valid_rate_eval=0.3508±0.0063`
+  - full_projection: `success_geom_rate=0.4260±0.0044`, `valid_rate_eval=0.4787±0.0068`
+  - `delta_success_geom_rate_full_minus_baseline = +0.1133`
+- 结论：E1.1 在 quick 口径下“有效率明显提升”，但尚未达到规划阈值 `+0.15`；后续需在 E1.2/E1.3 中继续定位贡献项并优化。

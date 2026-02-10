@@ -1,0 +1,41 @@
+# generated using pymatgen
+data_SrAg2F12
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.41781855
+_cell_length_b   20.37559507
+_cell_length_c   33.58227727
+_cell_angle_alpha   89.63425283
+_cell_angle_beta   90.06049848
+_cell_angle_gamma   101.05431635
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrAg2F12
+_chemical_formula_sum   'Sr1 Ag2 F12'
+_cell_volume   3638.33253657
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.03185415  0.44290566  0.07022476  1
+  Ag  Ag1  1  0.12021637  0.52394676  0.41179663  1
+  F  F2  1  0.13128853  0.13985077  0.84231949  1
+  F  F3  1  0.70554733  0.21868515  0.40762204  1
+  F  F4  1  0.35860538  0.39944467  0.07816005  1
+  F  F5  1  0.44080400  0.69426984  0.11785316  1
+  Ag  Ag6  1  0.56587601  0.50244999  0.88204801  1
+  F  F7  1  0.00330162  0.17375946  0.27905416  1
+  F  F8  1  0.93953609  0.97182846  0.01265544  1
+  Sr  Sr9  1  0.06444168  0.37003040  0.39551926  1
+  F  F10  1  0.29338837  0.91771030  0.87887168  1
+  F  F11  1  0.77110386  0.88392878  0.23153937  1
+  F  F12  1  0.82832861  0.99966002  0.79231191  1
+  F  F13  1  0.19339180  0.18163872  0.98998308  1
+  F  F14  1  0.46879053  0.28769112  0.06649494  1

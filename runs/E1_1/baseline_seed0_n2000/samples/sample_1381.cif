@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Mo2CF2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   15.53462601
+_cell_length_b   2.74240604
+_cell_length_c   12.73014091
+_cell_angle_alpha   85.54619355
+_cell_angle_beta   96.23681071
+_cell_angle_gamma   114.33662839
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo2CF2
+_chemical_formula_sum   'Mo2 C1 F2'
+_cell_volume   490.89247740
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mo  Mo0  1  0.82136536  0.73534012  0.39284509  1
+  F  F1  1  0.37581635  0.91551018  0.13429117  1
+  F  F2  1  0.31225586  0.54538727  0.57254934  1
+  Mo  Mo3  1  0.74006689  0.73421526  0.85208988  1
+  C  C4  1  0.08667755  0.38583565  0.02141714  1

@@ -1,0 +1,3 @@
+experiment_id: E1_3
+g_scale_candidates: [0.5, 1.0, 1.5]
+note: "Sampling-side sweep placeholder. Current sample_tokens uses checkpoint g_scale; this config is for runner bookkeeping and future CLI support."

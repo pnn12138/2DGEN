@@ -1,0 +1,3 @@
+g_scale,available,experiment_id,success_geom_rate_mean,success_geom_rate_std,valid_rate_eval_mean,post_project_trigger_any_rate_mean
+0.5,True,E1_3_smoke_gscale_0p5,0.0,0.0,0.0,1.0
+1.5,True,E1_3_smoke_gscale_1p5,0.0,0.0,0.0,1.0

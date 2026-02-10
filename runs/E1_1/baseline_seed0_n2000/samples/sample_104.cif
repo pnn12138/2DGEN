@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_MnGe2S3IBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.21557617
+_cell_length_b   6.80617195
+_cell_length_c   12.32557704
+_cell_angle_alpha   90.39863796
+_cell_angle_beta   89.71990901
+_cell_angle_gamma   112.51814753
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnGe2S3IBr
+_chemical_formula_sum   'Mn1 Ge2 S3 I1 Br1'
+_cell_volume   171.68938125
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.28590393  0.66005945  0.81674004  1
+  S  S1  1  0.76573372  0.80828857  0.46773922  1
+  Br  Br2  1  0.93384659  0.95780277  0.06816673  1
+  Ge  Ge3  1  0.58862621  0.62210846  0.70309937  1
+  Ge  Ge4  1  0.24622393  0.27262211  0.83985305  1
+  Mn  Mn5  1  0.30430984  0.90342522  0.88797235  1
+  S  S6  1  0.34409332  0.81481171  0.29621196  1
+  I  I7  1  0.39708328  0.34469604  0.95467567  1

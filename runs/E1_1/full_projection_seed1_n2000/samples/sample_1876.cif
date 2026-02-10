@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnCoS2ICl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.19891000
+_cell_length_b   13.47296357
+_cell_length_c   12.23251264
+_cell_angle_alpha   89.65901917
+_cell_angle_beta   90.02306099
+_cell_angle_gamma   93.22000869
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnCoS2ICl
+_chemical_formula_sum   'Mn1 Co1 S2 I1 Cl1'
+_cell_volume   361.81983300
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.08802462  0.11403847  0.83925271  1
+  Cl  Cl1  1  0.72074556  0.94267416  0.66326785  1
+  Co  Co2  1  0.49498224  0.27219814  0.70754474  1
+  S  S3  1  0.32169104  0.26996994  0.05593777  1
+  S  S4  1  0.61911571  0.25349426  0.19739771  1
+  Mn  Mn5  1  0.14472818  0.72205925  0.26155159  1

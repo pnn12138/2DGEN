@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Ca2NiClO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.81279850
+_cell_length_b   11.42422756
+_cell_length_c   15.43043501
+_cell_angle_alpha   90.08561204
+_cell_angle_beta   90.00812354
+_cell_angle_gamma   73.08759244
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca2NiClO3
+_chemical_formula_sum   'Ca4 Ni2 Cl2 O6'
+_cell_volume   474.39694013
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.81064802  0.76224232  0.12484115  1
+  Cl  Cl1  1  0.54879302  0.45846060  0.63186276  1
+  O  O2  1  0.19600618  0.79262495  0.48917389  1
+  Ca  Ca3  1  0.77370548  0.01245499  0.41790199  1
+  Ni  Ni4  1  0.46251950  0.94943011  0.69551891  1
+  O  O5  1  0.95598984  0.43711472  0.02259445  1
+  O  O6  1  0.21550417  0.76030302  0.97630906  1
+  Ca  Ca7  1  0.39609051  0.11478879  0.10878509  1
+  Ca  Ca8  1  0.53529835  0.64072657  0.53146410  1
+  O  O9  1  0.89526707  0.45157549  0.55530202  1
+  O  O10  1  0.08747673  0.09628677  0.57169175  1
+  Ca  Ca11  1  0.60237765  0.05013411  0.74041921  1
+  Ni  Ni12  1  0.94060409  0.03673935  0.20664549  1
+  O  O13  1  0.54571581  0.28357506  0.82485777  1

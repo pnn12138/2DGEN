@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_TiSeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.61550307
+_cell_length_b   11.65052582
+_cell_length_c   14.52717544
+_cell_angle_alpha   90.19968298
+_cell_angle_beta   90.04904938
+_cell_angle_gamma   75.39456659
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiSeCl
+_chemical_formula_sum   'Ti4 Se4 Cl4'
+_cell_volume   428.36446008
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.26428604  0.65940976  0.23848248  1
+  Cl  Cl1  1  0.36867142  0.45068717  0.91205204  1
+  Ti  Ti2  1  0.70119721  0.16976975  0.33784482  1
+  Cl  Cl3  1  0.94220489  0.20027579  0.25626078  1
+  Se  Se4  1  0.45901108  0.57460594  0.60345942  1
+  Cl  Cl5  1  0.32009125  0.11205196  0.15970755  1
+  Se  Se6  1  0.86414719  0.85425806  0.04175937  1
+  Cl  Cl7  1  0.63178390  0.51219791  0.37990272  1
+  Ti  Ti8  1  0.93831348  0.97136593  0.53425503  1
+  Ti  Ti9  1  0.69188839  0.49020171  0.29625896  1
+  Se  Se10  1  0.66583240  0.82549149  0.96943855  1
+  Ti  Ti11  1  0.98614657  0.86011761  0.90085697  1

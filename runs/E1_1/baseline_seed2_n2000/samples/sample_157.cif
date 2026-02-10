@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_TaCrCl6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54568791
+_cell_length_b   12.43828316
+_cell_length_c   14.28771228
+_cell_angle_alpha   90.07004612
+_cell_angle_beta   89.98479874
+_cell_angle_gamma   102.27106433
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaCrCl6
+_chemical_formula_sum   'Ta1 Cr1 Cl6'
+_cell_volume   442.06950462
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.46843565  0.96264565  0.35078716  1
+  Cl  Cl1  1  0.65311694  0.45890427  0.07831240  1
+  Cr  Cr2  1  0.93253052  0.94707572  0.31290197  1
+  Cl  Cl3  1  0.75268292  0.59793377  0.75036240  1
+  Cl  Cl4  1  0.57561421  0.09999609  0.62773007  1
+  Cl  Cl5  1  0.24811848  0.07065010  0.54381251  1
+  Ta  Ta6  1  0.94963849  0.16029553  0.39672256  1
+  Cl  Cl7  1  0.06539065  0.22204967  0.47336391  1

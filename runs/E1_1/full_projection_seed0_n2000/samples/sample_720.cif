@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_CrMo3O8
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.10095739
+_cell_length_b   6.33447303
+_cell_length_c   12.52780721
+_cell_angle_alpha   88.09886335
+_cell_angle_beta   88.32329896
+_cell_angle_gamma   42.33859970
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrMo3O8
+_chemical_formula_sum   'Cr1 Mo3 O8'
+_cell_volume   219.06116738
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.78311253  0.43373048  0.05327439  1
+  O  O1  1  0.47667456  0.42875290  0.13566926  1
+  Cr  Cr2  1  0.52675247  0.53725863  0.40091896  1
+  Mo  Mo3  1  0.95850086  0.44886804  0.98886514  1
+  O  O4  1  0.12358278  0.38039660  0.57921368  1
+  O  O5  1  0.31112993  0.75293040  0.11690760  1
+  O  O6  1  0.55067062  0.39659595  0.26827216  1
+  O  O7  1  0.84709746  0.32876369  0.70235294  1
+  O  O8  1  0.40942118  0.42050961  0.73972499  1
+  Mo  Mo9  1  0.82623911  0.77161789  0.55892217  1
+  O  O10  1  0.23856544  0.76206398  0.76806831  1
+  Mo  Mo11  1  0.34612274  0.38509274  0.89151263  1

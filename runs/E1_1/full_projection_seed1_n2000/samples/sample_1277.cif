@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_CuINO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.32129073
+_cell_length_b   13.41849714
+_cell_length_c   13.69256247
+_cell_angle_alpha   89.60779957
+_cell_angle_beta   90.04928183
+_cell_angle_gamma   96.85240270
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuINO
+_chemical_formula_sum   'Cu2 I2 N2 O2'
+_cell_volume   423.44263748
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.98894691  0.25743580  0.83160990  1
+  N  N1  1  0.58761692  0.49304390  0.03791451  1
+  O  O2  1  0.24950981  0.44114876  0.56462049  1
+  I  I3  1  0.49680042  0.51595592  0.32064724  1
+  Cu  Cu4  1  0.86725354  0.39487648  0.65890431  1
+  N  N5  1  0.92156053  0.58826256  0.65717125  1
+  Cu  Cu6  1  0.83557642  0.10833740  0.66053247  1
+  O  O7  1  0.54713786  0.86042213  0.82257771  1

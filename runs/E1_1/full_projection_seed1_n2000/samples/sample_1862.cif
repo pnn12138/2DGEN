@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CaNb2S7
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58897281
+_cell_length_b   8.37942481
+_cell_length_c   13.09368333
+_cell_angle_alpha   90.58880527
+_cell_angle_beta   89.89470235
+_cell_angle_gamma   97.20046067
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaNb2S7
+_chemical_formula_sum   'Ca1 Nb2 S7'
+_cell_volume   281.80063965
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ca  Ca0  1  0.36357069  0.95197487  0.69177389  1
+  S  S1  1  0.50442314  0.14508915  0.35599613  1
+  Nb  Nb2  1  0.01818466  0.38840103  0.00581074  1
+  S  S3  1  0.58605486  0.63116121  0.21774133  1
+  S  S4  1  0.63511038  0.80759478  0.97274148  1
+  S  S5  1  0.17761898  0.75791073  0.86744475  1
+  S  S6  1  0.51485872  0.84256846  0.13436626  1
+  S  S7  1  0.09566103  0.72135395  0.18622047  1
+  Nb  Nb8  1  0.86574745  0.10897565  0.13282347  1
+  S  S9  1  0.85944748  0.88303185  0.46246719  1

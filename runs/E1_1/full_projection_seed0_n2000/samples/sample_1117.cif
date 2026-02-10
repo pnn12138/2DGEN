@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfCd(SeCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.28542805
+_cell_length_b   14.08574645
+_cell_length_c   12.71461611
+_cell_angle_alpha   90.73107828
+_cell_angle_beta   89.96277835
+_cell_angle_gamma   92.84602528
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfCd(SeCl)2
+_chemical_formula_sum   'Hf1 Cd1 Se2 Cl2'
+_cell_volume   408.77028331
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Hf  Hf0  1  0.53008270  0.27625275  0.05837250  1
+  Cl  Cl1  1  0.88340378  0.20147133  0.27814126  1
+  Se  Se2  1  0.38012886  0.80501854  0.02757311  1
+  Cl  Cl3  1  0.68124390  0.07394791  0.53792846  1
+  Cd  Cd4  1  0.43918991  0.57203865  0.51050091  1
+  Se  Se5  1  0.93429184  0.34840965  0.87012899  1

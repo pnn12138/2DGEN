@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Al2CoTe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47579145
+_cell_length_b   7.85330148
+_cell_length_c   12.52084322
+_cell_angle_alpha   90.11417574
+_cell_angle_beta   89.92032970
+_cell_angle_gamma   101.76974773
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Al2CoTe4
+_chemical_formula_sum   'Al2 Co1 Te4'
+_cell_volume   238.32550800
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.08895016  0.13824940  0.04404354  1
+  Al  Al1  1  0.68087864  0.56788874  0.77028704  1
+  Te  Te2  1  0.49827862  0.35696793  0.57605028  1
+  Te  Te3  1  0.89360040  0.86607552  0.45300567  1
+  Te  Te4  1  0.83995366  0.38869667  0.98468399  1
+  Al  Al5  1  0.81709856  0.99530578  0.29985428  1
+  Te  Te6  1  0.00843061  0.92373681  0.20885967  1

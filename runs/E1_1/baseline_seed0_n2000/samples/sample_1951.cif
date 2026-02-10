@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_FeCuSeCl2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45394182
+_cell_length_b   10.23682759
+_cell_length_c   14.86422310
+_cell_angle_alpha   90.37872229
+_cell_angle_beta   90.11252116
+_cell_angle_gamma   73.75283859
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   FeCuSeCl2O
+_chemical_formula_sum   'Fe1 Cu1 Se1 Cl2 O1'
+_cell_volume   358.47793786
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.87741852  0.46144867  0.67705762  1
+  Cl  Cl1  1  0.27738810  0.30592537  0.93594146  1
+  O  O2  1  0.96921539  0.04543781  0.03500044  1
+  Cl  Cl3  1  0.53181171  0.05847263  0.50691664  1
+  Cu  Cu4  1  0.86148453  0.62903976  0.13630009  1
+  Se  Se5  1  0.73389482  0.50640011  0.30743483  1

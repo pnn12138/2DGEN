@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_MnCuSeS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.87019324
+_cell_length_b   3.74870134
+_cell_length_c   12.29532618
+_cell_angle_alpha   87.32765361
+_cell_angle_beta   90.45670694
+_cell_angle_gamma   48.43203212
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnCuSeS2
+_chemical_formula_sum   'Mn1 Cu1 Se1 S2'
+_cell_volume   98.73473819
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.56153870  0.58404446  0.31006515  1
+  S  S1  1  0.83981705  0.68609619  0.41436672  1
+  Se  Se2  1  0.09070740  0.79498607  0.51515102  1
+  Mn  Mn3  1  0.62324625  0.67225617  0.54163522  1
+  Cu  Cu4  1  0.56407499  0.47823143  0.64695263  1

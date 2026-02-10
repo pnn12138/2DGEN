@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ti2ZnBrClO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.67863774
+_cell_length_b   12.17025471
+_cell_length_c   24.34496646
+_cell_angle_alpha   89.76903976
+_cell_angle_beta   90.02310895
+_cell_angle_gamma   94.19262960
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti2ZnBrClO2
+_chemical_formula_sum   'Ti2 Zn1 Br1 Cl1 O2'
+_cell_volume   1086.99754215
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.21852112  0.88953781  0.10248613  1
+  Ti  Ti1  1  0.44514275  0.57640791  0.28918052  1
+  Ti  Ti2  1  0.63604164  0.24936104  0.19305229  1
+  Br  Br3  1  0.37348557  0.44295311  0.17330074  1
+  O  O4  1  0.37896967  0.31628275  0.87831640  1
+  O  O5  1  0.10879278  0.04641533  0.40935755  1
+  Zn  Zn6  1  0.95777893  0.31940269  0.97579002  1

@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_NiWS4Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.07640839
+_cell_length_b   6.47420041
+_cell_length_c   19.50734718
+_cell_angle_alpha   90.00470850
+_cell_angle_beta   90.00124560
+_cell_angle_gamma   61.83140618
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiWS4Br
+_chemical_formula_sum   'Ni2 W2 S8 Br2'
+_cell_volume   453.85285111
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  W  W0  1  0.20347595  0.00770950  0.01256275  1
+  Br  Br1  1  0.78935331  0.00542058  0.79776961  1
+  S  S2  1  0.59368229  0.25600147  0.29005051  1
+  S  S3  1  0.84118599  0.02709781  0.72436959  1
+  S  S4  1  0.94459009  0.71908092  0.53810012  1
+  Br  Br5  1  0.77498299  0.48947451  0.12101610  1
+  S  S6  1  0.75099373  0.53413558  0.89278924  1
+  S  S7  1  0.10795729  0.50500011  0.10603116  1
+  Ni  Ni8  1  0.43955326  0.65515041  0.95516992  1
+  S  S9  1  0.97422653  0.64490873  0.23293470  1
+  S  S10  1  0.16607267  0.81445646  0.06203359  1
+  S  S11  1  0.88908327  0.10668564  0.21086860  1
+  Ni  Ni12  1  0.61047357  0.82185954  0.23726369  1
+  W  W13  1  0.40837860  0.50318527  0.45713663  1

@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_Mn2(SCl)3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.00030279
+_cell_length_b   18.32513742
+_cell_length_c   22.56530758
+_cell_angle_alpha   89.86272257
+_cell_angle_beta   90.04261590
+_cell_angle_gamma   109.59877251
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mn2(SCl)3
+_chemical_formula_sum   'Mn2 S3 Cl3'
+_cell_volume   1558.33497607
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.14366448  0.75964355  0.43909228  1
+  Mn  Mn1  1  0.58388329  0.90877724  0.63549727  1
+  S  S2  1  0.00445557  0.20809555  0.53097475  1
+  Cl  Cl3  1  0.20578694  0.69873142  0.83139563  1
+  Cl  Cl4  1  0.71728134  0.81552315  0.19380796  1
+  Mn  Mn5  1  0.47382927  0.18343353  0.79668260  1
+  S  S6  1  0.51398468  0.51572132  0.54228997  1
+  S  S7  1  0.81055784  0.24012947  0.19416332  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CuSiO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.37029743
+_cell_length_b   12.85627646
+_cell_length_c   29.62701050
+_cell_angle_alpha   89.59305324
+_cell_angle_beta   90.07060597
+_cell_angle_gamma   98.43836394
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuSiO3
+_chemical_formula_sum   'Si2 Cu2 O6'
+_cell_volume   1646.55366548
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.52111435  0.04733276  0.43537873  1
+  Si  Si1  1  0.77179766  0.51342773  0.05323148  1
+  O  O2  1  0.35915804  0.87014091  0.87391293  1
+  O  O3  1  0.88043594  0.41608047  0.71494651  1
+  Cu  Cu4  1  0.18885231  0.15783119  0.61417425  1
+  O  O5  1  0.36912215  0.13538191  0.90440857  1
+  Cu  Cu6  1  0.95232439  0.18951118  0.17629623  1
+  O  O7  1  0.11636639  0.17701387  0.67740047  1
+  O  O8  1  0.67199516  0.41566181  0.34398305  1
+  O  O9  1  0.75594044  0.94652748  0.36009622  1

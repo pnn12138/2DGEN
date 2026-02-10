@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_NbAsBr2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43148518
+_cell_length_b   13.75888524
+_cell_length_c   13.52643316
+_cell_angle_alpha   89.87062513
+_cell_angle_beta   89.98869190
+_cell_angle_gamma   86.14265888
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbAsBr2O
+_chemical_formula_sum   'Nb1 As1 Br2 O1'
+_cell_volume   451.49413098
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.70560336  0.59871143  0.19016623  1
+  As  As1  1  0.16375351  0.00530434  0.66019249  1
+  Br  Br2  1  0.55022836  0.65644985  0.28030711  1
+  Nb  Nb3  1  0.35809326  0.94355083  0.36071157  1
+  Br  Br4  1  0.66714859  0.25387764  0.92296147  1

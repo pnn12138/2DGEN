@@ -1,0 +1,41 @@
+# generated using pymatgen
+data_ZrMnNb2ZnSeS5Br4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.83811021
+_cell_length_b   9.15100514
+_cell_length_c   14.70091876
+_cell_angle_alpha   90.01425708
+_cell_angle_beta   89.98783126
+_cell_angle_gamma   114.62496433
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrMnNb2ZnSeS5Br4
+_chemical_formula_sum   'Zr1 Mn1 Nb2 Zn1 Se1 S5 Br4'
+_cell_volume   347.08233186
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.73462892  0.72541559  0.26259470  1
+  Nb  Nb1  1  0.73817170  0.47122860  0.59097743  1
+  S  S2  1  0.98502237  0.01121567  0.62017125  1
+  S  S3  1  0.13316366  0.48052365  0.93616068  1
+  Mn  Mn4  1  0.51670170  0.71425819  0.72531533  1
+  S  S5  1  0.86256248  0.08196228  0.69759870  1
+  Zn  Zn6  1  0.96473116  0.34044495  0.89155102  1
+  Br  Br7  1  0.23901367  0.34717083  0.21277803  1
+  S  S8  1  0.65006447  0.12135625  0.96985555  1
+  Zr  Zr9  1  0.12277412  0.34537029  0.36930192  1
+  Se  Se10  1  0.86883163  0.51162398  0.32497084  1
+  Br  Br11  1  0.82744694  0.34251118  0.65127933  1
+  Br  Br12  1  0.36906016  0.96840554  0.58339441  1
+  S  S13  1  0.33513764  0.31345728  0.95329624  1
+  Nb  Nb14  1  0.65237522  0.21127272  0.04101831  1

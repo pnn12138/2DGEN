@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_PdPt3SeSCl6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.48304462
+_cell_length_b   5.08600841
+_cell_length_c   21.99038995
+_cell_angle_alpha   90.02987776
+_cell_angle_beta   90.01033652
+_cell_angle_gamma   69.88845298
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   PdPt3SeSCl6
+_chemical_formula_sum   'Pd1 Pt3 Se1 S1 Cl6'
+_cell_volume   470.82568911
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.33161306  0.07029057  0.47768402  1
+  Cl  Cl1  1  0.21273041  0.73276138  0.64590037  1
+  Cl  Cl2  1  0.08443642  0.35492611  0.16744280  1
+  Pt  Pt3  1  0.82995701  0.66997623  0.64176273  1
+  Cl  Cl4  1  0.02601808  0.30136707  0.31486627  1
+  Cl  Cl5  1  0.88946450  0.69838172  0.32006645  1
+  Se  Se6  1  0.63327599  0.12378597  0.22661805  1
+  Cl  Cl7  1  0.76049948  0.22160357  0.32524195  1
+  Pt  Pt8  1  0.20867999  0.14827381  0.36693248  1
+  Pd  Pd9  1  0.59062332  0.14180946  0.82104301  1
+  Pt  Pt10  1  0.67876214  0.26603004  0.38292566  1
+  Cl  Cl11  1  0.00603644  0.83071488  0.35875648  1

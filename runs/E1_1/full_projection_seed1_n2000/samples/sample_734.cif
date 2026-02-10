@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Nb3H2(CS)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47615647
+_cell_length_b   7.84201549
+_cell_length_c   12.52250314
+_cell_angle_alpha   89.82605140
+_cell_angle_beta   90.01829360
+_cell_angle_gamma   102.32123093
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Nb3H2(CS)2
+_chemical_formula_sum   'Nb3 H2 C2 S2'
+_cell_volume   237.56070587
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.55955654  0.22704607  0.48585457  1
+  Nb  Nb1  1  0.93560028  0.44379997  0.74376583  1
+  C  C2  1  0.19612360  0.56334734  0.36662269  1
+  Nb  Nb3  1  0.33023080  0.80898964  0.56575274  1
+  H  H4  1  0.86352438  0.71388376  0.50832319  1
+  H  H5  1  0.87168217  0.24777985  0.68444347  1
+  S  S6  1  0.59901810  0.59632206  0.09174007  1
+  Nb  Nb7  1  0.03395650  0.20666307  0.54009318  1
+  C  C8  1  0.09562942  0.92450905  0.70195293  1

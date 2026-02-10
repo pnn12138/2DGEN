@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CoClO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49296379
+_cell_length_b   14.09247618
+_cell_length_c   13.86844299
+_cell_angle_alpha   90.10513275
+_cell_angle_beta   89.99602741
+_cell_angle_gamma   92.44797715
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoClO
+_chemical_formula_sum   'Co2 Cl2 O2'
+_cell_volume   486.78113940
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.53064108  0.45731592  0.97152615  1
+  O  O1  1  0.49744987  0.45361805  0.13497472  1
+  Cl  Cl2  1  0.83149934  0.73028517  0.62366796  1
+  Cl  Cl3  1  0.81895542  0.35646486  0.05392170  1
+  Co  Co4  1  0.17308970  0.69234002  0.55716562  1
+  Co  Co5  1  0.97246742  0.53727150  0.29261780  1

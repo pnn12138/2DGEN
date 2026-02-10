@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Fe2BiSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54060125
+_cell_length_b   14.36865150
+_cell_length_c   14.13343900
+_cell_angle_alpha   89.93368145
+_cell_angle_beta   90.00390249
+_cell_angle_gamma   92.47723122
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Fe2BiSe2
+_chemical_formula_sum   'Fe2 Bi1 Se2'
+_cell_volume   515.45888384
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.81182671  0.13270187  0.65899372  1
+  Bi  Bi1  1  0.43917641  0.09106984  0.77787191  1
+  Fe  Fe2  1  0.85714740  0.03582989  0.77590054  1
+  Se  Se3  1  0.58755493  0.17223644  0.48215103  1
+  Fe  Fe4  1  0.34317017  0.74085426  0.84329605  1

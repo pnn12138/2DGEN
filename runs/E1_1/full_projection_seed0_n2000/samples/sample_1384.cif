@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SiAgO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.21568251
+_cell_length_b   11.79545271
+_cell_length_c   39.87229250
+_cell_angle_alpha   90.84232150
+_cell_angle_beta   90.56509739
+_cell_angle_gamma   53.09350715
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SiAgO3
+_chemical_formula_sum   'Si2 Ag2 O6'
+_cell_volume   2337.27145344
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.16300964  0.16495132  0.84131813  1
+  Ag  Ag1  1  0.00859833  0.56863022  0.38184834  1
+  O  O2  1  0.20304871  0.76282787  0.25329208  1
+  Si  Si3  1  0.57499695  0.30161285  0.07328528  1
+  Ag  Ag4  1  0.86789703  0.63508320  0.07882237  1
+  O  O5  1  0.23286057  0.35110855  0.14882088  1
+  O  O6  1  0.19602203  0.18663788  0.26307297  1
+  Si  Si7  1  0.81248224  0.79235792  0.98256588  1
+  O  O8  1  0.23076057  0.26287079  0.22456074  1
+  O  O9  1  0.71298558  0.89080912  0.02540445  1

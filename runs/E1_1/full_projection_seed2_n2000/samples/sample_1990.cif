@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_VTe6P2Au
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.42347574
+_cell_length_b   12.86699248
+_cell_length_c   36.81716059
+_cell_angle_alpha   89.47846308
+_cell_angle_beta   90.38887864
+_cell_angle_gamma   123.74473484
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   VTe6P2Au
+_chemical_formula_sum   'V1 Te6 P2 Au1'
+_cell_volume   2136.28481451
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.22144175  0.84043884  0.67772675  1
+  Te  Te1  1  0.54776859  0.53168201  0.38851261  1
+  P  P2  1  0.66641998  0.12924004  0.49164772  1
+  V  V3  1  0.18477917  0.61641598  0.80560446  1
+  P  P4  1  0.12999916  0.48913789  0.19289634  1
+  Au  Au5  1  0.30549431  0.19505310  0.96148193  1
+  Te  Te6  1  0.88953924  0.41429377  0.88533711  1
+  Te  Te7  1  0.91269112  0.40327334  0.83066940  1
+  Te  Te8  1  0.32627296  0.11579514  0.87068653  1
+  Te  Te9  1  0.38912010  0.73286915  0.16946316  1

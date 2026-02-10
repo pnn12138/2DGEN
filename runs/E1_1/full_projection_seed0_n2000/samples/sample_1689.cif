@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_ZnNiSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50236702
+_cell_length_b   14.38535202
+_cell_length_c   15.18941170
+_cell_angle_alpha   90.16934333
+_cell_angle_beta   89.99748218
+_cell_angle_gamma   90.83553966
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnNiSe2
+_chemical_formula_sum   'Zn1 Ni1 Se2'
+_cell_volume   546.71926509
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zn  Zn0  1  0.38854980  0.53767490  0.67598200  1
+  Se  Se1  1  0.39464933  0.17766055  0.17568292  1
+  Ni  Ni2  1  0.64640522  0.20888519  0.42019463  1
+  Se  Se3  1  0.01544592  0.20062676  0.10827028  1

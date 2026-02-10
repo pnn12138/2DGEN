@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_TaIBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.78579807
+_cell_length_b   5.93837635
+_cell_length_c   23.65581633
+_cell_angle_alpha   90.31749660
+_cell_angle_beta   90.30444408
+_cell_angle_gamma   43.70720426
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaIBr
+_chemical_formula_sum   'Ta1 I1 Br1'
+_cell_volume   561.59438466
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.38918686  0.70828247  0.16636610  1
+  Br  Br1  1  0.50610352  0.17798996  0.08137226  1
+  Ta  Ta2  1  0.40409660  0.42976665  0.61586630  1

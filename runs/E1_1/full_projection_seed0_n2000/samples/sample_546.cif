@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_LiFeSb
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.31765795
+_cell_length_b   12.49238325
+_cell_length_c   14.16073459
+_cell_angle_alpha   89.83519016
+_cell_angle_beta   90.02868219
+_cell_angle_gamma   99.35888660
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiFeSb
+_chemical_formula_sum   'Li2 Fe2 Sb2'
+_cell_volume   404.53766086
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Li  Li0  1  0.67838621  0.70810556  0.64301014  1
+  Fe  Fe1  1  0.44496918  0.91848755  0.61921215  1
+  Fe  Fe2  1  0.42060375  0.19926834  0.39820576  1
+  Sb  Sb3  1  0.04571819  0.69091034  0.17285490  1
+  Sb  Sb4  1  0.02652204  0.55374718  0.62599343  1
+  Li  Li5  1  0.89117110  0.75540257  0.30326355  1

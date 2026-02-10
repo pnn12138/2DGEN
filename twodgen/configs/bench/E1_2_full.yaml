@@ -1,0 +1,7 @@
+experiment_id: E1_2
+variant: full_projection
+sample_args:
+  project_final: true
+  post_project: true
+  post_project_interval: 1
+  post_project_keys: angle,cond,inplane,volume

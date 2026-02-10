@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_Bi2Te2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.22428417
+_cell_length_b   19.96570461
+_cell_length_c   32.39974166
+_cell_angle_alpha   89.88293942
+_cell_angle_beta   90.01155610
+_cell_angle_gamma   100.92475354
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Bi2Te2O
+_chemical_formula_sum   'Bi8 Te8 O4'
+_cell_volume   3318.25013816
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.88756084  0.18973541  0.64795780  1
+  Te  Te1  1  0.67623186  0.42278194  0.88712734  1
+  Te  Te2  1  0.40723944  0.24359894  0.00180340  1
+  Bi  Bi3  1  0.28366780  0.71381378  0.80987954  1
+  Te  Te4  1  0.62944078  0.72457254  0.82089961  1
+  Bi  Bi5  1  0.87846375  0.15279722  0.60558033  1
+  Bi  Bi6  1  0.68540096  0.50115108  0.57516074  1
+  Te  Te7  1  0.87131310  0.44417381  0.14294672  1
+  Bi  Bi8  1  0.53395176  0.73302603  0.69420242  1
+  O  O9  1  0.53020382  0.31613350  0.27072048  1
+  Bi  Bi10  1  0.28956890  0.81378365  0.86644721  1
+  O  O11  1  0.27480888  0.23662281  0.87943852  1
+  Bi  Bi12  1  0.46686363  0.48261261  0.09655237  1
+  Te  Te13  1  0.07554388  0.16521072  0.52346843  1
+  Te  Te14  1  0.26971674  0.89922142  0.40317965  1
+  Te  Te15  1  0.34363389  0.60669518  0.30580950  1
+  O  O16  1  0.02479553  0.32007790  0.00937772  1
+  O  O17  1  0.66344833  0.65647602  0.46792126  1
+  Bi  Bi18  1  0.46946335  0.66836166  0.07807112  1
+  Bi  Bi19  1  0.24826002  0.80098403  0.71604776  1

@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Sr2FeS3Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.50131416
+_cell_length_b   19.31026731
+_cell_length_c   43.29619967
+_cell_angle_alpha   88.45413323
+_cell_angle_beta   90.91429720
+_cell_angle_gamma   128.76998929
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2FeS3Cl
+_chemical_formula_sum   'Sr4 Fe2 S6 Cl2'
+_cell_volume   4887.93751774
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.78076649  0.63654232  0.79472041  1
+  Sr  Sr1  1  0.55303729  0.38279247  0.44307089  1
+  S  S2  1  0.63269997  0.65833187  0.75716567  1
+  Cl  Cl3  1  0.61364937  0.79393005  0.12516022  1
+  S  S4  1  0.14045215  0.95501852  0.74819636  1
+  Sr  Sr5  1  0.44259644  0.70190048  0.72892356  1
+  Sr  Sr6  1  0.56795883  0.61871719  0.27284622  1
+  Cl  Cl7  1  0.10159492  0.52661133  0.13903713  1
+  Fe  Fe8  1  0.14131165  0.72406197  0.04628086  1
+  Sr  Sr9  1  0.76787758  0.18955994  0.57568932  1
+  Fe  Fe10  1  0.58681273  0.77627850  0.00169849  1
+  S  S11  1  0.46813965  0.17043877  0.79915810  1
+  S  S12  1  0.32337189  0.90129662  0.55973434  1
+  S  S13  1  0.96710289  0.15020752  0.37793341  1

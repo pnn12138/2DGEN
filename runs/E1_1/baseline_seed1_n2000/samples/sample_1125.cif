@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_ZnCdI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.26877737
+_cell_length_b   20.26884825
+_cell_length_c   21.75595537
+_cell_angle_alpha   90.07298313
+_cell_angle_beta   89.99462716
+_cell_angle_gamma   99.43282661
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnCdI2
+_chemical_formula_sum   'Zn1 Cd1 I2'
+_cell_volume   2291.94564883
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.85595441  0.45421982  0.16641426  1
+  Zn  Zn1  1  0.04991961  0.74273682  0.12932682  1
+  I  I2  1  0.35189816  0.32817698  0.45644462  1
+  Cd  Cd3  1  0.71315765  0.45223236  0.35225725  1

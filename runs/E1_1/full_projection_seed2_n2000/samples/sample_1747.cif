@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TeMoCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50273108
+_cell_length_b   13.59244401
+_cell_length_c   14.07835459
+_cell_angle_alpha   90.78563093
+_cell_angle_beta   89.93211099
+_cell_angle_gamma   94.83796198
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TeMoCl
+_chemical_formula_sum   'Te2 Mo2 Cl2'
+_cell_volume   477.16957422
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.99275398  0.68367863  0.14427605  1
+  Te  Te1  1  0.59062570  0.24705391  0.51716691  1
+  Mo  Mo2  1  0.83743143  0.33407593  0.79711938  1
+  Cl  Cl3  1  0.09016609  0.18185043  0.70393229  1
+  Mo  Mo4  1  0.86274815  0.58296537  0.93607712  1
+  Cl  Cl5  1  0.04411289  0.21212597  0.56264132  1

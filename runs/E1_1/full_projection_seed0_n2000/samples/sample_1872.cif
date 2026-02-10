@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MgMnWCl2O5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45882201
+_cell_length_b   14.02409040
+_cell_length_c   13.67831116
+_cell_angle_alpha   90.20387679
+_cell_angle_beta   89.99322018
+_cell_angle_gamma   92.04422701
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MgMnWCl2O5
+_chemical_formula_sum   'Mg1 Mn1 W1 Cl2 O5'
+_cell_volume   471.36252017
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.73198700  0.20859718  0.24475980  1
+  Mg  Mg1  1  0.86241293  0.73008299  0.08224392  1
+  Cl  Cl2  1  0.67458719  0.83691657  0.72716475  1
+  Cl  Cl3  1  0.87315583  0.97988343  0.87866020  1
+  O  O4  1  0.46613318  0.72440529  0.37504390  1
+  W  W5  1  0.65044928  0.37527943  0.84957683  1
+  O  O6  1  0.12856951  0.65702486  0.33119234  1
+  O  O7  1  0.94567901  0.90352023  0.66859126  1
+  Mn  Mn8  1  0.70547462  0.88811755  0.85987926  1
+  O  O9  1  0.34300709  0.53677082  0.44778049  1

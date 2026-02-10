@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CrGaFeHBrO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46382689
+_cell_length_b   15.57592621
+_cell_length_c   12.52028098
+_cell_angle_alpha   90.00848559
+_cell_angle_beta   89.99994103
+_cell_angle_gamma   91.54146078
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrGaFeHBrO5
+_chemical_formula_sum   'Cr1 Ga1 Fe1 H1 Br1 O5'
+_cell_volume   480.30925242
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.54071808  0.18293381  0.64649099  1
+  Cr  Cr1  1  0.22427750  0.23869467  0.90677547  1
+  O  O2  1  0.84488487  0.60544395  0.37045908  1
+  Fe  Fe3  1  0.99005240  0.05486536  0.64603525  1
+  O  O4  1  0.29052258  0.37472725  0.55921173  1
+  O  O5  1  0.28834915  0.49092674  0.96714640  1
+  O  O6  1  0.77917290  0.15867805  0.80873394  1
+  O  O7  1  0.78308868  0.38626766  0.16696072  1
+  Br  Br8  1  0.67586124  0.74096727  0.70402145  1
+  H  H9  1  0.45729256  0.17145157  0.44964027  1

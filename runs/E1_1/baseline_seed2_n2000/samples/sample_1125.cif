@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Zr(HO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50616479
+_cell_length_b   7.87187816
+_cell_length_c   12.67474114
+_cell_angle_alpha   89.60241133
+_cell_angle_beta   90.02767113
+_cell_angle_gamma   104.13718439
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Zr(HO)2
+_chemical_formula_sum   'Zr1 H2 O2'
+_cell_volume   242.47101181
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zr  Zr0  1  0.39400530  0.19168377  0.47268081  1
+  O  O1  1  0.72659940  0.45650479  0.74680573  1
+  H  H2  1  0.57644874  0.62823880  0.72954839  1
+  H  H3  1  0.20201874  0.37942123  0.86744308  1
+  O  O4  1  0.51237106  0.46322632  0.00260544  1

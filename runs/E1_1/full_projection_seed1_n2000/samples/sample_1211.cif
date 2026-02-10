@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Cu2I2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.55724525
+_cell_length_b   16.16895525
+_cell_length_c   12.81529833
+_cell_angle_alpha   90.05956172
+_cell_angle_beta   89.99889602
+_cell_angle_gamma   91.20836950
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2I2O
+_chemical_formula_sum   'Cu2 I2 O1'
+_cell_volume   529.76862558
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.18350124  0.73057365  0.72307420  1
+  I  I1  1  0.91745186  0.78752595  0.11557293  1
+  I  I2  1  0.56910801  0.04824066  0.25498432  1
+  Cu  Cu3  1  0.68721819  0.44287491  0.22316647  1
+  Cu  Cu4  1  0.29823112  0.54798889  0.98166084  1

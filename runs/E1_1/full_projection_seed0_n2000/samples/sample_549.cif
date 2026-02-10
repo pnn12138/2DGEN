@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_AlTeHS4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46369147
+_cell_length_b   7.55551296
+_cell_length_c   12.46012321
+_cell_angle_alpha   90.62010098
+_cell_angle_beta   89.73509586
+_cell_angle_gamma   110.59658430
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlTeHS4
+_chemical_formula_sum   'Al2 Te2 H2 S8'
+_cell_volume   217.10019509
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.65027094  0.32725129  0.81562293  1
+  S  S1  1  0.67955017  0.74141216  0.46996403  1
+  Al  Al2  1  0.41697997  0.89564210  0.89459306  1
+  S  S3  1  0.94535047  0.98120278  0.23730467  1
+  H  H4  1  0.41691399  0.33353877  0.28515458  1
+  Te  Te5  1  0.87575138  0.81925696  0.88425833  1
+  S  S6  1  0.63218117  0.19172859  0.16597462  1
+  S  S7  1  0.75112933  0.89881545  0.13968046  1
+  Al  Al8  1  0.16191550  0.48798159  0.69752747  1
+  S  S9  1  0.67380881  0.48995373  0.64327520  1
+  H  H10  1  0.31347370  0.73147583  0.01941222  1
+  S  S11  1  0.76744413  0.25502777  0.48477376  1
+  S  S12  1  0.72468728  0.17123275  0.76103234  1
+  Te  Te13  1  0.62016207  0.34248364  0.92013097  1

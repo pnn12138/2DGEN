@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Sr3Cu2(ClO2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53377700
+_cell_length_b   13.54865311
+_cell_length_c   14.12881705
+_cell_angle_alpha   89.03471949
+_cell_angle_beta   90.16343397
+_cell_angle_gamma   99.63066620
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr3Cu2(ClO2)2
+_chemical_formula_sum   'Sr3 Cu2 Cl2 O4'
+_cell_volume   478.12832000
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.90908194  0.73965645  0.03459358  1
+  Cl  Cl1  1  0.28874493  0.92423630  0.61866331  1
+  Sr  Sr2  1  0.72267342  0.74460602  0.23065376  1
+  O  O3  1  0.71602249  0.56016731  0.70574009  1
+  O  O4  1  0.07562680  0.80441046  0.62193185  1
+  Cl  Cl5  1  0.56706429  0.68441868  0.95446002  1
+  Cu  Cu6  1  0.69613838  0.28460693  0.39705610  1
+  Sr  Sr7  1  0.90606999  0.90775585  0.33460689  1
+  Cu  Cu8  1  0.17954157  0.69866657  0.61164325  1
+  Sr  Sr9  1  0.30282402  0.48836136  0.83121103  1
+  O  O10  1  0.67706776  0.49032593  0.04710174  1

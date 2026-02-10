@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CdSbO2F
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.28645849
+_cell_length_b   13.65967563
+_cell_length_c   31.04046535
+_cell_angle_alpha   89.61087991
+_cell_angle_beta   89.92838134
+_cell_angle_gamma   80.68800917
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdSbO2F
+_chemical_formula_sum   'Cd2 Sb2 O4 F2'
+_cell_volume   1793.47769399
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.35607910  0.89639854  0.96745205  1
+  F  F1  1  0.50941759  0.64565766  0.98939240  1
+  Sb  Sb2  1  0.66411042  0.35124207  0.01830816  1
+  F  F3  1  0.84179497  0.37397003  0.18310252  1
+  Cd  Cd4  1  0.90582943  0.10678959  0.54620790  1
+  Cd  Cd5  1  0.40697309  0.73232925  0.98281616  1
+  O  O6  1  0.79506207  0.19863057  0.99399590  1
+  O  O7  1  0.45575523  0.73620796  0.40839469  1
+  O  O8  1  0.43563843  0.49225044  0.75923729  1
+  O  O9  1  0.79365349  0.55884886  0.14248371  1

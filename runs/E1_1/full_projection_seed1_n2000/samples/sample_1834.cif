@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnSbO2F
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   12.21024227
+_cell_length_b   4.83804302
+_cell_length_c   32.73432508
+_cell_angle_alpha   90.33880639
+_cell_angle_beta   91.19096146
+_cell_angle_gamma   89.28337411
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnSbO2F
+_chemical_formula_sum   'Mn2 Sb2 O4 F2'
+_cell_volume   1933.13709520
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.87569189  0.38958883  0.97810805  1
+  Mn  Mn1  1  0.21764565  0.91568947  0.62322545  1
+  O  O2  1  0.79765511  0.11677074  0.78814507  1
+  O  O3  1  0.62656593  0.47775555  0.25597274  1
+  Sb  Sb4  1  0.48893762  0.05640602  0.98024797  1
+  F  F5  1  0.51541138  0.68732643  0.65611720  1
+  Sb  Sb6  1  0.89616394  0.35884094  0.88435173  1
+  O  O7  1  0.10177612  0.89095736  0.66654897  1
+  O  O8  1  0.56070042  0.12871520  0.52837914  1
+  F  F9  1  0.59658813  0.20319366  0.79901445  1

@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_CoNiS2(BrCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.55574012
+_cell_length_b   8.39416434
+_cell_length_c   14.67855637
+_cell_angle_alpha   90.12848508
+_cell_angle_beta   89.93936455
+_cell_angle_gamma   113.72293303
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoNiS2(BrCl)2
+_chemical_formula_sum   'Co1 Ni1 S2 Br2 Cl2'
+_cell_volume   288.29395079
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.49532509  0.21385193  0.43291187  1
+  S  S1  1  0.29505634  0.83276540  0.08166194  1
+  Cl  Cl2  1  0.91672230  0.99492645  0.83076715  1
+  S  S3  1  0.57482243  0.63337111  0.72835386  1
+  Ni  Ni4  1  0.49600530  0.07690161  0.35816765  1
+  Br  Br5  1  0.61011219  0.11208153  0.84416366  1
+  Co  Co6  1  0.99022770  0.13187981  0.04490045  1
+  Br  Br7  1  0.27495956  0.17611408  0.52821779  1

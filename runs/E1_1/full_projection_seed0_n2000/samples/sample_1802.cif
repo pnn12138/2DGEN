@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_LiGeBO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.67278624
+_cell_length_b   13.64717959
+_cell_length_c   24.51785544
+_cell_angle_alpha   90.97793497
+_cell_angle_beta   89.84029286
+_cell_angle_gamma   99.67921179
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiGeBO4
+_chemical_formula_sum   'Li1 Ge1 B1 O4'
+_cell_volume   1211.24211867
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.09617901  0.63371634  0.95326471  1
+  Ge  Ge1  1  0.82109356  0.75561333  0.00181198  1
+  O  O2  1  0.77148247  0.40289116  0.55958223  1
+  O  O3  1  0.45069790  0.44215775  0.14258575  1
+  O  O4  1  0.51011193  0.47915602  0.75694650  1
+  B  B5  1  0.18390465  0.50124550  0.56574607  1
+  Li  Li6  1  0.87030965  0.67776871  0.87138891  1

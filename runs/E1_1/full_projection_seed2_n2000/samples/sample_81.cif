@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_H2W2CO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.51766014
+_cell_length_b   10.92171870
+_cell_length_c   12.61256717
+_cell_angle_alpha   91.82700227
+_cell_angle_beta   92.37250095
+_cell_angle_gamma   30.00153348
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   H2W2CO2
+_chemical_formula_sum   'H2 W2 C1 O2'
+_cell_volume   586.16353111
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.28155518  0.24305725  0.78895473  1
+  W  W1  1  0.68913460  0.94279480  0.75049400  1
+  H  H2  1  0.38439858  0.29124069  0.09928298  1
+  C  C3  1  0.12102127  0.29997921  0.62671471  1
+  W  W4  1  0.15077972  0.90082169  0.99623489  1
+  O  O5  1  0.59101439  0.84246731  0.80118704  1
+  O  O6  1  0.39624786  0.73558044  0.23147202  1

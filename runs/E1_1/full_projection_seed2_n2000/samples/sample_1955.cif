@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnBrO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45016289
+_cell_length_b   14.02795664
+_cell_length_c   13.63010803
+_cell_angle_alpha   89.88830167
+_cell_angle_beta   90.00447624
+_cell_angle_gamma   91.98533754
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnBrO
+_chemical_formula_sum   'Mn2 Br2 O2'
+_cell_volume   468.19532280
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.14330912  0.63516808  0.46027303  1
+  O  O1  1  0.71991676  0.10277806  0.63281894  1
+  Br  Br2  1  0.78106594  0.11047077  0.97292590  1
+  Mn  Mn3  1  0.44712448  0.15482998  0.13211489  1
+  Mn  Mn4  1  0.32921261  0.17094173  0.65607524  1
+  Br  Br5  1  0.32779121  0.89517879  0.82314372  1

@@ -1,0 +1,85 @@
+{
+  "run_metadata": {
+    "created_at_utc": "2026-02-10T05:23:45+00:00",
+    "argv": [
+      "/home/pnn/2dgen/twodgen/scrip/sample_tokens.py",
+      "--checkpoint",
+      "outputs/checkpoints/20260207_004939/atomdenoiser_last.pt",
+      "--out-dir",
+      "runs/E1_1/baseline_seed2_n2000/samples",
+      "--num-samples",
+      "2000",
+      "--steps",
+      "50",
+      "--seed",
+      "2",
+      "--experiment-id",
+      "E1_1",
+      "--protocol",
+      "quick",
+      "--npz",
+      "data/C2DB/cache/c2db_tokens_2d_based.npz",
+      "--project-gram-cond",
+      "--project-gram-max-cond",
+      "40.0",
+      "--project-final",
+      "--no-post-project"
+    ],
+    "python": "3.12.12",
+    "platform": {
+      "system": "Linux",
+      "release": "6.6.87.2-microsoft-standard-WSL2",
+      "machine": "x86_64"
+    },
+    "git": {
+      "commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+      "dirty": true
+    },
+    "numpy": "2.3.4",
+    "torch": "2.9.1+cu128",
+    "cuda_available": true
+  },
+  "mlip": {
+    "name": null,
+    "version": null,
+    "loaded_ok": false,
+    "error_if_failed": null,
+    "device": null,
+    "dtype": null
+  },
+  "relax": {
+    "enabled": false,
+    "max_steps": 50,
+    "fmax_threshold": 0.05,
+    "vacuum": 20.0,
+    "target_area_per_atom": 12.0,
+    "min_scale": 0.3,
+    "flatten_z": false,
+    "flatten_factor": 0.1,
+    "device": null,
+    "cell_opt": false,
+    "constraints": "2d_default"
+  },
+  "projection": {
+    "project_gram_cond": true,
+    "project_gram_max_cond": 40.0,
+    "post_project": false,
+    "post_project_interval": 1,
+    "post_project_keys": "angle,cond,inplane",
+    "post_project_cond_max": null,
+    "post_project_v_min": null,
+    "post_project_v_max": null,
+    "inplane_a_min": 2.0,
+    "inplane_b_min": 2.0,
+    "inplane_gamma_min": 30.0,
+    "inplane_gamma_max": 150.0,
+    "inplane_area_min": 4.0
+  },
+  "schema_version": "run_metadata_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:34:07+00:00",
+  "experiment_id": "E1_1",
+  "config_hash": "794dc002762961acda0a51ba42ebf50233005f76947825dfb4d9b43dd558f60e",
+  "seed": 2,
+  "protocol": "quick"
+}

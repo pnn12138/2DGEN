@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_HgTe3As
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54010987
+_cell_length_b   14.59754839
+_cell_length_c   13.33918118
+_cell_angle_alpha   90.06936301
+_cell_angle_beta   89.99803544
+_cell_angle_gamma   91.67954207
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HgTe3As
+_chemical_formula_sum   'Hg2 Te6 As2'
+_cell_volume   494.39567358
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.01754379  0.11769295  0.63826197  1
+  Te  Te1  1  0.19786263  0.19468689  0.74044383  1
+  As  As2  1  0.65661240  0.84052563  0.67917597  1
+  Te  Te3  1  0.71073055  0.33228827  0.20906711  1
+  Hg  Hg4  1  0.48054099  0.50013620  0.62569869  1
+  Te  Te5  1  0.19228649  0.42903996  0.31171632  1
+  Te  Te6  1  0.47415853  0.54834789  0.71690643  1
+  Hg  Hg7  1  0.94267654  0.68919849  0.35614753  1
+  As  As8  1  0.97139978  0.52619731  0.46052635  1
+  Te  Te9  1  0.22150612  0.85791016  0.46517134  1

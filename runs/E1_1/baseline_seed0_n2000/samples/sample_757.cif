@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnSbTe2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.13511801
+_cell_length_b   14.95241546
+_cell_length_c   13.71113739
+_cell_angle_alpha   89.17732727
+_cell_angle_beta   92.21538936
+_cell_angle_gamma   149.99876782
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnSbTe2Cl
+_chemical_formula_sum   'Mn2 Sb2 Te4 Cl2'
+_cell_volume   730.34703146
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.05149269  0.55372524  0.93267918  1
+  Mn  Mn1  1  0.89418411  0.04059410  0.37149048  1
+  Cl  Cl2  1  0.17438698  0.82471371  0.69209075  1
+  Te  Te3  1  0.24252415  0.07908916  0.44119310  1
+  Mn  Mn4  1  0.24296761  0.71780014  0.44601345  1
+  Te  Te5  1  0.50260925  0.94714546  0.29790640  1
+  Cl  Cl6  1  0.56671619  0.34417161  0.67133385  1
+  Sb  Sb7  1  0.43246832  0.35143748  0.74284118  1
+  Te  Te8  1  0.80941391  0.89975357  0.34143019  1
+  Sb  Sb9  1  0.06038427  0.26920795  0.39288807  1

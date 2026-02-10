@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_TiCr(GeI2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53677750
+_cell_length_b   14.42609466
+_cell_length_c   14.11192421
+_cell_angle_alpha   90.11545314
+_cell_angle_beta   89.99643035
+_cell_angle_gamma   92.25196527
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiCr(GeI2)2
+_chemical_formula_sum   'Ti1 Cr1 Ge2 I4'
+_cell_volume   516.03714975
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.09440916  0.76194745  0.44024622  1
+  Ge  Ge1  1  0.88582224  0.74961102  0.53339028  1
+  I  I2  1  0.90770048  0.79482251  0.62700027  1
+  I  I3  1  0.37956929  0.75681669  0.19449304  1
+  Ge  Ge4  1  0.87493598  0.74297327  0.14655329  1
+  I  I5  1  0.59105206  0.94154787  0.54291373  1
+  I  I6  1  0.48561573  0.03689003  0.72171187  1
+  Cr  Cr7  1  0.71966267  0.93829584  0.72839808  1

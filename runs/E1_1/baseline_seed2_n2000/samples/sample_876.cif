@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_MnMoWSeSBrCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24582982
+_cell_length_b   13.84868995
+_cell_length_c   12.49447001
+_cell_angle_alpha   90.69699483
+_cell_angle_beta   89.96531955
+_cell_angle_gamma   92.89689273
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnMoWSeSBrCl
+_chemical_formula_sum   'Mn1 Mo1 W1 Se1 S1 Br1 Cl1'
+_cell_volume   388.07520911
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  W  W0  1  0.78144646  0.93809128  0.01517105  1
+  Cl  Cl1  1  0.13546133  0.30634689  0.45302054  1
+  Mn  Mn2  1  0.14840508  0.76142883  0.01428986  1
+  Se  Se3  1  0.92071342  0.62167931  0.50273037  1
+  Mo  Mo4  1  0.34373569  0.14874840  0.48710108  1
+  Br  Br5  1  0.09061337  0.23637486  0.13390446  1
+  S  S6  1  0.50950503  0.76316166  0.41665745  1

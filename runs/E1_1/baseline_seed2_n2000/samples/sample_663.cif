@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Te2Os
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.28676558
+_cell_length_b   11.62175107
+_cell_length_c   14.17145817
+_cell_angle_alpha   89.83063439
+_cell_angle_beta   90.03428939
+_cell_angle_gamma   101.28715247
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Te2Os
+_chemical_formula_sum   'Te4 Os2'
+_cell_volume   369.33773786
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.28145647  0.86079073  0.60870814  1
+  Os  Os1  1  0.92805862  0.56840324  0.03148222  1
+  Te  Te2  1  0.79339218  0.53727055  0.28548479  1
+  Te  Te3  1  0.34147477  0.21830368  0.16644412  1
+  Os  Os4  1  0.27959490  0.54818439  0.57491302  1
+  Te  Te5  1  0.58968878  0.17203903  0.45137167  1

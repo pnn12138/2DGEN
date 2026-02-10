@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_InGa(SBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.07574749
+_cell_length_b   11.62694272
+_cell_length_c   28.46597101
+_cell_angle_alpha   90.78619112
+_cell_angle_beta   89.88573382
+_cell_angle_gamma   98.09142972
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InGa(SBr)2
+_chemical_formula_sum   'In1 Ga1 S2 Br2'
+_cell_volume   1335.40417943
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.83030701  0.89614868  0.22623968  1
+  S  S1  1  0.47182178  0.85754967  0.29823723  1
+  Br  Br2  1  0.00334454  0.29797745  0.92097139  1
+  In  In3  1  0.06164455  0.75042915  0.26821327  1
+  S  S4  1  0.16453469  0.74589396  0.47001004  1
+  Ga  Ga5  1  0.63873720  0.97496223  0.55509090  1

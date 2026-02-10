@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_ScInSBr3Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.69100308
+_cell_length_b   13.91854406
+_cell_length_c   22.34208729
+_cell_angle_alpha   90.16831198
+_cell_angle_beta   89.95526494
+_cell_angle_gamma   112.10937105
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ScInSBr3Cl
+_chemical_formula_sum   'Sc1 In1 S1 Br3 Cl1'
+_cell_volume   1063.38383651
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.91028404  0.87826252  0.27142823  1
+  Sc  Sc1  1  0.85897017  0.32419491  0.69563234  1
+  S  S2  1  0.31621170  0.01651859  0.09689760  1
+  Cl  Cl3  1  0.42686081  0.94824219  0.87385917  1
+  In  In4  1  0.61710072  0.86891413  0.85214114  1
+  Br  Br5  1  0.82911921  0.63287163  0.12007499  1
+  Br  Br6  1  0.64672661  0.98132181  0.05445734  1

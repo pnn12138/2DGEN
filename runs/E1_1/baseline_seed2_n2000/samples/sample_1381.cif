@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_MnSnAu2SBr(ClO)3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   13.18976974
+_cell_length_b   16.75822927
+_cell_length_c   33.34240504
+_cell_angle_alpha   89.04900980
+_cell_angle_beta   90.97462154
+_cell_angle_gamma   149.99890253
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnSnAu2SBr(ClO)3
+_chemical_formula_sum   'Mn1 Sn1 Au2 S1 Br1 Cl3 O3'
+_cell_volume   3684.51912407
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.45383072  0.08122253  0.00203985  1
+  Sn  Sn1  1  0.76155472  0.48538589  0.16031027  1
+  O  O2  1  0.50031090  0.39984798  0.26461816  1
+  Cl  Cl3  1  0.83605790  0.38208389  0.58469725  1
+  Au  Au4  1  0.74075890  0.25003922  0.93973565  1
+  Au  Au5  1  0.73620605  0.62848091  0.30325317  1
+  Br  Br6  1  0.05281639  0.77993774  0.31321460  1
+  Cl  Cl7  1  0.56254959  0.01164818  0.51972610  1
+  O  O8  1  0.36158371  0.48158312  0.63408685  1
+  O  O9  1  0.85564518  0.30912399  0.32794261  1
+  Cl  Cl10  1  0.43903732  0.54709816  0.11624801  1
+  S  S11  1  0.61137009  0.60183239  0.87327480  1

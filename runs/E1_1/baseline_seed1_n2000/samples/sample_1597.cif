@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_AlCuNiSe4I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23203444
+_cell_length_b   13.61908995
+_cell_length_c   12.41770552
+_cell_angle_alpha   90.68955772
+_cell_angle_beta   89.95720538
+_cell_angle_gamma   93.47993549
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlCuNiSe4I
+_chemical_formula_sum   'Al1 Cu1 Ni1 Se4 I1'
+_cell_volume   376.75355270
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.23940945  0.22081256  0.42880940  1
+  Cu  Cu1  1  0.61322880  0.28536797  0.58694649  1
+  Se  Se2  1  0.16010141  0.91300964  0.20266533  1
+  Se  Se3  1  0.49971294  0.32818556  0.34497595  1
+  Al  Al4  1  0.49908066  0.75937653  0.65555966  1
+  Se  Se5  1  0.20389700  0.41159344  0.24271727  1
+  Ni  Ni6  1  0.94116306  0.26469040  0.16653728  1
+  Se  Se7  1  0.05005503  0.48073959  0.52789307  1

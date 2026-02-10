@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_HfVSe2N
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.67988420
+_cell_length_b   16.94491207
+_cell_length_c   13.67154282
+_cell_angle_alpha   89.90505611
+_cell_angle_beta   90.00204471
+_cell_angle_gamma   91.12157194
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfVSe2N
+_chemical_formula_sum   'Hf1 V1 Se2 N1'
+_cell_volume   620.71046093
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.11858460  0.88292027  0.34325397  1
+  Hf  Hf1  1  0.01869965  0.30139875  0.98870456  1
+  Se  Se2  1  0.10983372  0.55063438  0.85330224  1
+  V  V3  1  0.98924255  0.75075722  0.93443298  1
+  Se  Se4  1  0.18313789  0.35720491  0.80301523  1

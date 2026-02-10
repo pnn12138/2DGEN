@@ -1,0 +1,72 @@
+[
+  {
+    "id": 0,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 1,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 2,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 3,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 4,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+collision+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 5,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 6,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 7,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "bad_volume+angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 8,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "angle_out_of_range+inplane_degenerate"
+  },
+  {
+    "id": 9,
+    "formation_energy_per_atom": null,
+    "energy_mlip": null,
+    "success": false,
+    "fail_reason": "collision+angle_out_of_range+inplane_degenerate"
+  }
+]

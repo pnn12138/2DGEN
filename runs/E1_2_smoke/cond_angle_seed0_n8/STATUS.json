@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "note": "cond_angle finished",
+  "schema_version": "run_layout_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:02:38+00:00",
+  "experiment_id": "E1_2_smoke",
+  "config_hash": "51e12de36fe9c280e4c684c9e818527c7090a33817a92d63ec340edd0f3e7b6c",
+  "seed": 0,
+  "protocol": "quick"
+}

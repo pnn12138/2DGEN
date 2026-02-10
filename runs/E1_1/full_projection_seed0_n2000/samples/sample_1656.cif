@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ni2SbSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.32091546
+_cell_length_b   7.30725517
+_cell_length_c   12.91145415
+_cell_angle_alpha   89.52689639
+_cell_angle_beta   90.03782089
+_cell_angle_gamma   103.46468285
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ni2SbSe2
+_chemical_formula_sum   'Ni2 Sb1 Se2'
+_cell_volume   212.94589761
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.24915886  0.32749939  0.18770027  1
+  Se  Se1  1  0.52738929  0.75401688  0.03865147  1
+  Se  Se2  1  0.36630774  0.64605534  0.62650824  1
+  Ni  Ni3  1  0.30679321  0.61920738  0.99871683  1
+  Ni  Ni4  1  0.03737640  0.38527679  0.57655185  1

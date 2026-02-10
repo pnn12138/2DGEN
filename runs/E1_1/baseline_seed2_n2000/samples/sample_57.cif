@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_VGeTeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.32435989
+_cell_length_b   17.44629062
+_cell_length_c   12.74778934
+_cell_angle_alpha   90.09613029
+_cell_angle_beta   90.64568771
+_cell_angle_gamma   57.04658889
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   VGeTeBr
+_chemical_formula_sum   'V1 Ge1 Te1 Br1'
+_cell_volume   620.34437914
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.61738682  0.78238869  0.27018213  1
+  V  V1  1  0.39505386  0.29154015  0.14989114  1
+  Ge  Ge2  1  0.50066471  0.84249210  0.61746430  1
+  Br  Br3  1  0.22075081  0.20947409  0.34016752  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_ZrRuBr2NO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29037476
+_cell_length_b   13.77546331
+_cell_length_c   12.74304863
+_cell_angle_alpha   89.86164346
+_cell_angle_beta   90.01243321
+_cell_angle_gamma   94.43062276
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrRuBr2NO
+_chemical_formula_sum   'Zr1 Ru1 Br2 N1 O1'
+_cell_volume   400.85291928
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zr  Zr0  1  0.41067410  0.88489437  0.54079247  1
+  N  N1  1  0.77657795  0.23530197  0.10044909  1
+  Br  Br2  1  0.78222251  0.04182720  0.10807633  1
+  Ru  Ru3  1  0.80224323  0.06488013  0.61613083  1
+  O  O4  1  0.38111371  0.56428623  0.89601904  1
+  Br  Br5  1  0.56914163  0.66806221  0.67944157  1

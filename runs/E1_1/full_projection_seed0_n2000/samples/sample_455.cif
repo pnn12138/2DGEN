@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Sb2SeO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.36177778
+_cell_length_b   13.32591858
+_cell_length_c   14.10370259
+_cell_angle_alpha   89.76157440
+_cell_angle_beta   90.03212456
+_cell_angle_gamma   97.68402397
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sb2SeO2
+_chemical_formula_sum   'Sb2 Se1 O2'
+_cell_volume   439.89418061
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.01503754  0.79076004  0.92645931  1
+  Se  Se1  1  0.51650047  0.92518854  0.67307878  1
+  O  O2  1  0.93128395  0.96771145  0.03231716  1
+  O  O3  1  0.87715816  0.23345518  0.69076872  1
+  Sb  Sb4  1  0.12618446  0.68642807  0.28918934  1

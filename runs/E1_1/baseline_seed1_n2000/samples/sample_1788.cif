@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_SiNi4S5Br2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.57768679
+_cell_length_b   14.74410677
+_cell_length_c   14.33993221
+_cell_angle_alpha   90.29973738
+_cell_angle_beta   89.98955246
+_cell_angle_gamma   92.08958329
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SiNi4S5Br2
+_chemical_formula_sum   'Si1 Ni4 S5 Br2'
+_cell_volume   544.62915120
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.01215363  0.20163679  0.38433123  1
+  Ni  Ni1  1  0.51837933  0.01164179  0.40019420  1
+  Ni  Ni2  1  0.41311741  0.54268599  0.90214241  1
+  S  S3  1  0.29229164  0.94639397  0.84340286  1
+  Ni  Ni4  1  0.23117113  0.90415394  0.12843180  1
+  Br  Br5  1  0.58076096  0.51174736  0.03578663  1
+  S  S6  1  0.54692352  0.97390532  0.47500131  1
+  S  S7  1  0.74567413  0.29610133  0.79999292  1
+  Ni  Ni8  1  0.23156190  0.29399204  0.46167552  1
+  S  S9  1  0.18053150  0.75182533  0.17726374  1
+  Br  Br10  1  0.93175030  0.00996494  0.21324062  1
+  S  S11  1  0.35300922  0.65445328  0.99677086  1

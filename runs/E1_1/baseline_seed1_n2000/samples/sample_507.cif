@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfSc(IBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.27224565
+_cell_length_b   13.45653952
+_cell_length_c   13.05201540
+_cell_angle_alpha   90.11603330
+_cell_angle_beta   89.99300172
+_cell_angle_gamma   95.58996350
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfSc(IBr)2
+_chemical_formula_sum   'Hf1 Sc1 I2 Br2'
+_cell_volume   397.18709885
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.99434412  0.01882648  0.12082767  1
+  Sc  Sc1  1  0.02223015  0.03103089  0.30932331  1
+  Br  Br2  1  0.42179680  0.43801498  0.48742747  1
+  Br  Br3  1  0.33741379  0.33724785  0.00371313  1
+  I  I4  1  0.86338997  0.46214366  0.24582648  1
+  Hf  Hf5  1  0.92309070  0.76251459  0.87941909  1

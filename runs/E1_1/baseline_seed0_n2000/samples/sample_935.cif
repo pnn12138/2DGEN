@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_NbBiTeI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   11.12938595
+_cell_length_b   11.61104380
+_cell_length_c   12.41603259
+_cell_angle_alpha   88.70221301
+_cell_angle_beta   89.28239579
+_cell_angle_gamma   30.00114696
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbBiTeI
+_chemical_formula_sum   'Nb1 Bi1 Te1 I1'
+_cell_volume   801.96473239
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.19094944  0.18477491  0.34368610  1
+  Te  Te1  1  0.39780140  0.36608624  0.93342501  1
+  Nb  Nb2  1  0.37394094  0.17100239  0.19981408  1
+  Bi  Bi3  1  0.30183506  0.68857002  0.99417806  1

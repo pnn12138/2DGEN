@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_CaNbIBrO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47221327
+_cell_length_b   13.77325084
+_cell_length_c   13.75305019
+_cell_angle_alpha   89.81850982
+_cell_angle_beta   90.01112211
+_cell_angle_gamma   93.18356361
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaNbIBrO
+_chemical_formula_sum   'Ca1 Nb1 I1 Br1 O1'
+_cell_volume   467.57199384
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.65868390  0.58151954  0.57592583  1
+  Br  Br1  1  0.12168312  0.28979111  0.88108873  1
+  Ca  Ca2  1  0.80031049  0.66946608  0.54589295  1
+  I  I3  1  0.89287239  0.14485359  0.99716705  1
+  Nb  Nb4  1  0.35469389  0.88711071  0.45537329  1

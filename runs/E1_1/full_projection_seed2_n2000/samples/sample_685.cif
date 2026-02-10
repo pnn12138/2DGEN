@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_ZnPdI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50345802
+_cell_length_b   15.82803071
+_cell_length_c   12.99139647
+_cell_angle_alpha   90.15760904
+_cell_angle_beta   89.99675136
+_cell_angle_gamma   91.31471386
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnPdI2
+_chemical_formula_sum   'Zn1 Pd1 I2'
+_cell_volume   514.64415935
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Pd  Pd0  1  0.73460531  0.29603958  0.99889708  1
+  I  I1  1  0.61450195  0.72455215  0.65615779  1
+  I  I2  1  0.51918793  0.42181396  0.65042210  1
+  Zn  Zn3  1  0.13135147  0.45769501  0.28838921  1

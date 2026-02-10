@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_LiV(AgS3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.70078135
+_cell_length_b   20.32488663
+_cell_length_c   35.53755312
+_cell_angle_alpha   90.10475710
+_cell_angle_beta   90.04213787
+_cell_angle_gamma   79.28852407
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiV(AgS3)2
+_chemical_formula_sum   'Li2 V2 Ag4 S12'
+_cell_volume   4045.90095598
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.86296844  0.88643742  0.64936137  1
+  S  S1  1  0.81799936  0.11206818  0.63780594  1
+  S  S2  1  0.31849003  0.07611561  0.84172368  1
+  Ag  Ag3  1  0.45219040  0.69665289  0.65070724  1
+  S  S4  1  0.43379593  0.86781788  0.72163033  1
+  S  S5  1  0.03105450  0.57057095  0.28060007  1
+  S  S6  1  0.64964247  0.72861671  0.93558645  1
+  Li  Li7  1  0.83166504  0.79980326  0.08196688  1
+  Ag  Ag8  1  0.61751747  0.57234669  0.66180706  1
+  V  V9  1  0.03856134  0.28841400  0.05959630  1
+  S  S10  1  0.19272804  0.48717761  0.50668621  1
+  Ag  Ag11  1  0.19573116  0.93686676  0.19334459  1
+  S  S12  1  0.61477089  0.11639786  0.95027280  1
+  S  S13  1  0.47489595  0.79421234  0.41664743  1
+  S  S14  1  0.89441109  0.67955399  0.70211601  1
+  S  S15  1  0.17513084  0.38145065  0.04578272  1
+  S  S16  1  0.31393206  0.77252936  0.47189784  1
+  V  V17  1  0.28194022  0.14913273  0.92744827  1
+  Li  Li18  1  0.27384186  0.68866539  0.39248800  1
+  S  S19  1  0.73811722  0.47648621  0.04925585  1

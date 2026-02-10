@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MoCCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.26542115
+_cell_length_b   13.33141068
+_cell_length_c   13.15322476
+_cell_angle_alpha   89.84296288
+_cell_angle_beta   90.01660653
+_cell_angle_gamma   96.05032841
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MoCCl
+_chemical_formula_sum   'Mo2 C2 Cl2'
+_cell_volume   395.02970342
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.72286463  0.20106626  0.96995068  1
+  Cl  Cl1  1  0.21588516  0.37293720  0.31047440  1
+  Mo  Mo2  1  0.75993824  0.73126602  0.60293555  1
+  C  C3  1  0.58840084  0.98048353  0.56665897  1
+  C  C4  1  0.29411507  0.92472458  0.37821960  1
+  Mo  Mo5  1  0.27725840  0.26977730  0.36572969  1

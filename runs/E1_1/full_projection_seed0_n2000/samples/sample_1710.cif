@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_NiPdF6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53015995
+_cell_length_b   13.46645832
+_cell_length_c   14.13996316
+_cell_angle_alpha   90.22268028
+_cell_angle_beta   89.96533275
+_cell_angle_gamma   99.83865557
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiPdF6
+_chemical_formula_sum   'Ni1 Pd1 F6'
+_cell_volume   474.69175896
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.54579544  0.26452208  0.57878637  1
+  F  F1  1  0.23251057  0.02676964  0.12727857  1
+  F  F2  1  0.13152665  0.65429002  0.33367568  1
+  Pd  Pd3  1  0.43702540  0.72368658  0.18749665  1
+  F  F4  1  0.15279193  0.74132359  0.27759635  1
+  Ni  Ni5  1  0.13428879  0.51587677  0.04441214  1
+  F  F6  1  0.42670441  0.38536453  0.99313140  1
+  F  F7  1  0.03246403  0.29492378  0.42076492  1

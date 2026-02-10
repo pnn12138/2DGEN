@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_RhCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.93676329
+_cell_length_b   8.64963980
+_cell_length_c   16.54722706
+_cell_angle_alpha   89.77130750
+_cell_angle_beta   90.11017961
+_cell_angle_gamma   113.94946329
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RhCl2
+_chemical_formula_sum   'Rh1 Cl2'
+_cell_volume   384.13972216
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.47358322  0.26593590  0.26704502  1
+  Rh  Rh1  1  0.46620792  0.74537009  0.69111663  1
+  Cl  Cl2  1  0.13700442  0.73750430  0.76143360  1

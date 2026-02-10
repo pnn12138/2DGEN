@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_BiH(SO3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42516112
+_cell_length_b   10.03019080
+_cell_length_c   12.26455605
+_cell_angle_alpha   89.91898970
+_cell_angle_beta   90.00161442
+_cell_angle_gamma   99.36672591
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BiH(SO3)2
+_chemical_formula_sum   'Bi1 H1 S2 O6'
+_cell_volume   294.35520273
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.03215790  0.06220245  0.45896816  1
+  O  O1  1  0.80313230  0.52375793  0.23764583  1
+  S  S2  1  0.09214973  0.61141634  0.50208318  1
+  O  O3  1  0.53236008  0.58383560  0.71669722  1
+  S  S4  1  0.52738196  0.75508797  0.74349797  1
+  O  O5  1  0.97980016  0.84240866  0.71701342  1
+  O  O6  1  0.19376647  0.80024666  0.81279522  1
+  H  H7  1  0.53212738  0.32162476  0.65372586  1
+  Bi  Bi8  1  0.16266775  0.13881826  0.29146659  1
+  O  O9  1  0.50257301  0.98348820  0.98432112  1

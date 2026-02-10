@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuGeSeSBrCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.91207314
+_cell_length_b   20.53235827
+_cell_length_c   36.78677353
+_cell_angle_alpha   91.13943223
+_cell_angle_beta   89.58663495
+_cell_angle_gamma   99.85963987
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuGeSeSBrCl
+_chemical_formula_sum   'Cu1 Ge1 Se1 S1 Br1 Cl1'
+_cell_volume   4398.64497138
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.78354549  0.95012856  0.38072681  1
+  Br  Br1  1  0.13288975  0.00656128  0.46206009  1
+  Cu  Cu2  1  0.06289864  0.93688393  0.07603049  1
+  Cl  Cl3  1  0.75611115  0.87231255  0.71775079  1
+  S  S4  1  0.79970741  0.53013802  0.62534714  1
+  Se  Se5  1  0.51727009  0.55207682  0.74541628  1

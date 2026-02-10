@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_GaTe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.27912307
+_cell_length_b   12.90098720
+_cell_length_c   13.58802066
+_cell_angle_alpha   90.23840967
+_cell_angle_beta   90.03212426
+_cell_angle_gamma   82.42806285
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaTe
+_chemical_formula_sum   'Ga2 Te2'
+_cell_volume   396.04049153
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.75523806  0.99643230  0.68550253  1
+  Te  Te1  1  0.22464752  0.18109131  0.16368631  1
+  Te  Te2  1  0.73568010  0.12846708  0.34161186  1
+  Ga  Ga3  1  0.14160919  0.48001480  0.15124226  1

@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_MgCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.21867180
+_cell_length_b   10.79067297
+_cell_length_c   14.16000824
+_cell_angle_alpha   90.21007164
+_cell_angle_beta   90.04060072
+_cell_angle_gamma   79.10955317
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MgCl2
+_chemical_formula_sum   'Mg1 Cl2'
+_cell_volume   332.89659026
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mg  Mg0  1  0.86385822  0.22038651  0.86430693  1
+  Cl  Cl1  1  0.68598652  0.08992004  0.03281641  1
+  Cl  Cl2  1  0.95055628  0.90135956  0.36443114  1

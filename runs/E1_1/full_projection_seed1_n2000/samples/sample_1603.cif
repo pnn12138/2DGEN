@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TaGeP
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24213457
+_cell_length_b   12.61063072
+_cell_length_c   13.41303586
+_cell_angle_alpha   89.82925466
+_cell_angle_beta   90.02724786
+_cell_angle_gamma   97.79861177
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaGeP
+_chemical_formula_sum   'Ta2 Ge2 P2'
+_cell_volume   375.74067848
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ta  Ta0  1  0.93354034  0.07189751  0.09433365  1
+  P  P1  1  0.96327972  0.03320479  0.91249120  1
+  Ta  Ta2  1  0.02104187  0.85891056  0.37894356  1
+  Ge  Ge3  1  0.03418660  0.89712906  0.71125841  1
+  P  P4  1  0.22861576  0.79986954  0.28380942  1
+  Ge  Ge5  1  0.81955147  0.18664169  0.71268988  1

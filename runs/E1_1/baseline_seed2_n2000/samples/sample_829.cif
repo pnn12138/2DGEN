@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ba2CdInAuO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.94067264
+_cell_length_b   17.88741006
+_cell_length_c   15.37064994
+_cell_angle_alpha   89.67856735
+_cell_angle_beta   90.02523971
+_cell_angle_gamma   94.42213868
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ba2CdInAuO5
+_chemical_formula_sum   'Ba2 Cd1 In1 Au1 O5'
+_cell_volume   806.09222585
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.84123844  0.70424241  0.07679938  1
+  In  In1  1  0.59258652  0.43371063  0.26289439  1
+  Ba  Ba2  1  0.19356060  0.56014442  0.47614992  1
+  O  O3  1  0.37494278  0.59340191  0.07452607  1
+  Cd  Cd4  1  0.32945490  0.87913823  0.65482712  1
+  O  O5  1  0.31586093  0.67664653  0.10059072  1
+  O  O6  1  0.47559118  0.68567276  0.90692699  1
+  O  O7  1  0.25530815  0.25902629  0.60044765  1
+  O  O8  1  0.85381365  0.34142953  0.36641818  1
+  Ba  Ba9  1  0.45182991  0.87905407  0.02525759  1

@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_SrGeS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.61884928
+_cell_length_b   15.82236519
+_cell_length_c   12.88076295
+_cell_angle_alpha   89.73208850
+_cell_angle_beta   89.95733465
+_cell_angle_gamma   106.75014221
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrGeS2
+_chemical_formula_sum   'Sr1 Ge1 S2'
+_cell_volume   511.07958792
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.18957186  0.57581520  0.73103595  1
+  Ge  Ge1  1  0.44272637  0.20113802  0.82416421  1
+  Sr  Sr2  1  0.49931049  0.50235462  0.45738375  1
+  S  S3  1  0.18238831  0.24358749  0.47199839  1

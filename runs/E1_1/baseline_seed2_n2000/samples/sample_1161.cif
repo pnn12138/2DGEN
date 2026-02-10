@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_NaHCO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44235706
+_cell_length_b   13.70521301
+_cell_length_c   13.58694884
+_cell_angle_alpha   90.16553764
+_cell_angle_beta   89.99111667
+_cell_angle_gamma   92.89126927
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaHCO3
+_chemical_formula_sum   'Na2 H2 C2 O6'
+_cell_volume   454.21543538
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  C  C0  1  0.45432964  0.13980734  0.97890925  1
+  H  H1  1  0.79176283  0.07527161  0.13685659  1
+  O  O2  1  0.95682716  0.40199876  0.12210870  1
+  O  O3  1  0.84196186  0.52667618  0.41115189  1
+  O  O4  1  0.37612152  0.26147556  0.39344597  1
+  O  O5  1  0.30675489  0.04198946  0.99850738  1
+  C  C6  1  0.37113249  0.08835538  0.89114738  1
+  Na  Na7  1  0.11263657  0.66506457  0.36299920  1
+  O  O8  1  0.70644045  0.62791634  0.77178347  1
+  H  H9  1  0.29093075  0.67124462  0.97391057  1
+  O  O10  1  0.67688847  0.97828388  0.36649418  1
+  Na  Na11  1  0.38576508  0.61355209  0.60377121  1

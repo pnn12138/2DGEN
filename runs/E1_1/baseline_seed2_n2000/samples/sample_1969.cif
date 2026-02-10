@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_V2Cl2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.63200068
+_cell_length_b   5.40632915
+_cell_length_c   19.08668822
+_cell_angle_alpha   90.01929089
+_cell_angle_beta   89.99480477
+_cell_angle_gamma   117.49191981
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   V2Cl2O3
+_chemical_formula_sum   'V2 Cl2 O3'
+_cell_volume   332.46027507
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  V  V0  1  0.22190475  0.53087616  0.30011082  1
+  O  O1  1  0.78906250  0.33898640  0.13782787  1
+  Cl  Cl2  1  0.49488407  0.81124496  0.51107657  1
+  V  V3  1  0.40433502  0.89320445  0.31810427  1
+  O  O4  1  0.26212692  0.36105084  0.38693750  1
+  O  O5  1  0.42290306  0.52452707  0.45822170  1
+  Cl  Cl6  1  0.60322571  0.33510685  0.05048275  1

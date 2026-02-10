@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_SrBiTe2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.82563114
+_cell_length_b   10.52432794
+_cell_length_c   15.29825235
+_cell_angle_alpha   90.26202850
+_cell_angle_beta   90.07175956
+_cell_angle_gamma   70.99974824
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrBiTe2Cl
+_chemical_formula_sum   'Sr4 Bi4 Te8 Cl4'
+_cell_volume   430.14661931
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.82375717  0.96977389  0.14183754  1
+  Sr  Sr1  1  0.39039817  0.46189594  0.22591791  1
+  Bi  Bi2  1  0.77004218  0.74297684  0.12926114  1
+  Cl  Cl3  1  0.47395658  0.68662095  0.35133553  1
+  Sr  Sr4  1  0.22623195  0.39948845  0.84975719  1
+  Cl  Cl5  1  0.21458468  0.07195713  0.04623660  1
+  Bi  Bi6  1  0.61924648  0.61285686  0.80732822  1
+  Te  Te7  1  0.67453134  0.75316495  0.57688165  1
+  Te  Te8  1  0.17980516  0.58261365  0.26034632  1
+  Te  Te9  1  0.57235146  0.95458794  0.31493086  1
+  Te  Te10  1  0.99997139  0.46578598  0.33161229  1
+  Bi  Bi11  1  0.57984984  0.12041043  0.06835978  1
+  Cl  Cl12  1  0.57153320  0.27317858  0.32001781  1
+  Cl  Cl13  1  0.73230767  0.73115855  0.22049534  1
+  Sr  Sr14  1  0.01267815  0.24670672  0.14070892  1
+  Te  Te15  1  0.60870516  0.59255600  0.94916630  1
+  Bi  Bi16  1  0.25251007  0.17060328  0.56670481  1
+  Te  Te17  1  0.33814782  0.83554322  0.52721488  1
+  Te  Te18  1  0.62233126  0.60397512  0.24555598  1
+  Sr  Sr19  1  0.58390450  0.65807521  0.62659794  1

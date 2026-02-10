@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_In2Co2S5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.52632356
+_cell_length_b   8.27020644
+_cell_length_c   12.77633139
+_cell_angle_alpha   90.30876772
+_cell_angle_beta   89.94236985
+_cell_angle_gamma   95.02190885
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   In2Co2S5
+_chemical_formula_sum   'In2 Co2 S5'
+_cell_volume   265.91007125
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.61145020  0.08748245  0.90472412  1
+  S  S1  1  0.00487161  0.20430756  0.15786076  1
+  In  In2  1  0.20669411  0.51541722  0.28186575  1
+  S  S3  1  0.89048195  0.09963512  0.55661058  1
+  S  S4  1  0.76550555  0.55355597  0.26964357  1
+  S  S5  1  0.56165504  0.30869961  0.22254157  1
+  In  In6  1  0.03705492  0.57807744  0.39055252  1
+  Co  Co7  1  0.94299316  0.40062332  0.94383621  1
+  S  S8  1  0.88610625  0.43893054  0.36921841  1

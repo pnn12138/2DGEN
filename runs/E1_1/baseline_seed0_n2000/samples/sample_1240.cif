@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_RhS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.37593460
+_cell_length_b   10.07238432
+_cell_length_c   13.21885530
+_cell_angle_alpha   90.87388966
+_cell_angle_beta   90.19637325
+_cell_angle_gamma   77.65765647
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RhS2
+_chemical_formula_sum   'Rh1 S2'
+_cell_volume   308.99739142
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.26062775  0.01580715  0.63749230  1
+  S  S1  1  0.85756016  0.03925323  0.77581024  1
+  Rh  Rh2  1  0.57498169  0.63240635  0.92256522  1

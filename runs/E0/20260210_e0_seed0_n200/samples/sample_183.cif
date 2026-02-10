@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ge3Se5BrCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   18.82913399
+_cell_length_b   303.70535628
+_cell_length_c   102.26404203
+_cell_angle_alpha   91.87266674
+_cell_angle_beta   88.18459694
+_cell_angle_gamma   177.22723827
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ge3Se5BrCl
+_chemical_formula_sum   'Ge3 Se5 Br1 Cl1'
+_cell_volume   28268.86591076
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.00964737  0.02724457  0.68202114  1
+  Se  Se1  1  0.84074783  0.14723206  0.60535812  1
+  Se  Se2  1  0.68538666  0.94885635  0.17959213  1
+  Cl  Cl3  1  0.97370148  0.77366638  0.75451934  1
+  Ge  Ge4  1  0.31210327  0.36371708  0.29261589  1
+  Se  Se5  1  0.03329086  0.22539711  0.97366524  1
+  Br  Br6  1  0.04731750  0.76325130  0.50210190  1
+  Ge  Ge7  1  0.00433350  0.54728699  0.49128532  1
+  Ge  Ge8  1  0.18555832  0.41388702  0.73640442  1
+  Se  Se9  1  0.44038391  0.43995857  0.76847982  1

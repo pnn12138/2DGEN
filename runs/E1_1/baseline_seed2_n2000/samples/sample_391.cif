@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Sr2NiS3Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   17.11055374
+_cell_length_b   43.31160503
+_cell_length_c   62.88955855
+_cell_angle_alpha   90.65183190
+_cell_angle_beta   89.63290447
+_cell_angle_gamma   146.68456781
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2NiS3Br
+_chemical_formula_sum   'Sr4 Ni2 S6 Br2'
+_cell_volume   25596.48226970
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.73817062  0.28014755  0.16261864  1
+  Br  Br1  1  0.32826424  0.37567902  0.29207659  1
+  Sr  Sr2  1  0.04144287  0.48195934  0.06910729  1
+  S  S3  1  0.58931065  0.00705421  0.72391653  1
+  S  S4  1  0.49032784  0.52628565  0.57304096  1
+  Ni  Ni5  1  0.99104309  0.44542897  0.86719131  1
+  Sr  Sr6  1  0.69450831  0.39947128  0.52928257  1
+  S  S7  1  0.72620249  0.01858234  0.01595205  1
+  S  S8  1  0.07774830  0.82699895  0.10391283  1
+  Ni  Ni9  1  0.62043285  0.73531485  0.26198053  1
+  Sr  Sr10  1  0.39716148  0.04407859  0.44291186  1
+  S  S11  1  0.12230110  0.99328661  0.07258856  1
+  Br  Br12  1  0.75018287  0.18092060  0.84486246  1
+  Sr  Sr13  1  0.20774448  0.34639549  0.59306383  1

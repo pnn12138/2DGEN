@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CaNiGe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.27471161
+_cell_length_b   5.25631072
+_cell_length_c   30.34480509
+_cell_angle_alpha   89.38808029
+_cell_angle_beta   91.19498441
+_cell_angle_gamma   121.07338399
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaNiGe
+_chemical_formula_sum   'Ca2 Ni2 Ge2'
+_cell_volume   1403.36759433
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.36935568  0.82917595  0.07861590  1
+  Ca  Ca1  1  0.83145905  0.28878498  0.74400902  1
+  Ge  Ge2  1  0.44700050  0.75385094  0.64126921  1
+  Ca  Ca3  1  0.13257933  0.21671653  0.05486828  1
+  Ge  Ge4  1  0.96971810  0.80024338  0.12565809  1
+  Ni  Ni5  1  0.17052472  0.80297488  0.18272305  1

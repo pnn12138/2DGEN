@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CdAgBr3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   16.65350723
+_cell_length_b   8.75789635
+_cell_length_c   23.61167334
+_cell_angle_alpha   90.33592414
+_cell_angle_beta   89.72565431
+_cell_angle_gamma   148.86605610
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdAgBr3
+_chemical_formula_sum   'Cd2 Ag2 Br6'
+_cell_volume   1780.53021866
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.10522270  0.03053284  0.35889673  1
+  Cd  Cd1  1  0.74483562  0.98617935  0.69908100  1
+  Cd  Cd2  1  0.59534168  0.26653194  0.48388565  1
+  Br  Br3  1  0.62763214  0.03674889  0.43053079  1
+  Ag  Ag4  1  0.00001764  0.24066925  0.61701012  1
+  Br  Br5  1  0.36426544  0.32738113  0.16444945  1
+  Br  Br6  1  0.90149182  0.16231957  0.95690244  1
+  Br  Br7  1  0.61300337  0.75984144  0.17883161  1
+  Br  Br8  1  0.55365503  0.66540766  0.12169650  1
+  Br  Br9  1  0.76888496  0.03275163  0.95298946  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfMnBr4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46753597
+_cell_length_b   13.19141408
+_cell_length_c   14.35729290
+_cell_angle_alpha   90.39884462
+_cell_angle_beta   90.04243778
+_cell_angle_gamma   83.88079239
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfMnBr4
+_chemical_formula_sum   'Hf2 Mn2 Br8'
+_cell_volume   464.66002595
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.06576633  0.70641899  0.03383833  1
+  Mn  Mn1  1  0.89573765  0.81011772  0.21954346  1
+  Hf  Hf2  1  0.83966827  0.33610725  0.97220993  1
+  Br  Br3  1  0.31459901  0.10088730  0.32467300  1
+  Br  Br4  1  0.55545235  0.95613348  0.87769532  1
+  Br  Br5  1  0.58543015  0.33013213  0.47132921  1
+  Hf  Hf6  1  0.65820551  0.70107651  0.55335718  1
+  Br  Br7  1  0.93178916  0.86954117  0.34889746  1
+  Br  Br8  1  0.12642288  0.63810158  0.37711656  1
+  Br  Br9  1  0.59323978  0.12898301  0.04338055  1
+  Br  Br10  1  0.81484103  0.03665878  0.08887298  1
+  Mn  Mn11  1  0.72323608  0.33040142  0.77997732  1

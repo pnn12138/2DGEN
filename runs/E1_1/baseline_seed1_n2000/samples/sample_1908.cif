@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_CoI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.22492170
+_cell_length_b   6.79898907
+_cell_length_c   12.38091165
+_cell_angle_alpha   91.37465119
+_cell_angle_beta   89.30000381
+_cell_angle_gamma   110.17824384
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoI
+_chemical_formula_sum   'Co2 I2'
+_cell_volume   175.74158850
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.43394852  0.67815685  0.25723535  1
+  Co  Co1  1  0.53299522  0.67071867  0.52533174  1
+  I  I2  1  0.11961889  0.13906288  0.50787783  1
+  Co  Co3  1  0.47340298  0.49980354  0.67250061  1

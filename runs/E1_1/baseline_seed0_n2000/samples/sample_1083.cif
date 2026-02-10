@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiTaS3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51630306
+_cell_length_b   2.72026412
+_cell_length_c   11.50300439
+_cell_angle_alpha   88.19110766
+_cell_angle_beta   90.57851729
+_cell_angle_gamma   120.90603221
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiTaS3
+_chemical_formula_sum   'Li2 Ta2 S6'
+_cell_volume   67.52281753
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.11560822  0.20994473  0.12167001  1
+  S  S1  1  0.55320841  0.77414912  0.50410664  1
+  S  S2  1  0.00330313  0.50226778  0.56724852  1
+  Ta  Ta3  1  0.45627996  0.29797119  0.55823714  1
+  S  S4  1  0.22052228  0.01684507  0.00718465  1
+  Li  Li5  1  0.03267555  0.29519805  0.46735257  1
+  Ta  Ta6  1  0.13731608  0.93058646  0.51115280  1
+  S  S7  1  0.67827898  0.93660903  0.02930828  1
+  Li  Li8  1  0.73133749  0.50014186  0.04195442  1
+  S  S9  1  0.87632990  0.03212166  0.33848798  1

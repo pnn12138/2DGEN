@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SbS2O6F
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.57775450
+_cell_length_b   8.15384188
+_cell_length_c   13.03692174
+_cell_angle_alpha   90.47485010
+_cell_angle_beta   89.85066294
+_cell_angle_gamma   102.47289788
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbS2O6F
+_chemical_formula_sum   'Sb1 S2 O6 F1'
+_cell_volume   267.54130122
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.99061555  0.83230376  0.46679845  1
+  O  O1  1  0.45938611  0.78808892  0.50828421  1
+  S  S2  1  0.52401191  0.83363754  0.05359045  1
+  O  O3  1  0.58424652  0.97485965  0.49898311  1
+  F  F4  1  0.84019089  0.07630348  0.79758167  1
+  Sb  Sb5  1  0.05518052  0.07534254  0.55148548  1
+  O  O6  1  0.04572191  0.76033038  0.03320333  1
+  S  S7  1  0.89279938  0.55023956  0.03639847  1
+  O  O8  1  0.41172242  0.73902321  0.22527313  1
+  O  O9  1  0.84673214  0.06629753  0.07499766  1

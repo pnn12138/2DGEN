@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CaSiTeCl3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.48511481
+_cell_length_b   13.37301324
+_cell_length_c   13.81232421
+_cell_angle_alpha   90.72223985
+_cell_angle_beta   90.11942055
+_cell_angle_gamma   80.60029415
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaSiTeCl3
+_chemical_formula_sum   'Ca1 Si1 Te1 Cl3'
+_cell_volume   452.83211205
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.29870701  0.88201523  0.26247263  1
+  Ca  Ca1  1  0.78174603  0.99960208  0.71323878  1
+  Cl  Cl2  1  0.05268955  0.96306372  0.18529916  1
+  Te  Te3  1  0.53772163  0.28709364  0.37021250  1
+  Si  Si4  1  0.82451141  0.06516762  0.63045311  1
+  Cl  Cl5  1  0.61440277  0.33472055  0.49910116  1

@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_CsHg2Se(ClO)3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53194141
+_cell_length_b   13.54666528
+_cell_length_c   14.68852745
+_cell_angle_alpha   90.58154510
+_cell_angle_beta   90.05860503
+_cell_angle_gamma   83.99397481
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CsHg2Se(ClO)3
+_chemical_formula_sum   'Cs2 Hg4 Se2 Cl6 O6'
+_cell_volume   501.01587518
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Hg  Hg0  1  0.44526979  0.53219211  0.84182620  1
+  O  O1  1  0.77243352  0.82056659  0.83580536  1
+  Cl  Cl2  1  0.34218979  0.13856697  0.41004521  1
+  O  O3  1  0.72796994  0.98139912  0.23553431  1
+  O  O4  1  0.64077139  0.68582249  0.98879910  1
+  Cl  Cl5  1  0.28313109  0.06281320  0.21698326  1
+  O  O6  1  0.99744368  0.33746719  0.52977490  1
+  Hg  Hg7  1  0.38274491  0.42788887  0.01642597  1
+  O  O8  1  0.01533699  0.42533970  0.68215370  1
+  Hg  Hg9  1  0.50549245  0.85054970  0.72011602  1
+  Cs  Cs10  1  0.30221799  0.43233180  0.85844988  1
+  Hg  Hg11  1  0.76073480  0.87358004  0.92107266  1
+  Cs  Cs12  1  0.15937765  0.58596462  0.77139521  1
+  Cl  Cl13  1  0.92013109  0.55855370  0.14804125  1
+  Se  Se14  1  0.47830582  0.91081619  0.43179321  1
+  Se  Se15  1  0.66727304  0.02997917  0.84129173  1
+  Cl  Cl16  1  0.27294159  0.87549400  0.05933881  1
+  O  O17  1  0.51588726  0.09525460  0.78784651  1
+  Cl  Cl18  1  0.61800897  0.73612982  0.69675517  1
+  Cl  Cl19  1  0.89063859  0.99794149  0.98144388  1

@@ -1,112 +1,214 @@
-二维材料生成任务 Phase 3 评估方案
-分层评估指标表
-层级 & 指标	评估目的	计算方法	判定标准	实现方式
-Tier-0 几何有效性
-- 碰撞率 (Collision Rate)
-- 2D 层结构检查	确保生成晶体结构在几何上物理可行，无原子重叠，并符合二维材料的结构特征。	- 计算所有原子对之间距离，判断是否存在低于阈值（如0.7 Å）的原子间距，以检测原子碰撞。
-- 检查晶胞c轴长度或真空层厚度，确保足够大以形成单层结构（如≥15 Å真空），避免周期性成层干涉。	- 碰撞率：无原子间距低于阈值则结构有效。统计出现碰撞的结构比例，碰撞率越低越好。
-- 层间距：c轴长度相对于平面内晶格常数足够大（如至少为平面内晶格常数的3倍），否则视为不满足二维条件。	- 利用ASE或Pymatgen解析生成的CIF，计算距离矩阵筛查最近邻距离。
-- 使用ase.geometry或pymatgen.analysis.structure_analyzer等工具计算最小原子距；使用spglib或自定义函数检查晶胞尺寸满足二维要求。
-Tier-1 结构稳定性 & 条件匹配
-- 形成能 (Formation Energy)
-- 条件匹配度	确保生成结构在热力学上稳定或接近稳定，并满足预先设定的生成条件（如成分、对称性等）。	- 使用机器学习势能场代理模型（如MatterSim）计算每一结构的总能量，并换算形成能（相对于组元单质能量的差值）。对输出结构可进行快速松弛，使其接近局部能量最低状态。
-- 校验生成结构是否满足约束条件：例如比较其化学计量比是否等于目标配方，利用对称性分析库（spglib）确定其空间群是否匹配指定空间群等。	- 稳定性：设定形成能阈值（例如每原子形成能 < 0 eV，表示相对单质稳定；或能量高于凸包 < 50 meV/atom）。低于阈值则视为稳定结构，否则筛除。
-- 条件匹配：生成结构的组成、空间群等必须与设计要求一致。条件满足率可量化为符合所有约束的结构占比。	- 利用MatterSim批量预测结构的能量（详见下节），并通过预先计算或数据库获取元素标准态能量来计算形成能。
-- 使用Pymatgen或ASE提取生成结构的化学式并比较目标成分；利用spglib计算空间群符号或号数，与条件要求比对判断匹配性。
-Tier-2 功能性预测
-- 目标性质达标率	评估生成的材料在功能性质上是否达到设计目标，例如带隙、磁矩、弹性模量等，从而验证生成模型的有效性。	使用辅助的性质预测模型（通常为机器学习模型）对每个结构进行目标性质的预测，并与目标值或阈值比较。比如，预测材料的带隙、电导率、磁矩或杨氏模量等。常用方法包括基于图神经网络的结构-性质预测。	功能达标率：统计生成结构中有多少比例的样本其预测性质满足目标要求（如带隙≥指定值）。也可计算性质与目标的偏差均值等。如果任务要求精确值，则计算预测值与目标值的误差。生成模型若有效，应能显著提高满足约束的结构比例。	使用预训练的材料性质预测库（如CGCNN、MegNet或AlignN模型）对结构进行性质推断。也可将MatterSim微调为直接性质预测模型使用。通过Python接口批量输入结构并获取性质值，然后筛选出满足阈值的结构；借助Pymatgen、Matminer等工具处理结构描述和模型输入。
-MatterSim 接入步骤详解
+# Experiment Plan — NPJ 2D (SCDM-aligned) — v0.1
+**Project:** twodgen (2D slab, pbc_mask=1,1,0)  
+**Goal:** paper-ready evidence for npj Computational Materials  
+**Reference:** SCDM-style symmetry-constrained 2D generation  
+**Owner:** <your name>  
+**Created:** 2026-02-10
 
-**输入格式：**MatterSim基于ASE原子模拟环境接口运行，因此需将生成模型输出的结构文件（如CIF格式）转换为ASE的Atoms对象作为输入。可以使用ase.io.read("file.cif")读取CIF并生成原子坐标和晶格信息。确保输入结构包含元素种类、原子坐标及晶胞参数；对于二维材料，应在CIF或Atoms对象中体现足够的真空层以避免层间相互作用。
+---
 
-**配置方式：**在使用MatterSim之前，需要安装并初始化其机器学习力场模型。建议使用Python 3.10环境，通过pip install mattersim安装MatterSim。安装成功后，在脚本中导入所需模块，如：
+## 0. Non-negotiables (freeze these before running)
+### 0.1 Sampling budgets & seeds
+- Quick runs: N = 2,000 per setting
+- Final runs: N = 20,000 per setting
+- Seeds: {0, 1, 2} (min 3 seeds; report mean±std)
 
-from mattersim.forcefield import MatterSimCalculator
-from mattersim.applications.relax import Relaxer, BatchRelaxer
+### 0.2 Artifact standard (every run must output)
+- `run_metadata.json` (commit hash, configs, seed, model ckpt, thresholds)
+- `projection_stats.json` (trigger counts, magnitudes)
+- `metrics_summary.json` (all KPIs)
+- `failure_breakdown.json` (geom + energy taxonomies)
+- `plots/` (auto figures)
+- `samples/` (optional: CIF/POSCAR for top candidates)
 
+### 0.3 Output directory convention (mandatory)
+`runs/<EXPERIMENT_ID>/<YYYYMMDD_HHMMSS>/...`
 
-加载预训练模型权重，可使用默认提供的MatterSim-v1.0.0-1M模型，或指定较大更精确的5M模型（通过参数load_path="MatterSim-v1.0.0-5M.pth"）。配置计算设备，例如：
+---
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
+## 1. Frozen metric definitions (KPIs)
+### 1.1 Validity (geometry)
+A sample is geom-valid if all pass:
+- collision-free (min_dist >= __ Å)
+- cross-vacuum-risk-free (slab constraint: __)
+- in-plane degeneracy-free (inplane Gram cond <= __)
+- volume/lattice sanity bounds (volume in [__, __])
+- optional: angle bounds in [__, __]
 
+Report:
+- `success_geom_rate`
+- `collision_rate`
+- `cross_vacuum_risk_rate`
+- `inplane_degen_rate`
+- `bad_volume_rate`
+- `post_project_trigger_any_rate`
 
-然后在创建MatterSimCalculator或Potential时传入设备选项。对于批量处理，多结构评估可使用Potential.from_checkpoint()加载模型后传给BatchRelaxer，避免重复加载模型。
+### 1.2 Symmetry
+A sample is symmetry-valid if:
+- spglib succeeds
+- space group matches target (conditional)
 
-**预测接口调用：**MatterSim作为ASE的Calculator使用。针对单个结构，可将Atoms.calc = MatterSimCalculator(device=device)附加计算器，然后调用Atoms.get_potential_energy()获取预测能量。为了同时批量处理多个结构，MatterSim提供BatchRelaxer接口：先通过Potential.from_checkpoint()初始化模型势能，然后：
+Report:
+- `spacegroup_match_rate`
+- `spglib_fail_rate`
+- `symmetry_violation_breakdown` (typed)
 
-relaxer = BatchRelaxer(potential, fmax=0.02, optimizer="FIRE", filter="ExpCellFilter")
-trajectories = relaxer.relax(list_of_atoms)
+### 1.3 Screening & stability
+Report:
+- `mlip_relax_success_rate`
+- energy distribution (median, Q1/Q3)
+- DFT spot-check pass rate (among top-K)
 
+### 1.4 Novelty & diversity
+Report:
+- novelty distance to train (fingerprint/local-env)
+- diversity coverage across:
+  - space group bins
+  - composition family bins
+  - N_atoms bins
+  - lattice bins
+- QD curve: validity vs diversity
 
-其中fmax为力收敛标准，optimizer指定优化算法（如FIRE或BFGS），filter可选用如ExpCellFilter允许晶胞参数松弛。批量 relax 返回每个结构的弛豫轨迹和能量信息。MatterSim 会在弛豫过程中迭代调用内部的ML力场计算原子力和能量，直至达到设定的收敛条件或步数上限。若不需要几何优化，也可直接用MatterSimCalculator计算静态能量。**注意：**对于生成的结构，建议进行有限步的结构弛豫，以消除不稳定应力并获得更可靠的能量。
+---
 
-输出结果结构：MatterSim计算完成后，会输出每个结构的总能量和相关信息。对于单个结构，Atoms.get_potential_energy()直接返回总能(E, 单位eV)，同时Atoms.get_forces()可得到原子力。使用Relaxer或BatchRelaxer时，返回的放松后Atoms对象在其info字典中记录了'total_energy'字段。还可从弛豫轨迹提取初始和最终能量以比较稳定性改进。在我们的评估中，将重点使用每个结构的每原子能量（总能量除以原子数）来计算形成能。形成能的计算需要参考对应元素在标准单质状态下的能量：可通过预先用MatterSim计算各元素单质晶体的能量，或从材料数据库获取已知值。然后对每个结构执行:
+## 2. Target thresholds (paper-ready goals)
+### 2.1 Validity targets
+- `success_geom_rate` >= **0.65** (final N=20k, 3-seed mean)
+- `inplane_degen_rate` <= **0.05**
+- `bad_volume_rate` <= **0.10**
 
-𝐸
-form
-=
-𝐸
-total
-−
-∑
-𝑖
-𝑛
-𝑖
-𝜇
-𝑖
-∑
-𝑖
-𝑛
-𝑖
-,
-E
-form
-	​
+### 2.2 Symmetry targets (conditional)
+- `spacegroup_match_rate` >= **0.85**
+- `spglib_fail_rate` <= **0.05**
 
-=
-∑
-i
-	​
+### 2.3 Discovery targets
+- Provide funnel counts at N>=20k (preferably 100k if compute allows)
+- DFT spot-check: K = 20–100 (diversity-aware)
+- Report “novel & stable” counts under declared thresholds
 
-n
-i
-	​
+### 2.4 Diversity constraint (anti-collapse)
+- Diversity metrics must not degrade significantly when validity improves
+- Must provide validity–diversity tradeoff plot
 
-E
-total
-	​
+---
 
-−∑
-i
-	​
+## 3. Experiment Matrix (do these in order)
+> Each experiment lists Purpose → Settings → Command stub → Outputs → Pass/Fail → Paper usage
 
-n
-i
-	​
+### E0 — Protocol Sanity (must run once)
+**Purpose:** validate metric pipeline & artifact outputs  
+**Settings:** tiny N=200, seed=0, one checkpoint  
+**Outputs:** ensure all JSON + plots produced  
+**Pass:** no missing fields; metrics computed  
+**Paper usage:** none (infrastructure)
 
-μ
-i
-	​
+---
 
-	​
+### E1 — Validity Ablations (Projection components)
+#### E1.1 Baseline vs Full Projection
+**Purpose:** quantify major validity jump and failure reduction  
+**Settings:**
+- A: projection OFF
+- B: projection ON (cond+angle+volume)
+Fixed ckpt, fixed steps, same N/seeds
+**Command stub:**
+- `python -m twodgen.eval --config configs/bench/E1_1.yaml --seed 0`
+- repeat seeds 1,2
+**Pass:**
+- `success_geom_rate(B) - success_geom_rate(A) >= +0.15`
+- `bad_volume_rate` significantly reduced
+**Paper:** Fig.2, Fig.3, Table 1
 
-,
-其中$E_\text{total}$是MatterSim预测的晶体总能，$\mu_i$为元素$i$的单质能量，$n_i$为该元素原子数。最终，评估脚本可将每个结构的形成能、是否满足稳定性阈值、以及其他指标打分结果汇总输出，例如生成一个包含结构ID、形成能、预测性质值的表格。根据阈值判定结果，标记或筛除不合格的结构，实现自动化过滤。
+#### E1.2 Component Ablation
+**Purpose:** identify which guard contributes most + QD effects  
+**Settings:** {cond only, angle only, volume only, cond+angle, cond+angle+volume}  
+**Pass:** choose default guard set based on validity & diversity balance  
+**Paper:** Fig.2, Fig.6, Table 1
 
-整体评估流程的结构化任务分解
+#### E1.3 g_scale Sweep
+**Purpose:** robustness; avoid volume blow-ups or over-projection  
+**Settings:** g_scale in {0.5, 1.0, 1.5} (adjust to your actual range)  
+**Pass:** select g_scale with best validity–diversity tradeoff  
+**Paper:** Appendix S2 (optional main)
 
-几何有效性检测（Tier-0）：解析生成模型输出的所有结构（如读取CIF列表），计算每个结构的原子碰撞率。逐一检查原子间最小距离，若存在小于预定阈值（如0.7 Å）的距离，则判定该结构存在原子重叠或不合理键长。统计无效结构比例以量化生成结果的几何有效性，同时过滤掉存在严重碰撞的结构。在二维任务下，还应核验晶胞的真空层厚度，确保结构确为单原子层：例如检查c轴是否明显大于平面内尺度，剔除明显不具备足够真空的候选。
+---
 
-条件约束校验：针对生成任务的条件要求，验证保留结构的属性是否匹配设定。包括：配方/元素组成是否正确（直接比较化学式或元素集合）；目标晶体对称性是否满足（利用spglib计算空间群并与目标空间群比较）。记录条件匹配率，即符合所有指定条件的结构比例。不满足硬性条件的结构可在此步即被淘汰。
+### E2 — Training vs Sampling Synergy
+#### E2.1 Curriculum Loss Schedule Ablation
+**Purpose:** show model learns constraints; projection trigger rate decreases  
+**Settings:** different ramp schedules; repulsion on/off  
+**Pass:** comparable validity with lower trigger rate; improved generalization  
+**Paper:** Appendix + small figure in main if strong
 
-批量结构松弛与能量计算（Tier-1）：将经过初步筛选的结构批量传递给MatterSim进行能量评估。使用MatterSim的BatchRelaxer对每个结构进行有限步的能量松弛优化，获取接近局部能量极小的结构构型及其总能量。这一步骤利用MatterSim的高效代理模型预测，使我们在不过多耗费计算资源的情况下估算每个结构的基态能量。若结构数量庞大，可根据需要调整松弛迭代步数或并行处理，以平衡准确性和效率。
+---
 
-形成能计算与稳定性评估：根据MatterSim输出的总能量，计算每个结构的标准形成能（每原子的能量降低，相对于元素单质）作为稳定性指标。为此，需要获取各元素单质的参考能$\mu_i$（可由MatterSim计算或文献数据）。将各结构的形成能与预设阈值比较，例如0 eV/atom（需为释放能）或更严格的-50 meV/atom以下。判定标准：若形成能为负值或低于某一小正值，则表示热力学上可能稳定；若形成能过高（正值较大），意味着结构倾向分解。据此标记结构的稳定性，通过统计低于阈值的结构比例来衡量生成集的总体稳定率。
+### E3 — Symmetry Controllability (SCDM-aligned)
+#### E3.1 SG Conditional: Soft vs Hard Consistency
+**Purpose:** justify symmetry contribution; show controllability metrics  
+**Settings:**
+- soft: symmetry loss only
+- hard: crystal-family lattice hard constraint + symmetry projection (if implemented)
+**Metrics:** match rate, spglib fail, violation breakdown  
+**Pass:** match >=0.85, spglib_fail <=0.05  
+**Paper:** Fig.4, Table 2
 
-稳定性筛选过滤：应用上述阈值标准，自动淘汰预测形成能高于阈值的结构集合。该筛选可大幅缩小候选集规模，保留较可能稳定的结构用于后续分析。例如，若阈值设为每原子0.05 eV高于凸包，筛选后保留下来的结构约占生成总数的一定比例（取决于模型性能），这些结构可认为是潜在稳定的二维材料候选。未通过筛选的结构则归类为不稳定样本，从后续功能评估中排除。
+#### E3.2 (Optional, high-impact) Wyckoff-level constraint
+**Purpose:** strongest alignment with SCDM  
+**Pass:** improves symmetry metrics at comparable diversity  
+**Paper:** Main if achieved; else future work
 
-功能性质批量预测（Tier-2）：对通过稳定性筛选的候选结构，评估其目标功能性质。例如，若目标是带隙，将所有结构输入预训练的带隙预测模型（如基于图神经网络的预测器）获取每一结构的能隙估计值；如果目标是弹性模量或磁性等，可采用对应领域的机器学习模型或经验公式进行预测。此步骤应支持批量处理，以在合理时间内完成对数百乃至上千结构的性质评估。确保使用的代理模型在训练范围内涵盖了这些结构的组成类型，以保证预测可靠。
+---
 
-功能达标判定与统计：将每个结构的预测性质与设计目标进行对比，判定其是否达到要求。例如，当目标带隙为至少2 eV时，标记所有预测带隙≥2 eV的结构为成功；若目标是具体值（如3 eV），则计算预测值与3 eV的偏差。汇总功能达标率，即满足性质指标的结构占比，作为Tier-2评估结果的一部分。同时，可找出在功能上表现最优的若干结构用于案例分析。微软Research的研究显示，经过条件生成和筛选，MatterGen模型在目标性质上的命中率显著提高，例如在磁矩和体模量等任务中找到远超筛选方法数量的候选。因此，我们通过此步统计验证生成模型在目标性能上的有效性提升。
+### E4 — Screening Loop (MLIP → DFT)
+#### E4.1 MLIP-Scale Screening Stats
+**Purpose:** discovery evidence with large-N statistics  
+**Pipeline:**
+1) generate N = 20k (final), optionally 100k (strong)
+2) geom gate
+3) MLIP relax (CHGNet)
+4) select top-K with diversity-aware sampling
+**Outputs:** `screening.csv`, top candidates CIF  
+**Pass:** clear funnel stats; meaningful low-energy population  
+**Paper:** Fig.5, Table 3
 
-结果输出及分析：整合以上各层评估数据，生成最终的报告和筛选后的结构清单。具体包括：每个结构的几何有效性标记、形成能及稳定性判定、预测性质及是否达标等。输出可以是一个结构列表（附带评分和筛选标志）或分层过滤后的结构集文件，用于下游实验验证。最后，对整体结果进行分析：例如计算SUN指标（Stable, Unique, Novel结构比例）或绘制生成结构性能分布图，与基线方法对比。评估流程设计成模块化，可用于消融实验：分别移除或更改某一层的筛选策略，观察对最终候选集数量和质量的影响，从而量化各评估模块的贡献。通过上述结构化评估流程，我们能够系统地评判生成模型性能，并为论文提供有说服力的分析数据和案例支撑。
+#### E4.2 DFT Spot-check
+**Purpose:** credibility for “stable” claim  
+**K:** 20–100  
+**Pass:** report how many remain stable after DFT relax; discuss MLIP bias  
+**Paper:** Table 3 + case studies
+
+---
+
+### E5 — Novelty & Diversity (must-have)
+#### E5.1 Novelty & De-dup
+**Purpose:** ensure validity gains are not memorization  
+**Method:** fingerprint distance; clustering; de-dup rule  
+**Pass:** novelty comparable across settings  
+**Paper:** Table 3, Fig.6
+
+#### E5.2 Diversity Coverage & QD Tradeoff
+**Purpose:** defend against mode collapse critique  
+**Method:** coverage across bins; plot validity vs diversity  
+**Pass:** validity improves without collapsing diversity  
+**Paper:** Fig.6
+
+---
+
+## 4. Paper mapping (what goes where)
+- **Intro:** motivate 2D + symmetry + discovery loop
+- **Method:** projection operator + symmetry module + screening loop
+- **Results 5.1:** E1 (validity)
+- **Results 5.3:** E3 (symmetry)
+- **Results 5.4:** E4 (screening)
+- **Results 5.5:** E5 (novelty/diversity)
+
+---
+
+## 5. Checklist for “paper-ready” completion
+- [ ] Table 1: validity metrics (mean±std, N=20k, 3 seeds)
+- [ ] Fig.2: ablation heatmap (projection combos)
+- [ ] Fig.3: failure taxonomy stacked bars (+ trigger rate trend)
+- [ ] Table 2 + Fig.4: symmetry controllability + violation breakdown
+- [ ] Fig.5 + Table 3: screening funnel + DFT spot-check summary
+- [ ] Fig.6: validity–diversity tradeoff + novelty stats
+- [ ] Supplement: S1–S6 fully reproducible artifacts

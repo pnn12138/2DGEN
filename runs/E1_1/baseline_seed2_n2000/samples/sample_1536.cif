@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_FeCl2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.30578947
+_cell_length_b   7.57400346
+_cell_length_c   12.79974888
+_cell_angle_alpha   90.16145412
+_cell_angle_beta   89.97699889
+_cell_angle_gamma   94.71263073
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   FeCl2O
+_chemical_formula_sum   'Fe1 Cl2 O1'
+_cell_volume   222.77895490
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.99360561  0.30092335  0.55774450  1
+  Cl  Cl1  1  0.30899516  0.48291278  0.32088381  1
+  Fe  Fe2  1  0.58840942  0.83811188  0.46894836  1
+  O  O3  1  0.21307431  0.56594187  0.42717171  1

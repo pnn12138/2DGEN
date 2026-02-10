@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_ZrClO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.68418217
+_cell_length_b   6.80170885
+_cell_length_c   12.64111471
+_cell_angle_alpha   90.09270161
+_cell_angle_beta   90.07034562
+_cell_angle_gamma   57.12500917
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrClO
+_chemical_formula_sum   'Zr4 Cl4 O4'
+_cell_volume   193.82958821
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.23465538  0.73354053  0.43223098  1
+  Zr  Zr1  1  0.23776436  0.13204384  0.99032092  1
+  O  O2  1  0.75612116  0.73244190  0.55477083  1
+  O  O3  1  0.32107806  0.43496609  0.75332451  1
+  Zr  Zr4  1  0.69376606  0.48565772  0.48037633  1
+  O  O5  1  0.65682125  0.56023407  0.21865129  1
+  Cl  Cl6  1  0.67024964  0.89691758  0.85496807  1
+  Zr  Zr7  1  0.49556023  0.41916844  0.56931502  1
+  Cl  Cl8  1  0.57644653  0.89562702  0.46049643  1
+  O  O9  1  0.34829712  0.25081348  0.40309930  1
+  Cl  Cl10  1  0.20588459  0.87845087  0.82974982  1
+  Zr  Zr11  1  0.54374504  0.83228493  0.34751558  1

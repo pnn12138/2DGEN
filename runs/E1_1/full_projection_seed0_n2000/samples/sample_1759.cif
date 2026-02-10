@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CaMnGe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58175635
+_cell_length_b   16.30084211
+_cell_length_c   13.09553109
+_cell_angle_alpha   90.76207362
+_cell_angle_beta   90.04021836
+_cell_angle_gamma   86.95014169
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaMnGe
+_chemical_formula_sum   'Ca2 Mn2 Ge2'
+_cell_volume   550.29355993
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.64373875  0.76700497  0.64425039  1
+  Ge  Ge1  1  0.91463172  0.24552968  0.67015386  1
+  Ge  Ge2  1  0.22222805  0.24717665  0.30393362  1
+  Mn  Mn3  1  0.80330849  0.97597188  0.36946106  1
+  Ca  Ca4  1  0.35772371  0.02766609  0.25119114  1
+  Ca  Ca5  1  0.82887650  0.33968902  0.26735783  1

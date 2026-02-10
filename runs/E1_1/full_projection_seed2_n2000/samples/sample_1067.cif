@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CrCuWBr2N3Cl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.39056778
+_cell_length_b   13.36742170
+_cell_length_c   29.61037507
+_cell_angle_alpha   90.79735155
+_cell_angle_beta   89.96479297
+_cell_angle_gamma   98.77290940
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrCuWBr2N3Cl2
+_chemical_formula_sum   'Cr1 Cu1 W1 Br2 N3 Cl2'
+_cell_volume   1717.34972029
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.95552349  0.99395275  0.88553667  1
+  W  W1  1  0.81830215  0.49203300  0.16081142  1
+  N  N2  1  0.27956820  0.76110077  0.36723024  1
+  Cl  Cl3  1  0.67797661  0.41222763  0.99889040  1
+  N  N4  1  0.24220657  0.30222321  0.25917673  1
+  Cu  Cu5  1  0.83459163  0.72309875  0.17492187  1
+  Br  Br6  1  0.30724049  0.17169571  0.05886012  1
+  N  N7  1  0.82756197  0.65650749  0.85394049  1
+  Cr  Cr8  1  0.41452217  0.41946793  0.63710976  1
+  Br  Br9  1  0.01438427  0.22303271  0.06980303  1

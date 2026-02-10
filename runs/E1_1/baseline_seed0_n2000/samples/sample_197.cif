@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sr2Te2AuF2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.76598835
+_cell_length_b   35.30427424
+_cell_length_c   40.70738393
+_cell_angle_alpha   90.38793247
+_cell_angle_beta   90.29161035
+_cell_angle_gamma   37.98848281
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2Te2AuF2
+_chemical_formula_sum   'Sr2 Te2 Au1 F2'
+_cell_volume   9523.01822414
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.49761677  0.26227331  0.27758932  1
+  Sr  Sr1  1  0.83658326  0.98211288  0.44258213  1
+  Au  Au2  1  0.52938080  0.98773074  0.00771904  1
+  Te  Te3  1  0.51119423  0.17554855  0.57054281  1
+  Sr  Sr4  1  0.02919334  0.92927361  0.46700382  1
+  Te  Te5  1  0.72657442  0.17081618  0.89555764  1
+  F  F6  1  0.24040604  0.69605255  0.57729352  1

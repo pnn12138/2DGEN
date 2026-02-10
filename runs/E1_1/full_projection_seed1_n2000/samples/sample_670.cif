@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_OsSI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.22558951
+_cell_length_b   11.05876801
+_cell_length_c   13.76281339
+_cell_angle_alpha   90.29922612
+_cell_angle_beta   89.93594276
+_cell_angle_gamma   101.84458842
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   OsSI
+_chemical_formula_sum   'Os2 S2 I2'
+_cell_volume   331.51732450
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.62782574  0.46485043  0.76493347  1
+  Os  Os1  1  0.76768875  0.82148933  0.74450326  1
+  I  I2  1  0.34833241  0.23417091  0.48045731  1
+  S  S3  1  0.69965744  0.85643005  0.22656631  1
+  S  S4  1  0.43537021  0.81577170  0.01109600  1
+  Os  Os5  1  0.76132584  0.36790562  0.83574080  1

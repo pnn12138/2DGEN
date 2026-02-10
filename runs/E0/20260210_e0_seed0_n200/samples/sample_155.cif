@@ -1,0 +1,43 @@
+# generated using pymatgen
+data_Cu2Pt(C3N4)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   1.92649543
+_cell_length_b   192.47883211
+_cell_length_c   105.70248608
+_cell_angle_alpha   93.62089325
+_cell_angle_beta   93.83337833
+_cell_angle_gamma   6.87427051
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2Pt(C3N4)2
+_chemical_formula_sum   'Cu2 Pt1 C6 N8'
+_cell_volume   4679.15073675
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  C  C0  1  0.11248779  0.21702957  0.41677094  1
+  C  C1  1  0.86690903  0.32395315  0.05826092  1
+  N  N2  1  0.32363892  0.24052811  0.18968201  1
+  Cu  Cu3  1  0.49925232  0.22026062  0.06502247  1
+  N  N4  1  0.43191528  0.94910431  0.36335850  1
+  C  C5  1  0.82263947  0.81269073  0.19856834  1
+  N  N6  1  0.93611145  0.14435577  0.22407341  1
+  N  N7  1  0.82548714  0.00749779  0.93705273  1
+  N  N8  1  0.92297363  0.41681910  0.42413235  1
+  C  C9  1  0.55018616  0.51538086  0.59280205  1
+  C  C10  1  0.74659729  0.45734406  0.00970936  1
+  N  N11  1  0.50076675  0.97777557  0.18961716  1
+  Cu  Cu12  1  0.01219177  0.26293945  0.21292114  1
+  Pt  Pt13  1  0.70075560  0.22280884  0.56483459  1
+  C  C14  1  0.09283447  0.62401962  0.28393555  1
+  N  N15  1  0.58827972  0.80982971  0.11766815  1
+  N  N16  1  0.80070782  0.89381361  0.14392406  1

@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Ti3B2Te2F2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.32158041
+_cell_length_b   14.46327620
+_cell_length_c   12.91481703
+_cell_angle_alpha   89.75463499
+_cell_angle_beta   90.01162054
+_cell_angle_gamma   92.33203099
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti3B2Te2F2
+_chemical_formula_sum   'Ti3 B2 Te2 F2'
+_cell_volume   433.28619799
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  B  B0  1  0.07839775  0.93340683  0.20587182  1
+  B  B1  1  0.29356003  0.34951019  0.90449238  1
+  Ti  Ti2  1  0.97970521  0.84052610  0.97734046  1
+  F  F3  1  0.02570724  0.83049011  0.03341281  1
+  Ti  Ti4  1  0.04443741  0.70118618  0.32608104  1
+  Ti  Ti5  1  0.61680031  0.68815136  0.50626373  1
+  Te  Te6  1  0.70459747  0.55995369  0.08639002  1
+  F  F7  1  0.38904572  0.08341026  0.39005446  1
+  Te  Te8  1  0.89582396  0.19373512  0.70108700  1

@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_AlI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.33950830
+_cell_length_b   7.41843324
+_cell_length_c   13.01470465
+_cell_angle_alpha   90.10167610
+_cell_angle_beta   90.06093339
+_cell_angle_gamma   78.05824616
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlI2
+_chemical_formula_sum   'Al1 I2'
+_cell_volume   220.98780486
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.40933990  0.37018299  0.75457573  1
+  I  I1  1  0.31294632  0.84286213  0.08847338  1
+  Al  Al2  1  0.00901127  0.76109886  0.30380252  1

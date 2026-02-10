@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_NaH3N5O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47532797
+_cell_length_b   8.48112142
+_cell_length_c   12.51851681
+_cell_angle_alpha   90.15045079
+_cell_angle_beta   90.00116362
+_cell_angle_gamma   88.12403565
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaH3N5O
+_chemical_formula_sum   'Na2 H6 N10 O2'
+_cell_volume   262.66643528
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.54770374  0.29751015  0.88481474  1
+  N  N1  1  0.98692286  0.61802024  0.69780380  1
+  H  H2  1  0.38422477  0.36259928  0.32348952  1
+  Na  Na3  1  0.07061136  0.51734620  0.60994083  1
+  N  N4  1  0.71470529  0.52019840  0.10887101  1
+  H  H5  1  0.43771651  0.26809964  0.25031954  1
+  H  H6  1  0.41589069  0.51825982  0.83070755  1
+  N  N7  1  0.67049408  0.15073013  0.56127453  1
+  O  O8  1  0.15079784  0.20650291  0.42049980  1
+  N  N9  1  0.38414383  0.54726523  0.93837357  1
+  H  H10  1  0.94565594  0.62166923  0.47342679  1
+  N  N11  1  0.75191307  0.08980560  0.73812962  1
+  H  H12  1  0.10662295  0.97472757  0.85857058  1
+  Na  Na13  1  0.52523619  0.03897500  0.92270190  1
+  N  N14  1  0.37200165  0.76278114  0.31829166  1
+  N  N15  1  0.97683001  0.96820450  0.34694481  1
+  N  N16  1  0.34053001  0.56065696  0.16483803  1
+  N  N17  1  0.40514532  0.70674855  0.46132424  1
+  H  H18  1  0.14232741  0.44221139  0.37507722  1
+  N  N19  1  0.94445950  0.95289612  0.98556584  1

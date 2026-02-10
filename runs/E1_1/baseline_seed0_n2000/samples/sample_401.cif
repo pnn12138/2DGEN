@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiCdI3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43991184
+_cell_length_b   10.07784129
+_cell_length_c   12.33983766
+_cell_angle_alpha   89.49881098
+_cell_angle_beta   89.68397498
+_cell_angle_gamma   55.15887743
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiCdI3
+_chemical_formula_sum   'Li2 Cd2 I6'
+_cell_volume   249.02311821
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cd  Cd0  1  0.68175888  0.05928802  0.46627808  1
+  Cd  Cd1  1  0.11739707  0.64244771  0.03162965  1
+  I  I2  1  0.65599155  0.84401512  0.83442402  1
+  Li  Li3  1  0.09960175  0.80591202  0.97525167  1
+  I  I4  1  0.11782312  0.70171738  0.50511247  1
+  I  I5  1  0.49306917  0.22749853  0.24574566  1
+  Li  Li6  1  0.46870622  0.17437257  0.60803950  1
+  I  I7  1  0.52924252  0.29623222  0.08273098  1
+  I  I8  1  0.03500644  0.02637015  0.64585322  1
+  I  I9  1  0.66563749  0.27704000  0.70508039  1

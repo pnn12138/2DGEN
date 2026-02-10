@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_CdSIF
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.96962261
+_cell_length_b   16.25071256
+_cell_length_c   12.50833069
+_cell_angle_alpha   90.87107790
+_cell_angle_beta   89.05349949
+_cell_angle_gamma   146.51698358
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdSIF
+_chemical_formula_sum   'Cd1 S1 I1 F1'
+_cell_volume   557.22347268
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.32019806  0.12096405  0.50941682  1
+  I  I1  1  0.17386675  0.44710350  0.50227761  1
+  Cd  Cd2  1  0.57445526  0.36427450  0.53566456  1
+  S  S3  1  0.78229332  0.86780262  0.11109924  1

@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_NiGeTe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.60210824
+_cell_length_b   16.45134332
+_cell_length_c   12.81227144
+_cell_angle_alpha   89.91342316
+_cell_angle_beta   90.00259793
+_cell_angle_gamma   91.41948482
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiGeTe2
+_chemical_formula_sum   'Ni1 Ge1 Te2'
+_cell_volume   548.30103228
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.94960213  0.52118373  0.45917964  1
+  Ni  Ni1  1  0.81530523  0.76364803  0.22720909  1
+  Te  Te2  1  0.21477222  0.53411865  0.82027626  1
+  Te  Te3  1  0.59657955  0.09237194  0.87758112  1

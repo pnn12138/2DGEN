@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_InO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.41475916
+_cell_length_b   15.26706144
+_cell_length_c   12.52417939
+_cell_angle_alpha   89.72622131
+_cell_angle_beta   90.00654577
+_cell_angle_gamma   91.31688540
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InO
+_chemical_formula_sum   'In2 O2'
+_cell_volume   461.59264019
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.30006075  0.96273148  0.65918493  1
+  In  In1  1  0.22657055  0.41948509  0.60104299  1
+  In  In2  1  0.75933838  0.78363895  0.73638892  1
+  O  O3  1  0.97205472  0.07818818  0.69902736  1

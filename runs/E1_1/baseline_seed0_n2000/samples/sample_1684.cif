@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Ga2Ni2Te5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.12640142
+_cell_length_b   19.28682461
+_cell_length_c   13.12948206
+_cell_angle_alpha   90.87107650
+_cell_angle_beta   90.01554780
+_cell_angle_gamma   95.49980751
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ga2Ni2Te5
+_chemical_formula_sum   'Ga2 Ni2 Te5'
+_cell_volume   787.94941231
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.15536016  0.55983210  0.07230818  1
+  Ga  Ga1  1  0.44564930  0.92645276  0.81741828  1
+  Te  Te2  1  0.18809414  0.68417931  0.23393005  1
+  Te  Te3  1  0.99844176  0.94438684  0.84930784  1
+  Ni  Ni4  1  0.95491791  0.41644287  0.09907436  1
+  Ni  Ni5  1  0.14842606  0.21437263  0.01364326  1
+  Te  Te6  1  0.77455759  0.09960938  0.32797909  1
+  Te  Te7  1  0.17265320  0.06743050  0.37246084  1
+  Ga  Ga8  1  0.94910526  0.20147324  0.61827850  1

@@ -1,0 +1,252 @@
+{
+  "run_metadata": {
+    "created_at_utc": "2026-02-10T04:28:10+00:00",
+    "argv": [
+      "/home/pnn/2dgen/twodgen/scrip/sample_tokens.py",
+      "--checkpoint",
+      "outputs/checkpoints/20260207_004939/atomdenoiser_last.pt",
+      "--out-dir",
+      "runs/E0/20260210_e0_seed0_n200/samples",
+      "--num-samples",
+      "200",
+      "--steps",
+      "20",
+      "--seed",
+      "0",
+      "--experiment-id",
+      "E0",
+      "--protocol",
+      "quick",
+      "--npz",
+      "data/C2DB/cache/c2db_tokens_2d_based.npz"
+    ],
+    "python": "3.12.12",
+    "platform": {
+      "system": "Linux",
+      "release": "6.6.87.2-microsoft-standard-WSL2",
+      "machine": "x86_64"
+    },
+    "git": {
+      "commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+      "dirty": true
+    },
+    "numpy": "2.3.4",
+    "torch": "2.9.1+cu128",
+    "cuda_available": true
+  },
+  "checkpoint": "outputs/checkpoints/20260207_004939/atomdenoiser_last.pt",
+  "npz": "data/C2DB/cache/c2db_tokens_2d_based.npz",
+  "cond_npz": null,
+  "cond_split_json": null,
+  "cond_split": "all",
+  "num_samples": 200,
+  "steps": 20,
+  "method": "heun",
+  "cfg_scale": 1.0,
+  "seed": 0,
+  "cond_drop_prob": 0.1,
+  "project_every_step": true,
+  "project_final": true,
+  "project_gram_cond": false,
+  "project_gram_max_cond": 1000.0,
+  "project_gram_eps": 1e-06,
+  "project_gram_mode": "log",
+  "post_project": false,
+  "post_project_interval": 1,
+  "post_project_keys": "angle,cond,inplane",
+  "post_project_cond_max": null,
+  "post_project_v_min": null,
+  "post_project_v_max": null,
+  "post_project_inplane_a_min": 2.0,
+  "post_project_inplane_b_min": 2.0,
+  "post_project_inplane_gamma_min": 30.0,
+  "post_project_inplane_gamma_max": 150.0,
+  "post_project_inplane_area_min": 4.0,
+  "post_project_area_per_atom_min": 1.2710881233215332,
+  "post_project_area_per_atom_max": 3.20233416557312,
+  "cond_pool_size": 16838,
+  "cond_strategy": "random",
+  "export": {
+    "valid_rate_samples": 0.0,
+    "cif_rate_samples": 1.0,
+    "min_dist_pre_mean": 20.680479049682617,
+    "min_dist_post_mean": 20.873071670532227,
+    "min_dist_pre_p10": 0.8895089030265808,
+    "min_dist_post_p10": 1.2525044679641724,
+    "collision_pre": 38,
+    "collision_post": 31,
+    "min_dist_cut": 1.5,
+    "min_dist_repulsion_cut": 1.5,
+    "min_dist_repulsion_iter": 12,
+    "min_dist_repulsion_strength": 0.05,
+    "fail_reason_counts": {
+      "bad_volume": 111,
+      "angle_out_of_range": 193,
+      "collision": 31,
+      "vacuum_too_small": 16
+    },
+    "fail_reason_top3": [
+      [
+        "angle_out_of_range",
+        193
+      ],
+      [
+        "bad_volume",
+        111
+      ],
+      [
+        "collision",
+        31
+      ]
+    ],
+    "lattice_stats": {
+      "volume": {
+        "mean": 7442.029296875,
+        "p10": 49.464046478271484,
+        "p90": 44715.80859375
+      },
+      "angle_alpha": {
+        "mean": 94.79586791992188,
+        "p10": 81.929931640625,
+        "p90": 120.73753356933594
+      },
+      "angle_beta": {
+        "mean": 89.7077865600586,
+        "p10": 65.02508544921875,
+        "p90": 105.05424499511719
+      },
+      "angle_gamma": {
+        "mean": 95.00324249267578,
+        "p10": 0.6349183320999146,
+        "p90": 179.53343200683594
+      },
+      "gram6_var": [
+        30889.70703125,
+        1255385333760.0,
+        30166182.0,
+        41695328.0,
+        6697.12744140625,
+        25035270.0
+      ]
+    },
+    "chol_log_clamp_rate": 0.995,
+    "project_step_stats_mean": {
+      "angle_out_before_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.015109544521883914,
+        0.030134767293930054,
+        0.03801543167547176,
+        0.04589609625308137,
+        0.13499223401671961,
+        0.9640954701524032
+      ],
+      "angle_out_after_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.015109544521883914,
+        0.030134767293930054,
+        0.03801543167547176,
+        0.04589609625308137,
+        0.13499223401671961,
+        0.9640954701524032
+      ],
+      "cond_before_steps": [
+        2.2945777052327205,
+        2.461685638678701,
+        2.8207327190198397,
+        3.375089695579127,
+        4.16438859387448,
+        5.25879272661711,
+        6.752216778303447,
+        8.776914295397306,
+        11.508546377483167,
+        15.066775874087686,
+        19.892793329138506,
+        26.508195274754573,
+        35.57400256709049,
+        47.2695769761738,
+        58.723772952431126,
+        65.02302450882762,
+        85.96283169796592,
+        102.2423287441856,
+        150.6695845754523,
+        31371587539.99013
+      ],
+      "cond_after_steps": [
+        2.2945777052327205,
+        2.461685638678701,
+        2.8207327190198397,
+        3.375089695579127,
+        4.16438859387448,
+        5.25879272661711,
+        6.752216778303447,
+        8.776914295397306,
+        11.508546377483167,
+        15.066775874087686,
+        19.892793329138506,
+        26.508195274754573,
+        35.57400256709049,
+        47.2695769761738,
+        58.723772952431126,
+        65.02302450882762,
+        85.96283169796592,
+        102.2423287441856,
+        150.6695845754523,
+        31371587539.99013
+      ],
+      "project_trigger_steps": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "composition": {
+    "hit_rate": 1.0,
+    "l1_mean": 0.0,
+    "l1_median": 0.0,
+    "cos_mean": 1.0
+  }
+}

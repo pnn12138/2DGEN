@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_SnAsBr2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51104569
+_cell_length_b   8.30273299
+_cell_length_c   12.69964780
+_cell_angle_alpha   90.52793421
+_cell_angle_beta   89.94331972
+_cell_angle_gamma   93.10580378
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SnAsBr2O3
+_chemical_formula_sum   'Sn1 As1 Br2 O3'
+_cell_volume   264.36898866
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.51983231  0.05976143  0.18296181  1
+  Sn  Sn1  1  0.82350540  0.31999111  0.78614497  1
+  O  O2  1  0.37130415  0.40765503  0.01521721  1
+  As  As3  1  0.70277405  0.17707384  0.32573032  1
+  O  O4  1  0.58525312  0.53918618  0.04661213  1
+  Br  Br5  1  0.40625334  0.76217079  0.27553236  1
+  O  O6  1  0.55581492  0.97969246  0.08190513  1

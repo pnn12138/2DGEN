@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_CaCuAgSBr2N
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.10039616
+_cell_length_b   24.22376212
+_cell_length_c   32.25420824
+_cell_angle_alpha   89.47947399
+_cell_angle_beta   90.50649471
+_cell_angle_gamma   147.54315391
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaCuAgSBr2N
+_chemical_formula_sum   'Ca1 Cu1 Ag1 S1 Br2 N1'
+_cell_volume   4234.96744024
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ca  Ca0  1  0.29698753  0.68910599  0.50171733  1
+  N  N1  1  0.59237480  0.91184139  0.99755669  1
+  Br  Br2  1  0.27089119  0.99504852  0.11328220  1
+  Cu  Cu3  1  0.74726343  0.53069687  0.42188442  1
+  Br  Br4  1  0.19242859  0.90973663  0.59033394  1
+  S  S5  1  0.25747681  0.29308844  0.74597692  1
+  Ag  Ag6  1  0.26189899  0.73625183  0.12319708  1

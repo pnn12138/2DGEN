@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_PbCl2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50248170
+_cell_length_b   5.80786685
+_cell_length_c   12.22345427
+_cell_angle_alpha   88.19323002
+_cell_angle_beta   89.56952640
+_cell_angle_gamma   47.11702632
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   PbCl2O
+_chemical_formula_sum   'Pb1 Cl2 O1'
+_cell_volume   130.08876492
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.03192902  0.60736990  0.89337587  1
+  O  O1  1  0.52954996  0.22522159  0.16103350  1
+  Pb  Pb2  1  0.43102646  0.96719074  0.67773342  1
+  Cl  Cl3  1  0.17181639  0.35067567  0.26347551  1

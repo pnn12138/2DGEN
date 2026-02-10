@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ga2GeI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.34304857
+_cell_length_b   14.66430643
+_cell_length_c   12.56854993
+_cell_angle_alpha   90.08875391
+_cell_angle_beta   89.99800128
+_cell_angle_gamma   91.77615662
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ga2GeI2
+_chemical_formula_sum   'Ga2 Ge1 I2'
+_cell_volume   431.63709777
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.71584129  0.50261784  0.41657901  1
+  I  I1  1  0.04324448  0.10803492  0.50019211  1
+  I  I2  1  0.69150114  0.85467243  0.40431404  1
+  Ga  Ga3  1  0.05157268  0.03356878  0.57912356  1
+  Ge  Ge4  1  0.39566994  0.68051147  0.86679411  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_VGaAg(BrN)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.44041300
+_cell_length_b   8.15025629
+_cell_length_c   17.23139305
+_cell_angle_alpha   89.74683495
+_cell_angle_beta   89.78433336
+_cell_angle_gamma   62.83040689
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   VGaAg(BrN)2
+_chemical_formula_sum   'V1 Ga1 Ag1 Br2 N2'
+_cell_volume   429.85368228
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.29701424  0.49042749  0.01019692  1
+  Ga  Ga1  1  0.75762475  0.26061460  0.45398381  1
+  Br  Br2  1  0.96845055  0.74436474  0.06354451  1
+  Ag  Ag3  1  0.47545096  0.22010043  0.37197435  1
+  V  V4  1  0.58700943  0.22706223  0.82214040  1
+  Br  Br5  1  0.97545624  0.99850720  0.23648643  1
+  N  N6  1  0.52602559  0.37389767  0.38981521  1

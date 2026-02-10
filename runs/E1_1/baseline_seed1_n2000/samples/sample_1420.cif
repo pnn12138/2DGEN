@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sr2Cu(SeCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42784262
+_cell_length_b   11.42888941
+_cell_length_c   14.92982777
+_cell_angle_alpha   89.79213938
+_cell_angle_beta   90.05242324
+_cell_angle_gamma   103.20728725
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2Cu(SeCl)2
+_chemical_formula_sum   'Sr2 Cu1 Se2 Cl2'
+_cell_volume   403.30601001
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.67705107  0.06639481  0.57162285  1
+  Sr  Sr1  1  0.01849270  0.69372559  0.73911881  1
+  Cl  Cl2  1  0.82946014  0.71114349  0.52308536  1
+  Se  Se3  1  0.11809540  0.36094856  0.68890905  1
+  Cl  Cl4  1  0.53346920  0.05506706  0.80351090  1
+  Se  Se5  1  0.86041641  0.45160294  0.75380778  1
+  Sr  Sr6  1  0.33461761  0.65448380  0.88390303  1

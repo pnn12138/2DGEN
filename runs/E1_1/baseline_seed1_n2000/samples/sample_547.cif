@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_TiF4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.60816765
+_cell_length_b   14.26448577
+_cell_length_c   14.22722363
+_cell_angle_alpha   91.00361150
+_cell_angle_beta   89.83247499
+_cell_angle_gamma   107.46953482
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiF4
+_chemical_formula_sum   'Ti4 F16'
+_cell_volume   504.81946910
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.70693469  0.01215482  0.01096368  1
+  F  F1  1  0.66932678  0.10073900  0.54761553  1
+  F  F2  1  0.56322789  0.73574257  0.88372374  1
+  F  F3  1  0.34654573  0.30157682  0.11447728  1
+  F  F4  1  0.65986991  0.80561888  0.71482003  1
+  Ti  Ti5  1  0.90810400  0.36685494  0.14278995  1
+  F  F6  1  0.11550236  0.97889179  0.52055883  1
+  Ti  Ti7  1  0.60155487  0.93540573  0.92809105  1
+  F  F8  1  0.41971174  0.67848957  0.04835951  1
+  Ti  Ti9  1  0.54535681  0.98861438  0.35937905  1
+  F  F10  1  0.86233854  0.31145477  0.73916912  1
+  F  F11  1  0.32086056  0.56235170  0.86500788  1
+  F  F12  1  0.67418194  0.41994548  0.52634525  1
+  F  F13  1  0.72408670  0.08876672  0.36934733  1
+  Ti  Ti14  1  0.05200347  0.57270157  0.04566158  1
+  F  F15  1  0.19290304  0.20520921  0.22121477  1
+  F  F16  1  0.08936643  0.34071192  0.55067927  1
+  F  F17  1  0.67050838  0.49575043  0.35922277  1
+  F  F18  1  0.56282759  0.29280248  0.59451699  1
+  F  F19  1  0.98364830  0.22058463  0.04560757  1

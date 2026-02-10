@@ -1,0 +1,248 @@
+{
+  "valid_rate_eval": 0.375,
+  "fail_reason_counts": {
+    "bad_volume": 15,
+    "collision": 9
+  },
+  "min_dist": {
+    "count": 32,
+    "mean": 2.673499437651664,
+    "median": 2.050814620278352,
+    "p10": 1.2201126189397768,
+    "p90": 4.636134939311227
+  },
+  "min_dist_collision": {
+    "count": 9,
+    "mean": 1.272233735771697,
+    "median": 1.301551967823603,
+    "p10": 1.1035364098584919,
+    "p90": 1.4285493214375977
+  },
+  "min_dist_same_elem": {
+    "count": 32,
+    "mean": 3.9131561805061414,
+    "median": 3.8964439277908904,
+    "p10": 1.3370884462753116,
+    "p90": 7.69549241944523
+  },
+  "volume": {
+    "count": 32,
+    "mean": 4357.881591558456,
+    "median": 2484.2554931640625,
+    "p10": 403.7685943603516,
+    "p90": 13071.724804687501
+  },
+  "cond": {
+    "count": 32,
+    "mean": 20.912763595581055,
+    "median": 19.147130012512207,
+    "p10": 7.700296115875244,
+    "p90": 39.338297653198254
+  },
+  "cond_full": {
+    "count": 32,
+    "mean": 28.640675485134125,
+    "median": 26.0831880569458,
+    "p10": 17.729286766052248,
+    "p90": 39.9995834350586
+  },
+  "cond_lattice": {
+    "count": 32,
+    "mean": 4.393195437415725,
+    "median": 4.375691862025832,
+    "p10": 2.77493860989883,
+    "p90": 6.270585296391715
+  },
+  "spd_rate": 1.0,
+  "energy_mlip": {
+    "count": 0
+  },
+  "formation_energy_per_atom": {
+    "count": 0
+  },
+  "relaxed_rate": 0.0,
+  "min_dist_relax": {
+    "count": 0
+  },
+  "success_rate": 0.375,
+  "success_geom_rate": 0.375,
+  "success_energy_rate": null,
+  "energy_available_rate": 0.0,
+  "energy_skipped_geom_rate": 0.625,
+  "energy_skipped_mlip_rate": 0.375,
+  "fail_reason_energy_counts": {
+    "missing": 12
+  },
+  "spacegroup_match_rate": null,
+  "symmetry_violation_rate": null,
+  "angle_alpha": {
+    "count": 32,
+    "mean": 91.996920955417,
+    "median": 90.77094890919315,
+    "p10": 89.09792654660818,
+    "p90": 93.59793707154553
+  },
+  "angle_beta": {
+    "count": 32,
+    "mean": 89.86252632739686,
+    "median": 89.99838376374329,
+    "p10": 87.75065014242453,
+    "p90": 90.73577346374293
+  },
+  "angle_gamma": {
+    "count": 32,
+    "mean": 81.14512485265664,
+    "median": 85.96355991566406,
+    "p10": 53.427978101923344,
+    "p90": 93.49698119333294
+  },
+  "angle_out_of_range_rate": 0.0,
+  "inplane_degen_rate": 0.0,
+  "inplane_area": {
+    "count": 32,
+    "mean": 121.58599501848221,
+    "median": 104.84775924682617,
+    "p10": 30.301451873779296,
+    "p90": 265.2124221801758
+  },
+  "inplane_gamma": {
+    "count": 32,
+    "mean": 81.14512485265664,
+    "median": 85.96355991566406,
+    "p10": 53.427978101923344,
+    "p90": 93.49698119333294
+  },
+  "n_atoms": {
+    "count": 32,
+    "mean": 10.625,
+    "median": 9.0,
+    "p10": 4.0,
+    "p90": 20.0
+  },
+  "element_counts": {
+    "40": 3,
+    "7": 4,
+    "1": 8,
+    "8": 7,
+    "29": 1,
+    "23": 1,
+    "34": 7,
+    "31": 1,
+    "15": 2,
+    "11": 3,
+    "16": 12,
+    "77": 1,
+    "53": 4,
+    "28": 1,
+    "6": 9,
+    "73": 1,
+    "52": 2,
+    "14": 2,
+    "20": 3,
+    "25": 2,
+    "17": 3,
+    "76": 2,
+    "45": 2,
+    "79": 1,
+    "72": 1,
+    "32": 1,
+    "27": 1,
+    "9": 2
+  },
+  "total_samples": 32,
+  "fail_reason_top3": [
+    [
+      "bad_volume",
+      15
+    ],
+    [
+      "collision",
+      9
+    ]
+  ],
+  "cond_violation_rate": 0.0,
+  "cond_lattice_violation_rate": 0.0,
+  "project_trigger_rate": 0.1875,
+  "project_delta_cond": {
+    "count": 32,
+    "mean": -3.793208211660385,
+    "median": -1.9073486328125e-06,
+    "p10": -2.066801834106445,
+    "p90": 7.62939453125e-06
+  },
+  "project_angle_out_rate_before": 0.0,
+  "project_angle_out_rate_after": 0.0,
+  "cond_match": {
+    "exact_match_rate": 1.0,
+    "l1_count_error": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "l1_count_error_norm": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_l1": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_cosine": {
+      "count": 32,
+      "mean": 1.0,
+      "median": 1.0,
+      "p10": 0.9999999999999998,
+      "p90": 1.0000000000000002
+    },
+    "source": "target",
+    "suspect_all_match": false
+  },
+  "schema_version": "eval_samples_v1",
+  "valid_criteria": [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "determinant > 0",
+    "lattice Gram matrix is SPD",
+    "condition number <= cond_max when provided (in-plane Gram for 2D slabs)",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees"
+  ],
+  "eval_params": {
+    "min_dist_cut": 1.5,
+    "bond_cut": 3.0,
+    "dup_eps": 0.001,
+    "vacuum_min": 15.0,
+    "v_min": 131.28549194335938,
+    "v_max": 2596.493408203125,
+    "pbc_mask": [
+      1,
+      1,
+      0
+    ],
+    "formation_energy_threshold": 0.0,
+    "element_refs_path": "data/ref_energies.json",
+    "target_spacegroup": null,
+    "spacegroup_symprec": 0.01,
+    "cond_max": 40.0
+  },
+  "run_context": {
+    "source": "sample_tokens",
+    "samples": "runs/E1_1_smoke/baseline_seed0_n32/samples/samples.npz",
+    "cond_split": "all",
+    "cond_split_json": null,
+    "seed": 0,
+    "protocol": "quick",
+    "experiment_id": "E1_1_smoke",
+    "config_hash": "e9a0885f9fe68983ad361acc526a9fdd53ad776e58cc5300ebf75141422bf34c"
+  }
+}

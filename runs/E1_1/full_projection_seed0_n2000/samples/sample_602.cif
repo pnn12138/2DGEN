@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Hg3P2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.60142803
+_cell_length_b   16.07564896
+_cell_length_c   12.38316799
+_cell_angle_alpha   89.14156438
+_cell_angle_beta   90.27695089
+_cell_angle_gamma   101.93830594
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Hg3P2
+_chemical_formula_sum   'Hg3 P2'
+_cell_volume   506.60117755
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Hg  Hg0  1  0.17962575  0.21493363  0.16240788  1
+  Hg  Hg1  1  0.34428406  0.24044251  0.93100584  1
+  P  P2  1  0.99518681  0.62635040  0.35334903  1
+  Hg  Hg3  1  0.11660385  0.53848392  0.64885616  1
+  P  P4  1  0.54555106  0.85172081  0.30793381  1

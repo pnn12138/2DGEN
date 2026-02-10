@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_CoAs2Cl2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.57706857
+_cell_length_b   14.71292302
+_cell_length_c   15.90008040
+_cell_angle_alpha   90.58958412
+_cell_angle_beta   90.05959544
+_cell_angle_gamma   84.06232642
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoAs2Cl2O3
+_chemical_formula_sum   'Co2 As4 Cl4 O6'
+_cell_volume   599.60466933
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.45372772  0.66613007  0.00648117  1
+  As  As1  1  0.96388054  0.77221107  0.69236183  1
+  As  As2  1  0.67721683  0.47323048  0.87976569  1
+  O  O3  1  0.73323631  0.86200386  0.77877349  1
+  Cl  Cl4  1  0.03102468  0.75139248  0.22696681  1
+  Cl  Cl5  1  0.43747330  0.39146233  0.51050138  1
+  Cl  Cl6  1  0.12714294  0.63805515  0.10194515  1
+  O  O7  1  0.31229305  0.22502971  0.59933180  1
+  O  O8  1  0.83720112  0.54632980  0.30313212  1
+  O  O9  1  0.00805712  0.87751389  0.91864252  1
+  As  As10  1  0.35272101  0.68128312  0.17670634  1
+  Co  Co11  1  0.27033901  0.75088120  0.53697157  1
+  O  O12  1  0.65444791  0.57625389  0.11042285  1
+  As  As13  1  0.16594613  0.49766338  0.88483709  1
+  O  O14  1  0.90433121  0.62902755  0.25849074  1
+  Cl  Cl15  1  0.57629657  0.90197182  0.42976570  1

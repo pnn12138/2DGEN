@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TePtI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23083448
+_cell_length_b   12.88546713
+_cell_length_c   13.15484209
+_cell_angle_alpha   90.70719246
+_cell_angle_beta   89.91558966
+_cell_angle_gamma   96.84760346
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TePtI
+_chemical_formula_sum   'Te2 Pt2 I2'
+_cell_volume   375.41451353
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.85006237  0.38963652  0.49834090  1
+  Pt  Pt1  1  0.45103741  0.73954105  0.73663485  1
+  I  I2  1  0.85873890  0.53323269  0.60762709  1
+  I  I3  1  0.68030357  0.67297888  0.03560686  1
+  Te  Te4  1  0.34498787  0.26393270  0.91086936  1
+  Pt  Pt5  1  0.36202812  0.14658356  0.12909818  1

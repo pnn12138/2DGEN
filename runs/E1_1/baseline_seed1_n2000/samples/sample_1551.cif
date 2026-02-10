@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MgTe3As
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.66615462
+_cell_length_b   11.36114176
+_cell_length_c   14.72387067
+_cell_angle_alpha   89.89609509
+_cell_angle_beta   90.03123651
+_cell_angle_gamma   105.72382716
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MgTe3As
+_chemical_formula_sum   'Mg2 Te6 As2'
+_cell_volume   429.30409643
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mg  Mg0  1  0.69057369  0.09968193  0.47201076  1
+  As  As1  1  0.44708252  0.79752731  0.55396080  1
+  Te  Te2  1  0.43809509  0.23180199  0.44941711  1
+  Te  Te3  1  0.93417788  0.17919827  0.21504246  1
+  As  As4  1  0.80593348  0.02630990  0.40108916  1
+  Te  Te5  1  0.72907639  0.58422565  0.72268844  1
+  Te  Te6  1  0.08997917  0.78717041  0.24138764  1
+  Te  Te7  1  0.38165665  0.80202770  0.12745523  1
+  Te  Te8  1  0.06352806  0.51121330  0.50198793  1
+  Mg  Mg9  1  0.14983749  0.77188110  0.66888058  1

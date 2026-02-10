@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_KFeBi
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.48609471
+_cell_length_b   12.84485037
+_cell_length_c   14.02663931
+_cell_angle_alpha   89.92588816
+_cell_angle_beta   90.01768572
+_cell_angle_gamma   100.87962870
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   KFeBi
+_chemical_formula_sum   'K2 Fe2 Bi2'
+_cell_volume   439.86855748
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.24622440  0.17411423  0.74254298  1
+  Bi  Bi1  1  0.03244209  0.51193333  0.58547372  1
+  K  K2  1  0.97593403  0.39037132  0.12477660  1
+  Fe  Fe3  1  0.39012820  0.64694393  0.03229097  1
+  K  K4  1  0.07212917  0.53092408  0.01706929  1
+  Bi  Bi5  1  0.53990847  0.53566176  0.03929365  1

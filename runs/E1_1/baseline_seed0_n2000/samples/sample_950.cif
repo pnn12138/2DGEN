@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Zr3CI2N
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44814372
+_cell_length_b   13.07254530
+_cell_length_c   13.66069360
+_cell_angle_alpha   90.12907918
+_cell_angle_beta   89.97150064
+_cell_angle_gamma   99.71399999
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Zr3CI2N
+_chemical_formula_sum   'Zr3 C1 I2 N1'
+_cell_volume   430.92019042
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.36624923  0.46827951  0.98007071  1
+  I  I1  1  0.39399433  0.75621986  0.40381336  1
+  Zr  Zr2  1  0.90926170  0.98571205  0.89467001  1
+  Zr  Zr3  1  0.22789226  0.39640555  0.90989196  1
+  Zr  Zr4  1  0.49046114  0.06833977  0.08046207  1
+  C  C5  1  0.47247049  0.12200052  0.99987620  1
+  I  I6  1  0.98351049  0.76602697  0.60307145  1

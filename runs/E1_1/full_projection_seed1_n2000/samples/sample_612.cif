@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MgNiGe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58856106
+_cell_length_b   10.16085682
+_cell_length_c   15.54135333
+_cell_angle_alpha   89.99393730
+_cell_angle_beta   89.99957221
+_cell_angle_gamma   107.75312101
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MgNiGe
+_chemical_formula_sum   'Mg2 Ni2 Ge2'
+_cell_volume   389.30275236
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mg  Mg0  1  0.96008968  0.45990562  0.85610342  1
+  Ge  Ge1  1  0.86916065  0.15456486  0.94060856  1
+  Mg  Mg2  1  0.49112940  0.37590456  0.39700687  1
+  Ni  Ni3  1  0.70714235  0.78073311  0.27798831  1
+  Ni  Ni4  1  0.56539941  0.95637846  0.02014416  1
+  Ge  Ge5  1  0.54764557  0.91958237  0.57905591  1

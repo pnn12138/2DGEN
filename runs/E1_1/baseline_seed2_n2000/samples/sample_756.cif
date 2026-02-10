@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CdCu(TeBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.30964708
+_cell_length_b   20.60361107
+_cell_length_c   32.95520286
+_cell_angle_alpha   90.95363944
+_cell_angle_beta   89.83183249
+_cell_angle_gamma   100.68955453
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdCu(TeBr)2
+_chemical_formula_sum   'Cd1 Cu1 Te2 Br2'
+_cell_volume   3542.17646307
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cd  Cd0  1  0.77322674  0.06579590  0.44022411  1
+  Te  Te1  1  0.69854927  0.02931023  0.97217560  1
+  Br  Br2  1  0.11977100  0.32694244  0.10065937  1
+  Cu  Cu3  1  0.18162251  0.25573921  0.53629780  1
+  Te  Te4  1  0.47095418  0.45833778  0.89250970  1
+  Br  Br5  1  0.00568581  0.38253260  0.22514963  1

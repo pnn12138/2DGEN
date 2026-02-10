@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_NiIr3(BrO)4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.39323330
+_cell_length_b   13.15682655
+_cell_length_c   13.31386141
+_cell_angle_alpha   90.48226822
+_cell_angle_beta   89.96521665
+_cell_angle_gamma   94.04466342
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiIr3(BrO)4
+_chemical_formula_sum   'Ni1 Ir3 Br4 O4'
+_cell_volume   418.15935524
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ir  Ir0  1  0.81016636  0.41140747  0.52760696  1
+  Br  Br1  1  0.14576244  0.79769325  0.91116869  1
+  O  O2  1  0.19330132  0.12464899  0.97869658  1
+  O  O3  1  0.46442872  0.42382792  0.92362928  1
+  Br  Br4  1  0.47283626  0.96049500  0.03222990  1
+  Br  Br5  1  0.06951729  0.56498039  0.12272353  1
+  Ni  Ni6  1  0.49522018  0.73502731  0.98497295  1
+  O  O7  1  0.69982463  0.33324763  0.94446439  1
+  Br  Br8  1  0.26803780  0.04175234  0.14335346  1
+  Ir  Ir9  1  0.10454369  0.74435854  0.66811848  1
+  O  O10  1  0.48988724  0.36657715  0.03193903  1
+  Ir  Ir11  1  0.51998121  0.63962233  0.13891745  1

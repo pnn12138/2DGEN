@@ -1,0 +1,39 @@
+# generated using pymatgen
+data_CoC6(IF2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.58557463
+_cell_length_b   20.32540059
+_cell_length_c   34.62926667
+_cell_angle_alpha   89.75700030
+_cell_angle_beta   90.12016394
+_cell_angle_gamma   100.97184847
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoC6(IF2)2
+_chemical_formula_sum   'Co1 C6 I2 F4'
+_cell_volume   3859.52613608
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.07136047  0.22588444  0.81907368  1
+  C  C1  1  0.95006561  0.99548244  0.08592129  1
+  F  F2  1  0.05262637  0.03940392  0.51580620  1
+  C  C3  1  0.34170532  0.54738998  0.75399256  1
+  C  C4  1  0.79931641  0.47069168  0.27735829  1
+  F  F5  1  0.88449764  0.51731241  0.14601493  1
+  Co  Co6  1  0.01659107  0.35748577  0.24232149  1
+  I  I7  1  0.85197067  0.71301746  0.78259659  1
+  C  C8  1  0.52254629  0.66530895  0.54507625  1
+  F  F9  1  0.62834036  0.97995758  0.63625377  1
+  C  C10  1  0.81423521  0.18338585  0.51639414  1
+  I  I11  1  0.90076232  0.13331914  0.78416991  1
+  C  C12  1  0.95029807  0.44322968  0.56075811  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Au2SeI3Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.68702388
+_cell_length_b   11.67204104
+_cell_length_c   25.29222399
+_cell_angle_alpha   90.12180521
+_cell_angle_beta   90.02573174
+_cell_angle_gamma   97.51091598
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Au2SeI3Br
+_chemical_formula_sum   'Au2 Se1 I3 Br1'
+_cell_volume   1079.11155358
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.70617485  0.84553003  0.51270783  1
+  I  I1  1  0.15854263  0.41902685  0.69036812  1
+  Br  Br2  1  0.10012341  0.81820774  0.42910218  1
+  Se  Se3  1  0.14276791  0.78249550  0.23318148  1
+  Au  Au4  1  0.80393982  0.72065735  0.59988540  1
+  I  I5  1  0.70340991  0.20175362  0.62677169  1
+  I  I6  1  0.72632980  0.70557857  0.72517574  1

@@ -1,0 +1,318 @@
+{
+  "valid_rate_eval": 0.474,
+  "fail_reason_counts": {
+    "collision": 977,
+    "bad_volume": 97,
+    "low_atoms": 16,
+    "inplane_degenerate": 1
+  },
+  "min_dist": {
+    "count": 2000,
+    "mean": 2.0070866481697855,
+    "median": 1.5108801262246787,
+    "p10": 1.2534743017914762,
+    "p90": 3.341506308259349
+  },
+  "min_dist_collision": {
+    "count": 977,
+    "mean": 1.3406293981105317,
+    "median": 1.350681425178546,
+    "p10": 1.2059722819374719,
+    "p90": 1.4660497328279574
+  },
+  "min_dist_same_elem": {
+    "count": 1903,
+    "mean": 3.195685100279945,
+    "median": 2.3728600528391657,
+    "p10": 1.3357410761265152,
+    "p90": 6.149998509306597
+  },
+  "volume": {
+    "count": 2000,
+    "mean": 719.8973424797058,
+    "median": 445.8820343017578,
+    "p10": 223.7375015258789,
+    "p90": 1703.7046752929687
+  },
+  "cond": {
+    "count": 2000,
+    "mean": 20.266319523513317,
+    "median": 16.11073589324951,
+    "p10": 7.972572994232178,
+    "p90": 36.441480255126955
+  },
+  "cond_full": {
+    "count": 2000,
+    "mean": 38.018120998740194,
+    "median": 36.32787322998047,
+    "p10": 26.495459365844727,
+    "p90": 50.60707244873048
+  },
+  "cond_lattice": {
+    "count": 2000,
+    "mean": 4.311226975401244,
+    "median": 4.013817929864049,
+    "p10": 2.823573881619333,
+    "p90": 6.036677914204961
+  },
+  "spd_rate": 1.0,
+  "energy_mlip": {
+    "count": 0
+  },
+  "formation_energy_per_atom": {
+    "count": 0
+  },
+  "relaxed_rate": 0.0,
+  "min_dist_relax": {
+    "count": 0
+  },
+  "success_rate": 0.4245,
+  "success_geom_rate": 0.4245,
+  "success_energy_rate": null,
+  "energy_available_rate": 0.0,
+  "energy_skipped_geom_rate": 0.5755,
+  "energy_skipped_mlip_rate": 0.4245,
+  "fail_reason_energy_counts": {
+    "missing": 849
+  },
+  "spacegroup_match_rate": null,
+  "symmetry_violation_rate": null,
+  "angle_alpha": {
+    "count": 2000,
+    "mean": 90.16103840700211,
+    "median": 90.11995759279313,
+    "p10": 89.44251731088693,
+    "p90": 90.87503218121046
+  },
+  "angle_beta": {
+    "count": 2000,
+    "mean": 90.1675592110543,
+    "median": 90.00631014723383,
+    "p10": 89.88714978199361,
+    "p90": 90.4933726455795
+  },
+  "angle_gamma": {
+    "count": 2000,
+    "mean": 90.92019258971432,
+    "median": 93.95306719393766,
+    "p10": 58.191423443142206,
+    "p90": 118.749918331558
+  },
+  "angle_out_of_range_rate": 0.0,
+  "inplane_degen_rate": 0.0005,
+  "inplane_area": {
+    "count": 2000,
+    "mean": 35.73853075575828,
+    "median": 31.178104400634766,
+    "p10": 17.71311206817627,
+    "p90": 60.02740592956543
+  },
+  "inplane_gamma": {
+    "count": 2000,
+    "mean": 90.92019258971432,
+    "median": 93.95306719393766,
+    "p10": 58.191423443142206,
+    "p90": 118.749918331558
+  },
+  "n_atoms": {
+    "count": 2000,
+    "mean": 8.625,
+    "median": 8.0,
+    "p10": 3.0,
+    "p90": 16.0
+  },
+  "element_counts": {
+    "16": 607,
+    "33": 83,
+    "29": 62,
+    "8": 445,
+    "23": 58,
+    "34": 428,
+    "31": 57,
+    "15": 83,
+    "11": 34,
+    "77": 36,
+    "1": 111,
+    "50": 37,
+    "3": 36,
+    "81": 47,
+    "35": 405,
+    "32": 62,
+    "40": 60,
+    "28": 65,
+    "53": 341,
+    "6": 114,
+    "73": 68,
+    "14": 26,
+    "52": 445,
+    "17": 301,
+    "79": 76,
+    "48": 31,
+    "46": 75,
+    "19": 22,
+    "7": 95,
+    "76": 22,
+    "45": 31,
+    "24": 40,
+    "5": 42,
+    "25": 85,
+    "49": 63,
+    "9": 252,
+    "27": 73,
+    "47": 130,
+    "74": 52,
+    "13": 32,
+    "51": 103,
+    "56": 24,
+    "41": 62,
+    "42": 54,
+    "72": 70,
+    "44": 17,
+    "26": 40,
+    "78": 32,
+    "83": 59,
+    "22": 49,
+    "21": 41,
+    "38": 28,
+    "39": 12,
+    "12": 8,
+    "30": 20,
+    "20": 39,
+    "80": 43,
+    "75": 18,
+    "82": 27,
+    "37": 6,
+    "55": 9,
+    "4": 4
+  },
+  "total_samples": 2000,
+  "fail_reason_top3": [
+    [
+      "collision",
+      977
+    ],
+    [
+      "bad_volume",
+      97
+    ],
+    [
+      "low_atoms",
+      16
+    ]
+  ],
+  "cond_violation_rate": 0.0,
+  "cond_lattice_violation_rate": 0.0,
+  "project_trigger_rate": 0.29249998927116394,
+  "project_delta_cond": {
+    "count": 2000,
+    "mean": -24.66303824055195,
+    "median": -3.814697265625e-06,
+    "p10": -49.95345764160156,
+    "p90": 1.1444091796875e-05
+  },
+  "project_angle_out_rate_before": 0.0,
+  "project_angle_out_rate_after": 0.0,
+  "post_project_trigger_any_rate": 0.06800000369548798,
+  "post_project_delta_norm": {
+    "count": 2000,
+    "mean": 0.015020313043290687,
+    "median": 1.6245699185901685e-07,
+    "p10": 6.761796953469456e-08,
+    "p90": 0.05642856471240521
+  },
+  "post_project_vol_scale_inplane": {
+    "count": 2000,
+    "mean": 1.0,
+    "median": 1.0,
+    "p10": 1.0,
+    "p90": 1.0
+  },
+  "post_project_vol_scaled_rate": 0.0,
+  "post_project_vol_before": {
+    "count": 2000,
+    "mean": 841.3316063728332,
+    "median": 449.41339111328125,
+    "p10": 227.03504486083983,
+    "p90": 1998.704089355469
+  },
+  "post_project_vol_after": {
+    "count": 2000,
+    "mean": 717.0381551322937,
+    "median": 449.38539123535156,
+    "p10": 227.0352005004883,
+    "p90": 1720.7124145507821
+  },
+  "cond_match": {
+    "exact_match_rate": 1.0,
+    "l1_count_error": {
+      "count": 2000,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "l1_count_error_norm": {
+      "count": 2000,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_l1": {
+      "count": 2000,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_cosine": {
+      "count": 2000,
+      "mean": 1.0,
+      "median": 1.0,
+      "p10": 0.9999999999999998,
+      "p90": 1.0000000000000002
+    },
+    "source": "target",
+    "suspect_all_match": false
+  },
+  "schema_version": "eval_samples_v1",
+  "valid_criteria": [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "determinant > 0",
+    "lattice Gram matrix is SPD",
+    "condition number <= cond_max when provided (in-plane Gram for 2D slabs)",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees"
+  ],
+  "eval_params": {
+    "min_dist_cut": 1.5,
+    "bond_cut": 3.0,
+    "dup_eps": 0.001,
+    "vacuum_min": 15.0,
+    "v_min": 131.28549194335938,
+    "v_max": 2596.493408203125,
+    "pbc_mask": [
+      1,
+      1,
+      0
+    ],
+    "formation_energy_threshold": 0.0,
+    "element_refs_path": "data/ref_energies.json",
+    "target_spacegroup": null,
+    "spacegroup_symprec": 0.01,
+    "cond_max": 40.0
+  },
+  "run_context": {
+    "source": "sample_tokens",
+    "samples": "runs/E1_1/full_projection_seed0_n2000/samples/samples.npz",
+    "cond_split": "all",
+    "cond_split_json": null,
+    "seed": 0,
+    "protocol": "quick",
+    "experiment_id": "E1_1",
+    "config_hash": "a92bbb08afd522484d1d06208c585488699699fd89b6e56848adb79db847f8f1"
+  }
+}

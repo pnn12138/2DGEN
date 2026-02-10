@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MoCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29086733
+_cell_length_b   13.51120209
+_cell_length_c   13.22875506
+_cell_angle_alpha   90.97952610
+_cell_angle_beta   89.89824739
+_cell_angle_gamma   95.81037863
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MoCl2
+_chemical_formula_sum   'Mo2 Cl4'
+_cell_volume   407.29815800
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.14324379  0.87083244  0.24500656  1
+  Cl  Cl1  1  0.65713215  0.78436041  0.11814046  1
+  Mo  Mo2  1  0.53653711  0.55019605  0.30731964  1
+  Cl  Cl3  1  0.31646299  0.48735619  0.82675719  1
+  Cl  Cl4  1  0.86046171  0.79124093  0.95243704  1
+  Mo  Mo5  1  0.69162178  0.28164387  0.29694700  1

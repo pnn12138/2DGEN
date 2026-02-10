@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NaAl(Te3P)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.92106819
+_cell_length_b   14.73755893
+_cell_length_c   26.82227177
+_cell_angle_alpha   90.35868289
+_cell_angle_beta   90.00117729
+_cell_angle_gamma   94.25522308
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaAl(Te3P)2
+_chemical_formula_sum   'Na1 Al1 Te6 P2'
+_cell_volume   1545.67480791
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.45903969  0.08339691  0.37747446  1
+  P  P1  1  0.60829997  0.13393784  0.99340308  1
+  P  P2  1  0.81908417  0.43632889  0.70994198  1
+  Na  Na3  1  0.52056122  0.75992870  0.13006258  1
+  Te  Te4  1  0.44900990  0.29865599  0.39843240  1
+  Te  Te5  1  0.57579041  0.11824608  0.04036236  1
+  Te  Te6  1  0.29021549  0.79508591  0.40563989  1
+  Al  Al7  1  0.23962879  0.85260773  0.22716896  1
+  Te  Te8  1  0.60874653  0.75981975  0.41096532  1
+  Te  Te9  1  0.66702461  0.88600349  0.13357735  1

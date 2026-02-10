@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ga3PSe3SBr2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59409046
+_cell_length_b   5.85649969
+_cell_length_c   11.28208220
+_cell_angle_alpha   90.18734789
+_cell_angle_beta   89.44554542
+_cell_angle_gamma   133.74770986
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ga3PSe3SBr2
+_chemical_formula_sum   'Ga3 P1 Se3 S1 Br2'
+_cell_volume   123.81121392
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.23929892  0.34859979  0.89415371  1
+  Se  Se1  1  0.85079050  0.77517331  0.54630470  1
+  Ga  Ga2  1  0.57996559  0.42574626  0.47885823  1
+  Ga  Ga3  1  0.66277879  0.93807101  0.27354577  1
+  P  P4  1  0.40334910  0.07453904  0.22787192  1
+  Br  Br5  1  0.28602841  0.11133920  0.55637020  1
+  Ga  Ga6  1  0.41294956  0.26487446  0.04301453  1
+  S  S7  1  0.17259213  0.17378300  0.39663050  1
+  Se  Se8  1  0.50437349  0.14277798  0.86350012  1
+  Br  Br9  1  0.30731106  0.31218386  0.20030355  1

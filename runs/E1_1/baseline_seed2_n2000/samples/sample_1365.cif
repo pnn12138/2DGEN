@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.01492691
+_cell_length_b   20.02201826
+_cell_length_c   37.69507183
+_cell_angle_alpha   90.58284183
+_cell_angle_beta   89.68046832
+_cell_angle_gamma   97.37544661
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuI
+_chemical_formula_sum   'Cu3 I3'
+_cell_volume   4501.81972126
+_cell_formula_units_Z   3
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.92056179  0.45394325  0.19741893  1
+  I  I1  1  0.40807199  0.51435089  0.44053388  1
+  Cu  Cu2  1  0.36391449  0.76243305  0.97909617  1
+  I  I3  1  0.88863397  0.13568687  0.11198711  1
+  Cu  Cu4  1  0.39764214  0.41913748  0.49473187  1
+  I  I5  1  0.62381840  0.04762745  0.28604862  1

@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_ReBr3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.28672314
+_cell_length_b   19.12122465
+_cell_length_c   39.75373118
+_cell_angle_alpha   90.11134845
+_cell_angle_beta   89.94913137
+_cell_angle_gamma   89.00335608
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ReBr3
+_chemical_formula_sum   'Re2 Br6'
+_cell_volume   4778.05587124
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.01896095  0.27142143  0.00618017  1
+  Br  Br1  1  0.92184830  0.07535172  0.69847989  1
+  Br  Br2  1  0.98773479  0.86949730  0.36480469  1
+  Re  Re3  1  0.46051025  0.93535614  0.54873908  1
+  Re  Re4  1  0.71291971  0.69638073  0.87022305  1
+  Br  Br5  1  0.66093826  0.15524578  0.86063409  1
+  Br  Br6  1  0.36171913  0.04352665  0.19521141  1
+  Br  Br7  1  0.47356415  0.54227406  0.64929032  1

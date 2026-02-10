@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_AlCdInS4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51998663
+_cell_length_b   8.17278134
+_cell_length_c   12.74450310
+_cell_angle_alpha   90.30280505
+_cell_angle_beta   89.93709750
+_cell_angle_gamma   96.89812779
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlCdInS4
+_chemical_formula_sum   'Al1 Cd1 In1 S4'
+_cell_volume   260.57319356
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Al  Al0  1  0.71809006  0.17089844  0.94531345  1
+  Cd  Cd1  1  0.74148780  0.04416133  0.79952818  1
+  S  S2  1  0.16601951  0.00352737  0.86252099  1
+  S  S3  1  0.38492110  0.11060262  0.73449916  1
+  S  S4  1  0.97467613  0.71901512  0.78661513  1
+  S  S5  1  0.60815501  0.05648327  0.55734491  1
+  In  In6  1  0.35951364  0.17017746  0.37177157  1

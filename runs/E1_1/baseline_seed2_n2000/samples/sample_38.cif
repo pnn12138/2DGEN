@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ti3(BS)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49497819
+_cell_length_b   9.60908125
+_cell_length_c   12.61853506
+_cell_angle_alpha   90.35787638
+_cell_angle_beta   89.43045613
+_cell_angle_gamma   109.26900197
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti3(BS)2
+_chemical_formula_sum   'Ti3 B2 S2'
+_cell_volume   285.55947749
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  B  B0  1  0.38769978  0.54773909  0.80645758  1
+  Ti  Ti1  1  0.14325047  0.28917217  0.60912341  1
+  S  S2  1  0.75949180  0.57654023  0.31024638  1
+  Ti  Ti3  1  0.90652466  0.34049797  0.44175935  1
+  B  B4  1  0.51471412  0.69002384  0.81685776  1
+  Ti  Ti5  1  0.38252348  0.66307950  0.33775172  1
+  S  S6  1  0.14906693  0.76954794  0.69493246  1

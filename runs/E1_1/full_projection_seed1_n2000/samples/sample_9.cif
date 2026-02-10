@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_ScTe3As
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.02053761
+_cell_length_b   8.32639641
+_cell_length_c   12.55528855
+_cell_angle_alpha   90.20764691
+_cell_angle_beta   89.95392631
+_cell_angle_gamma   46.30321979
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ScTe3As
+_chemical_formula_sum   'Sc2 Te6 As2'
+_cell_volume   228.29821495
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.38037294  0.86516488  0.21897960  1
+  Te  Te1  1  0.55396271  0.98867035  0.09562540  1
+  Te  Te2  1  0.41899878  0.99403089  0.26806766  1
+  Te  Te3  1  0.55380440  0.49997687  0.22784138  1
+  Te  Te4  1  0.96912575  0.29178810  0.52584112  1
+  Sc  Sc5  1  0.65973997  0.85099316  0.67476726  1
+  As  As6  1  0.18721008  0.71946907  0.55358720  1
+  Te  Te7  1  0.60068202  0.97984076  0.46994233  1
+  As  As8  1  0.69870281  0.16464615  0.83845174  1
+  Sc  Sc9  1  0.81503797  0.38062358  0.94132125  1

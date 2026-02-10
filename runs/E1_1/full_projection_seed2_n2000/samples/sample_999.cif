@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_ZrBiSe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50486255
+_cell_length_b   14.02154814
+_cell_length_c   13.93506235
+_cell_angle_alpha   90.57426396
+_cell_angle_beta   89.96805797
+_cell_angle_gamma   92.99085560
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrBiSe3
+_chemical_formula_sum   'Zr1 Bi1 Se3'
+_cell_volume   488.73675559
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Bi  Bi0  1  0.45099112  0.18097591  0.67045540  1
+  Zr  Zr1  1  0.08710480  0.14072418  0.22440815  1
+  Se  Se2  1  0.68099618  0.82288784  0.92138213  1
+  Se  Se3  1  0.96825123  0.74424839  0.47358322  1
+  Se  Se4  1  0.12731905  0.86026841  0.89330387  1

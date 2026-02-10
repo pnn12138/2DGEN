@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TeOsBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29048467
+_cell_length_b   13.50895156
+_cell_length_c   13.23258683
+_cell_angle_alpha   90.87391102
+_cell_angle_beta   89.91100603
+_cell_angle_gamma   95.82778337
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TeOsBr
+_chemical_formula_sum   'Te2 Os2 Br2'
+_cell_volume   407.27976440
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.99408859  0.39002037  0.74027580  1
+  Te  Te1  1  0.77169394  0.09611177  0.93722653  1
+  Br  Br2  1  0.31716585  0.10540771  0.67455411  1
+  Te  Te3  1  0.63928032  0.64020729  0.02880761  1
+  Os  Os4  1  0.59648895  0.78166389  0.84421539  1
+  Os  Os5  1  0.37861633  0.66446781  0.81436908  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Re4TeSe7
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.55434966
+_cell_length_b   12.76408629
+_cell_length_c   14.36786842
+_cell_angle_alpha   89.99929217
+_cell_angle_beta   90.00022107
+_cell_angle_gamma   101.70853092
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Re4TeSe7
+_chemical_formula_sum   'Re4 Te1 Se7'
+_cell_volume   458.70190734
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.01918085  0.68561101  0.97323954  1
+  Re  Re1  1  0.02407406  0.84287924  0.61779976  1
+  Se  Se2  1  0.56495905  0.88226610  0.61665267  1
+  Se  Se3  1  0.29051781  0.20204225  0.39660874  1
+  Se  Se4  1  0.60031700  0.67045701  0.74084854  1
+  Se  Se5  1  0.57577896  0.87255812  0.31383681  1
+  Se  Se6  1  0.60504103  0.60173869  0.94542480  1
+  Re  Re7  1  0.85714531  0.47276878  0.12707782  1
+  Te  Te8  1  0.65149117  0.33609295  0.65028310  1
+  Re  Re9  1  0.65413475  0.19665682  0.17983723  1
+  Re  Re10  1  0.51902866  0.09110260  0.94997501  1
+  Se  Se11  1  0.22656059  0.96687698  0.38984388  1

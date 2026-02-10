@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_MnZnIBrO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.26997828
+_cell_length_b   13.64142664
+_cell_length_c   12.65311700
+_cell_angle_alpha   89.75651324
+_cell_angle_beta   90.02110738
+_cell_angle_gamma   94.49227916
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnZnIBrO
+_chemical_formula_sum   'Mn1 Zn1 I1 Br1 O1'
+_cell_volume   390.60594206
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zn  Zn0  1  0.95220470  0.57885599  0.26035237  1
+  O  O1  1  0.09285450  0.33666039  0.13849655  1
+  I  I2  1  0.86505175  0.40846634  0.99020863  1
+  Br  Br3  1  0.93173695  0.17675412  0.90446579  1
+  Mn  Mn4  1  0.24224281  0.52111816  0.03061986  1

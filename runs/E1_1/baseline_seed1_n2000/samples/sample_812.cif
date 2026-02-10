@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfZr2NbSeCl5O2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50158572
+_cell_length_b   13.53006481
+_cell_length_c   14.23256491
+_cell_angle_alpha   90.18875459
+_cell_angle_beta   89.98264724
+_cell_angle_gamma   95.23366541
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZr2NbSeCl5O2
+_chemical_formula_sum   'Hf1 Zr2 Nb1 Se1 Cl5 O2'
+_cell_volume   479.71324859
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.13670540  0.40060663  0.58739334  1
+  Hf  Hf1  1  0.41269875  0.22241211  0.96751070  1
+  Zr  Zr2  1  0.48765039  0.29320145  0.52716160  1
+  Cl  Cl3  1  0.42458409  0.30165157  0.81263548  1
+  Zr  Zr4  1  0.42634010  0.70903969  0.71156740  1
+  Cl  Cl5  1  0.98879272  0.35014382  0.85071176  1
+  O  O6  1  0.63100147  0.06190014  0.25059330  1
+  Cl  Cl7  1  0.67058325  0.89712954  0.60802013  1
+  Cl  Cl8  1  0.42241573  0.60667562  0.30366993  1
+  Se  Se9  1  0.42287350  0.83627701  0.09007311  1
+  Cl  Cl10  1  0.75435257  0.62283325  0.13190770  1
+  O  O11  1  0.11324263  0.23166132  0.65500659  1

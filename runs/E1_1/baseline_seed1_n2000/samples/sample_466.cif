@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_MnGeSbW2SeCl5O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.22339869
+_cell_length_b   6.08156062
+_cell_length_c   20.17798429
+_cell_angle_alpha   89.96994970
+_cell_angle_beta   89.95075031
+_cell_angle_gamma   62.97764599
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnGeSbW2SeCl5O3
+_chemical_formula_sum   'Mn1 Ge1 Sb1 W2 Se1 Cl5 O3'
+_cell_volume   461.68869747
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.33334351  0.10892773  0.01945138  1
+  W  W1  1  0.32047692  0.37785301  0.77635092  1
+  Cl  Cl2  1  0.52941751  0.26861119  0.83336937  1
+  W  W3  1  0.76052284  0.02791977  0.67588401  1
+  Mn  Mn4  1  0.78770256  0.81616354  0.91354775  1
+  Se  Se5  1  0.78398657  0.66697747  0.41608548  1
+  Cl  Cl6  1  0.27175856  0.63196611  0.40630507  1
+  Cl  Cl7  1  0.22841215  0.41388321  0.99020028  1
+  Cl  Cl8  1  0.78375143  0.27683040  0.78688353  1
+  O  O9  1  0.74598193  0.08077943  0.40990460  1
+  O  O10  1  0.77681971  0.80365050  0.15324467  1
+  Cl  Cl11  1  0.83506918  0.19972181  0.89649463  1
+  Ge  Ge12  1  0.89673162  0.76155227  0.37709236  1
+  O  O13  1  0.50387883  0.07142121  0.38390362  1

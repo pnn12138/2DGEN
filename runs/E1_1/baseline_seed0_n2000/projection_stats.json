@@ -1,0 +1,11 @@
+{
+  "available": false,
+  "reason": "not_emitted_by_sampling",
+  "schema_version": "projection_stats_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:14:12+00:00",
+  "experiment_id": "E1_1",
+  "config_hash": "5323bbe09c8065f3b9c4bc7ee6cb32e0d6b5a3e5da2e2f5295afd29f7e87b62a",
+  "seed": 0,
+  "protocol": "quick"
+}

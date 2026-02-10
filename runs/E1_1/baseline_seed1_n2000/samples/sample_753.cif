@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ti2Cl2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.71509147
+_cell_length_b   17.16698798
+_cell_length_c   12.92757311
+_cell_angle_alpha   89.65912873
+_cell_angle_beta   90.00814397
+_cell_angle_gamma   91.19324727
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti2Cl2O
+_chemical_formula_sum   'Ti2 Cl2 O1'
+_cell_volume   602.41211196
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.64409637  0.21789360  0.93707085  1
+  Ti  Ti1  1  0.55197716  0.50985718  0.25935841  1
+  O  O2  1  0.68467379  0.62106752  0.83651161  1
+  Cl  Cl3  1  0.14318085  0.35173225  0.13184834  1
+  Cl  Cl4  1  0.84958172  0.66203642  0.99533933  1

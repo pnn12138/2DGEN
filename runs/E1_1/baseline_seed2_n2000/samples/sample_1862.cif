@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_VNiTe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.61237979
+_cell_length_b   16.51683337
+_cell_length_c   12.64914188
+_cell_angle_alpha   90.12307553
+_cell_angle_beta   89.99720217
+_cell_angle_gamma   91.34434177
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   VNiTe2
+_chemical_formula_sum   'V1 Ni1 Te2'
+_cell_volume   545.63674495
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.67827797  0.36594057  0.91372943  1
+  Te  Te1  1  0.26959229  0.49230957  0.17350960  1
+  Ni  Ni2  1  0.09442329  0.58381653  0.62943125  1
+  V  V3  1  0.86450410  0.00902367  0.86755180  1

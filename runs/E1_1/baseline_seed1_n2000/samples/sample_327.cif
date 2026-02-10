@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_AgGeH6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.63053417
+_cell_length_b   12.74276558
+_cell_length_c   14.75090497
+_cell_angle_alpha   90.25305383
+_cell_angle_beta   89.93985681
+_cell_angle_gamma   102.48384604
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AgGeH6
+_chemical_formula_sum   'Ag1 Ge1 H6'
+_cell_volume   482.75936739
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.10014248  0.48190367  0.99846822  1
+  H  H1  1  0.97227120  0.75447792  0.05961259  1
+  Ag  Ag2  1  0.65176010  0.99134731  0.78412557  1
+  H  H3  1  0.71959877  0.76313829  0.89729750  1
+  H  H4  1  0.34591067  0.84811836  0.03277517  1
+  H  H5  1  0.99785447  0.81121546  0.45830134  1
+  H  H6  1  0.93225288  0.93762016  0.13522434  1
+  Ge  Ge7  1  0.26682425  0.52596426  0.74853528  1

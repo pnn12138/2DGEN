@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_SbPbClO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49590349
+_cell_length_b   13.60547380
+_cell_length_c   13.97745820
+_cell_angle_alpha   90.14542399
+_cell_angle_beta   89.98704574
+_cell_angle_gamma   94.65533238
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbPbClO3
+_chemical_formula_sum   'Sb2 Pb2 Cl2 O6'
+_cell_volume   473.07842262
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.00954866  0.42898083  0.12705010  1
+  Sb  Sb1  1  0.55283785  0.30632401  0.47509897  1
+  O  O2  1  0.75826490  0.75856274  0.04040114  1
+  Pb  Pb3  1  0.78387451  0.81644058  0.38554573  1
+  O  O4  1  0.18059826  0.02163506  0.64631343  1
+  Sb  Sb5  1  0.64676905  0.51427841  0.45165706  1
+  O  O6  1  0.83439636  0.89065206  0.79828405  1
+  O  O7  1  0.30329752  0.37585163  0.22601928  1
+  Cl  Cl8  1  0.86460590  0.56128311  0.22334409  1
+  Cl  Cl9  1  0.02794838  0.97148895  0.49569649  1
+  O  O10  1  0.02696800  0.97984982  0.89454538  1
+  Pb  Pb11  1  0.10842176  0.77093631  0.11941965  1

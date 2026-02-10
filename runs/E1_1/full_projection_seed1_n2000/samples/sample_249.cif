@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_TaBiAs
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.86166906
+_cell_length_b   6.79629599
+_cell_length_c   30.96781562
+_cell_angle_alpha   90.26441253
+_cell_angle_beta   90.21000962
+_cell_angle_gamma   57.62148135
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaBiAs
+_chemical_formula_sum   'Ta1 Bi1 As1'
+_cell_volume   686.38422689
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.62850618  0.63805753  0.05011034  1
+  Bi  Bi1  1  0.74410295  0.86861539  0.53392732  1
+  Ta  Ta2  1  0.05043054  0.41719770  0.31408960  1

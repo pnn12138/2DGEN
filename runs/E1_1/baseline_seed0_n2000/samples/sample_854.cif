@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CoSbTe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44397807
+_cell_length_b   13.95679758
+_cell_length_c   13.59591855
+_cell_angle_alpha   90.06027195
+_cell_angle_beta   89.99824035
+_cell_angle_gamma   92.07324522
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoSbTe3
+_chemical_formula_sum   'Co2 Sb2 Te6'
+_cell_volume   463.45440500
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.75028610  0.23437691  0.41627544  1
+  Te  Te1  1  0.31582215  0.78285772  0.60692251  1
+  Sb  Sb2  1  0.02558351  0.99251866  0.54477584  1
+  Te  Te3  1  0.33682632  0.60677147  0.67517924  1
+  Te  Te4  1  0.06844234  0.08465970  0.30574894  1
+  Sb  Sb5  1  0.19441168  0.88050765  0.61634982  1
+  Co  Co6  1  0.31673622  0.07832718  0.42169237  1
+  Te  Te7  1  0.39460987  0.34459972  0.72200954  1
+  Co  Co8  1  0.62028080  0.39187908  0.80019152  1
+  Te  Te9  1  0.66423607  0.27377224  0.94148493  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ca2Te2AuCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.73978996
+_cell_length_b   12.29957259
+_cell_length_c   15.23209821
+_cell_angle_alpha   90.21129415
+_cell_angle_beta   89.94829873
+_cell_angle_gamma   104.40836697
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca2Te2AuCl2
+_chemical_formula_sum   'Ca2 Te2 Au1 Cl2'
+_cell_volume   497.14685253
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.67737895  0.58424622  0.25810173  1
+  Au  Au1  1  0.25642395  0.30145884  0.46312872  1
+  Ca  Ca2  1  0.94850582  0.49444982  0.27379152  1
+  Cl  Cl3  1  0.09881568  0.18885088  0.98710847  1
+  Cl  Cl4  1  0.46576166  0.98709100  0.43061197  1
+  Ca  Ca5  1  0.31399351  0.47205257  0.66509199  1
+  Te  Te6  1  0.45712900  0.92588127  0.22243798  1

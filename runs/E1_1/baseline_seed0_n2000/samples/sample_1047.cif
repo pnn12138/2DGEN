@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NaFe(Te3P)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   17.20100784
+_cell_length_b   23.57703420
+_cell_length_c   86.04784246
+_cell_angle_alpha   92.72772595
+_cell_angle_beta   89.79539364
+_cell_angle_gamma   119.92756795
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaFe(Te3P)2
+_chemical_formula_sum   'Na1 Fe1 Te6 P2'
+_cell_volume   30200.90201379
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.23441505  0.34127951  0.18868279  1
+  Te  Te1  1  0.58053589  0.25528145  0.23832136  1
+  Te  Te2  1  0.56392050  0.06780720  0.75982869  1
+  Te  Te3  1  0.90136814  0.47556496  0.03079534  1
+  P  P4  1  0.17370319  0.64614916  0.90015960  1
+  Te  Te5  1  0.82569027  0.78295839  0.16790253  1
+  Te  Te6  1  0.63623142  0.27999878  0.92479420  1
+  Te  Te7  1  0.94904518  0.97966707  0.18933567  1
+  Na  Na8  1  0.39449883  0.24294305  0.28054163  1
+  P  P9  1  0.81972504  0.43622589  0.31254792  1

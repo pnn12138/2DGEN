@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Co3GeS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.22914791
+_cell_length_b   12.26647901
+_cell_length_c   12.61587517
+_cell_angle_alpha   81.29092921
+_cell_angle_beta   86.51129365
+_cell_angle_gamma   105.24482092
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Co3GeS2
+_chemical_formula_sum   'Co3 Ge1 S2'
+_cell_volume   327.15152810
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.01699066  0.22089577  0.19174957  1
+  Co  Co1  1  0.29846954  0.12678909  0.15627861  1
+  Co  Co2  1  0.11692810  0.86955261  0.30445123  1
+  S  S3  1  0.96456742  0.79805374  0.64279926  1
+  Ge  Ge4  1  0.81326675  0.36474323  0.83217406  1
+  S  S5  1  0.34648085  0.74955869  0.07483721  1

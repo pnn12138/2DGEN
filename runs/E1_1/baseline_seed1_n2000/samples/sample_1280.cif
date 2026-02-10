@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_AuSe2I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.24363470
+_cell_length_b   20.33765368
+_cell_length_c   39.32790534
+_cell_angle_alpha   90.35796047
+_cell_angle_beta   90.16928354
+_cell_angle_gamma   94.90757088
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AuSe2I
+_chemical_formula_sum   'Au2 Se4 I2'
+_cell_volume   4975.45682109
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.39432240  0.71594334  0.05984473  1
+  I  I1  1  0.26697350  0.48213577  0.72293615  1
+  Au  Au2  1  0.23976326  0.55194664  0.69883072  1
+  I  I3  1  0.97221184  0.37315369  0.40999937  1
+  Se  Se4  1  0.38033473  0.76494408  0.50977564  1
+  Se  Se5  1  0.59769821  0.58912468  0.56661010  1
+  Se  Se6  1  0.39648628  0.81146097  0.57908636  1
+  Au  Au7  1  0.99643898  0.12032986  0.75010586  1

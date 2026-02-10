@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_Fe3IBrO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43833518
+_cell_length_b   7.81883232
+_cell_length_c   12.58020063
+_cell_angle_alpha   90.81102362
+_cell_angle_beta   89.80710761
+_cell_angle_gamma   96.65097571
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Fe3IBrO3
+_chemical_formula_sum   'Fe3 I1 Br1 O3'
+_cell_volume   238.20236706
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.43365955  0.63639498  0.32079649  1
+  O  O1  1  0.22120637  0.50348949  0.90407181  1
+  Br  Br2  1  0.71923923  0.90891933  0.55083835  1
+  I  I3  1  0.98251081  0.15420628  0.37783623  1
+  O  O4  1  0.79762840  0.16705513  0.05000305  1
+  Fe  Fe5  1  0.17517142  0.24103551  0.53933448  1
+  Fe  Fe6  1  0.49689347  0.36607596  0.61155605  1
+  O  O7  1  0.75825739  0.73995531  0.12274265  1

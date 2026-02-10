@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Cu2Te4W
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.30289626
+_cell_length_b   12.74790619
+_cell_length_c   13.88429960
+_cell_angle_alpha   90.01229684
+_cell_angle_beta   89.99916240
+_cell_angle_gamma   98.36669510
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2Te4W
+_chemical_formula_sum   'Cu2 Te4 W1'
+_cell_volume   403.26475468
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.81462097  0.37474823  0.58610344  1
+  W  W1  1  0.92488909  0.51596642  0.12596011  1
+  Te  Te2  1  0.01437473  0.95166206  0.79149413  1
+  Cu  Cu3  1  0.55407810  0.02998161  0.72462666  1
+  Te  Te4  1  0.49507904  0.24140933  0.13965702  1
+  Cu  Cu5  1  0.39102745  0.57021523  0.58676338  1
+  Te  Te6  1  0.41441727  0.02701551  0.44341815  1

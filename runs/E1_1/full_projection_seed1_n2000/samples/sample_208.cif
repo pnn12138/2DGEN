@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_NbTe2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.22311950
+_cell_length_b   11.56867179
+_cell_length_c   20.53518870
+_cell_angle_alpha   90.14994564
+_cell_angle_beta   89.97686193
+_cell_angle_gamma   102.45932742
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbTe2O
+_chemical_formula_sum   'Nb1 Te2 O1'
+_cell_volume   747.66466721
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.73400688  0.35911179  0.75939167  1
+  Te  Te1  1  0.49263573  0.88878822  0.74899185  1
+  O  O2  1  0.02366066  0.27556992  0.13731050  1
+  Nb  Nb3  1  0.10707092  0.05415058  0.38603616  1

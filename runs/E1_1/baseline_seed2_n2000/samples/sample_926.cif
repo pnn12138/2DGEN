@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Cd2SeIClO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29998446
+_cell_length_b   14.38407159
+_cell_length_c   12.79481995
+_cell_angle_alpha   90.08012739
+_cell_angle_beta   89.99778957
+_cell_angle_gamma   92.12735131
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cd2SeIClO
+_chemical_formula_sum   'Cd2 Se1 I1 Cl1 O1'
+_cell_volume   423.00068065
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.97386932  0.60394859  0.32433701  1
+  Se  Se1  1  0.06823111  0.19601107  0.68455124  1
+  Cd  Cd2  1  0.57723856  0.25239944  0.33970654  1
+  Cd  Cd3  1  0.93850613  0.68435764  0.99301088  1
+  I  I4  1  0.08992505  0.03039598  0.51997137  1
+  O  O5  1  0.69248641  0.82370949  0.11548507  1

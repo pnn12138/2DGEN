@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NaHgI3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.91604662
+_cell_length_b   7.95488562
+_cell_length_c   12.33511497
+_cell_angle_alpha   92.69840923
+_cell_angle_beta   91.61349512
+_cell_angle_gamma   49.02310067
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaHgI3
+_chemical_formula_sum   'Na2 Hg2 I6'
+_cell_volume   215.78387219
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.91582775  0.79324007  0.74072981  1
+  Hg  Hg1  1  0.92103863  0.45421505  0.74575305  1
+  I  I2  1  0.14159799  0.27988553  0.64122772  1
+  I  I3  1  0.22293057  0.18047938  0.78398037  1
+  I  I4  1  0.21287689  0.31556961  0.86081147  1
+  Na  Na5  1  0.29757690  0.61376524  0.60315430  1
+  Na  Na6  1  0.29788849  0.49132484  0.03961150  1
+  I  I7  1  0.90178514  0.27741629  0.04258540  1
+  Hg  Hg8  1  0.39478099  0.45852852  0.24356270  1
+  I  I9  1  0.77647924  0.03474820  0.24570161  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_FeAg(IN)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.17548418
+_cell_length_b   7.27087859
+_cell_length_c   17.39701467
+_cell_angle_alpha   90.23010454
+_cell_angle_beta   90.09007859
+_cell_angle_gamma   62.45496578
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   FeAg(IN)2
+_chemical_formula_sum   'Fe1 Ag1 I2 N2'
+_cell_volume   356.13864937
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.95690465  0.15813065  0.81398439  1
+  Fe  Fe1  1  0.41000605  0.62995434  0.00392389  1
+  I  I2  1  0.03400981  0.97677708  0.14161046  1
+  I  I3  1  0.93535137  0.94693947  0.77173376  1
+  N  N4  1  0.37979841  0.89851296  0.40571499  1
+  Ag  Ag5  1  0.50078201  0.96400917  0.07938302  1

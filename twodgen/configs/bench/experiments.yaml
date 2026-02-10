@@ -1,0 +1,31 @@
+experiments:
+  E1_1:
+    config: twodgen/configs/bench/E1_1.yaml
+    protocol: final
+    paper_assets: [Fig2, Fig3, Table1]
+  E1_2:
+    config: twodgen/configs/bench/E1_2_full.yaml
+    protocol: final
+    paper_assets: [Fig2, Fig6, Table1]
+    runner: twodgen/scripts/exp_e1_component_ablation.sh
+  E1_3:
+    config: twodgen/configs/bench/E1_3_gscale.yaml
+    protocol: quick
+    paper_assets: [Fig6]
+    runner: twodgen/scripts/exp_e1_gscale_sweep.sh
+  E2_1:
+    config: twodgen/configs/bench/E2_1.yaml
+    protocol: quick
+    paper_assets: [Appendix]
+  E3_1:
+    config: twodgen/configs/bench/E3_1_soft.yaml
+    protocol: final
+    paper_assets: [Fig4, Table2]
+  E4_1:
+    config: twodgen/configs/bench/E4_1.yaml
+    protocol: final
+    paper_assets: [Fig5, Table3]
+  E5_1:
+    config: twodgen/configs/bench/E5_1.yaml
+    protocol: final
+    paper_assets: [Fig6, Table3]

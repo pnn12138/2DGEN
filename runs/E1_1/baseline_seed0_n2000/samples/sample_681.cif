@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_BiTe6As2Au
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.73066044
+_cell_length_b   15.69301382
+_cell_length_c   14.19529535
+_cell_angle_alpha   90.00237941
+_cell_angle_beta   90.00030303
+_cell_angle_gamma   91.63588398
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BiTe6As2Au
+_chemical_formula_sum   'Bi1 Te6 As2 Au1'
+_cell_volume   608.05301673
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.86529815  0.31135151  0.43830848  1
+  Te  Te1  1  0.95002103  0.08488862  0.89561141  1
+  Te  Te2  1  0.37273026  0.74680138  0.61604619  1
+  Bi  Bi3  1  0.20230892  0.95392102  0.38496971  1
+  Te  Te4  1  0.69799423  0.80382156  0.37063694  1
+  Au  Au5  1  0.23543057  0.10829480  0.98122406  1
+  Te  Te6  1  0.79250920  0.22155309  0.45766163  1
+  Te  Te7  1  0.30813694  0.52581215  0.28870457  1
+  Te  Te8  1  0.43451881  0.90710068  0.24040353  1
+  As  As9  1  0.19857261  0.90071374  0.47037682  1

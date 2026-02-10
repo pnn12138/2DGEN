@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Zn(HS)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.56766653
+_cell_length_b   13.02207547
+_cell_length_c   12.66172989
+_cell_angle_alpha   88.72501865
+_cell_angle_beta   91.10590417
+_cell_angle_gamma   149.99825040
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Zn(HS)2
+_chemical_formula_sum   'Zn1 H2 S2'
+_cell_volume   541.33958203
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.13493347  0.74295044  0.42779589  1
+  H  H1  1  0.71694946  0.52740860  0.87114143  1
+  S  S2  1  0.56405544  0.64286494  0.50921273  1
+  S  S3  1  0.01314545  0.73985481  0.93396902  1
+  Zn  Zn4  1  0.94174886  0.10650349  0.12272692  1

@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Ni2Pd(BrCl)4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46474457
+_cell_length_b   9.77045504
+_cell_length_c   12.46473636
+_cell_angle_alpha   89.99722262
+_cell_angle_beta   89.98604855
+_cell_angle_gamma   74.86302185
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ni2Pd(BrCl)4
+_chemical_formula_sum   'Ni2 Pd1 Br4 Cl4'
+_cell_volume   289.75706559
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.29606879  0.59869456  0.62486738  1
+  Ni  Ni1  1  0.00428797  0.42806494  0.45869616  1
+  Cl  Cl2  1  0.41151243  0.00195608  0.82120788  1
+  Cl  Cl3  1  0.35889661  0.71129441  0.69822109  1
+  Br  Br4  1  0.81047630  0.90365291  0.25873733  1
+  Pd  Pd5  1  0.30928534  0.81382966  0.13450670  1
+  Ni  Ni6  1  0.22833729  0.24196529  0.95772099  1
+  Br  Br7  1  0.89267582  0.93446010  0.78682446  1
+  Cl  Cl8  1  0.52270508  0.47850037  0.05095971  1
+  Br  Br9  1  0.12006903  0.93009377  0.97904634  1
+  Br  Br10  1  0.69354457  0.46355808  0.55411607  1

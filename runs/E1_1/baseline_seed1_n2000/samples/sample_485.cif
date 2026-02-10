@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_MnAgSeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.75288534
+_cell_length_b   17.40617121
+_cell_length_c   13.14719852
+_cell_angle_alpha   90.08117924
+_cell_angle_beta   89.99949708
+_cell_angle_gamma   91.21644896
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnAgSeCl
+_chemical_formula_sum   'Mn1 Ag1 Se1 Cl1'
+_cell_volume   629.83424656
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.35712337  0.95367050  0.44354725  1
+  Mn  Mn1  1  0.71131468  0.44531631  0.17306304  1
+  Se  Se2  1  0.42267132  0.81208038  0.80110157  1
+  Ag  Ag3  1  0.13982964  0.52368736  0.34551334  1

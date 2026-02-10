@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_AsHPbO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47459579
+_cell_length_b   8.05437835
+_cell_length_c   12.51502742
+_cell_angle_alpha   90.36877037
+_cell_angle_beta   89.93248721
+_cell_angle_gamma   96.15695140
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AsHPbO3
+_chemical_formula_sum   'As2 H2 Pb2 O6'
+_cell_volume   247.99716436
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.37634087  0.89013052  0.38645196  1
+  O  O1  1  0.18192911  0.01621008  0.68533331  1
+  O  O2  1  0.58022690  0.19949341  0.82803249  1
+  Pb  Pb3  1  0.45410991  0.64460230  0.65560818  1
+  O  O4  1  0.43421590  0.24941744  0.37867647  1
+  O  O5  1  0.75359631  0.88462925  0.54790390  1
+  Pb  Pb6  1  0.88414764  0.95852280  0.98288846  1
+  H  H7  1  0.88269448  0.06961441  0.00492179  1
+  O  O8  1  0.78918511  0.30680308  0.43062389  1
+  H  H9  1  0.60306406  0.93826675  0.13961947  1
+  As  As10  1  0.28728199  0.43097949  0.81555152  1
+  O  O11  1  0.99353600  0.52640867  0.03294873  1

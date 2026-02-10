@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Nb2H2NO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.22520709
+_cell_length_b   7.30654687
+_cell_length_c   12.37883683
+_cell_angle_alpha   89.91532885
+_cell_angle_beta   90.00278917
+_cell_angle_gamma   94.75811155
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Nb2H2NO2
+_chemical_formula_sum   'Nb2 H2 N1 O2'
+_cell_volume   200.56849184
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.95764256  0.14710617  0.85140181  1
+  Nb  Nb1  1  0.55563354  0.83531189  0.82606030  1
+  O  O2  1  0.86191845  0.23920295  0.55750632  1
+  N  N3  1  0.19713163  0.74437666  0.32829189  1
+  H  H4  1  0.68064165  0.41234064  0.97361469  1
+  H  H5  1  0.70353413  0.30626130  0.30042315  1
+  O  O6  1  0.73126030  0.03302002  0.56485271  1

@@ -1,0 +1,39 @@
+# generated using pymatgen
+data_FeH4C4(BrN)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.84070301
+_cell_length_b   10.84543845
+_cell_length_c   15.64179008
+_cell_angle_alpha   90.13332773
+_cell_angle_beta   89.97930034
+_cell_angle_gamma   108.41386296
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   FeH4C4(BrN)2
+_chemical_formula_sum   'Fe1 H4 C4 Br2 N2'
+_cell_volume   457.22786214
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  C  C0  1  0.38532686  0.49123383  0.92166209  1
+  N  N1  1  0.87006354  0.01977062  0.21701103  1
+  H  H2  1  0.09193516  0.25759506  0.61231112  1
+  H  H3  1  0.82886124  0.90348053  0.13535190  1
+  H  H4  1  0.79244900  0.70571709  0.38966274  1
+  Br  Br5  1  0.90011597  0.28757715  0.91754198  1
+  C  C6  1  0.14751406  0.17050235  0.08416171  1
+  C  C7  1  0.45793915  0.44611022  0.30809498  1
+  Br  Br8  1  0.79435253  0.97839189  0.81806374  1
+  Fe  Fe9  1  0.97744370  0.71320057  0.16557553  1
+  N  N10  1  0.57658172  0.93936956  0.95924652  1
+  H  H11  1  0.81949425  0.81611252  0.98684287  1
+  C  C12  1  0.05012989  0.23660560  0.16323507  1

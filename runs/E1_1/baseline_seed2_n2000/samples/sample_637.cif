@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_YVGeCl4O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.19508958
+_cell_length_b   13.41138567
+_cell_length_c   12.21129758
+_cell_angle_alpha   90.10517375
+_cell_angle_beta   89.99356859
+_cell_angle_gamma   93.41009017
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   YVGeCl4O3
+_chemical_formula_sum   'Y1 V1 Ge1 Cl4 O3'
+_cell_volume   358.85361500
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.08396149  0.56775999  0.88264012  1
+  V  V1  1  0.17186451  0.25321579  0.09540296  1
+  Cl  Cl2  1  0.79275310  0.60834503  0.41467071  1
+  Ge  Ge3  1  0.03245378  0.12084198  0.39196467  1
+  Y  Y4  1  0.80381966  0.68444252  0.61798668  1
+  Cl  Cl5  1  0.15275955  0.20014191  0.66459799  1
+  Cl  Cl6  1  0.28281736  0.48992825  0.64441872  1
+  O  O7  1  0.68916082  0.48816299  0.21321940  1
+  Cl  Cl8  1  0.01119661  0.01227522  0.08716273  1
+  O  O9  1  0.06338048  0.83952332  0.72568679  1

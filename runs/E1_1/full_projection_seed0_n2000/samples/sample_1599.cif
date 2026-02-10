@@ -1,0 +1,41 @@
+# generated using pymatgen
+data_CuB2MoIrRh3CSe5I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46842337
+_cell_length_b   13.93450661
+_cell_length_c   13.39761851
+_cell_angle_alpha   89.77304222
+_cell_angle_beta   90.03296472
+_cell_angle_gamma   97.66715855
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuB2MoIrRh3CSe5I
+_chemical_formula_sum   'Cu1 B2 Mo1 Ir1 Rh3 C1 Se5 I1'
+_cell_volume   456.70453181
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  B  B0  1  0.57987148  0.02599287  0.78870702  1
+  C  C1  1  0.43023416  0.12882276  0.78143424  1
+  Se  Se2  1  0.84026617  0.01607912  0.68781877  1
+  B  B3  1  0.68592834  0.22422028  0.17521739  1
+  Se  Se4  1  0.35365105  0.48008156  0.93407249  1
+  Cu  Cu5  1  0.22928429  0.22945786  0.49946117  1
+  Se  Se6  1  0.78759950  0.01264666  0.40714499  1
+  Se  Se7  1  0.35670099  0.00060732  0.62504643  1
+  Rh  Rh8  1  0.81671637  0.94391090  0.76426643  1
+  I  I9  1  0.59622574  0.51705551  0.00852585  1
+  Se  Se10  1  0.30695724  0.05372429  0.10871148  1
+  Rh  Rh11  1  0.62779164  0.59642839  0.48586306  1
+  Rh  Rh12  1  0.12199163  0.52203465  0.53228140  1
+  Ir  Ir13  1  0.57931858  0.07447254  0.33516553  1
+  Mo  Mo14  1  0.31061649  0.08921625  0.68188566  1

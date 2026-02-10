@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_NiTeSeI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.19679785
+_cell_length_b   19.67106985
+_cell_length_c   21.43014643
+_cell_angle_alpha   90.25705638
+_cell_angle_beta   89.97424597
+_cell_angle_gamma   99.66966363
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiTeSeI
+_chemical_formula_sum   'Ni1 Te1 Se1 I1'
+_cell_volume   2159.58388812
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.79587460  0.93108749  0.91462028  1
+  Se  Se1  1  0.50239563  0.54233027  0.79411030  1
+  I  I2  1  0.58332443  0.36047173  0.92259431  1
+  Ni  Ni3  1  0.06349564  0.27897453  0.41163778  1

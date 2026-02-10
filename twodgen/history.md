@@ -97,3 +97,29 @@
 - 2026-02-07: 放宽 `create_c2db_split.py` 对输入 token cache 的字段假设：当缺失 `counts_vector` 时可从 `z/atom_mask` 计算；当缓存为空时给出包含 keys 的明确报错提示。
 - 2026-02-07: 允许 `eval_samples.py --self-check` 不依赖 `--samples`（此前 parser 未暴露 self-check 且强制 required samples，README 中的自检命令无法执行）。
 - 2026-02-06: phase2 能量链路一致性：`sample_tokens.py` 仅对几何成功样本尝试 CHGNet relax（valid 且 non-cross-vacuum），减少算力浪费并使 `energy_skipped_reason` 更一致；示例闭环输出：`outputs/eval_energy_phase2/eval`。
+- 2026-02-09: 修复 `twodgen/scrip/sampling_projection_ab.sh` 的 `--post-project-interval` 语义（改为 1，确保 B 组实际启用 post-step 投影），并按 phase1b 口径重跑 E0 on/off 与采样对照（`outputs/debug_cond_trigger/on/20260209_172341`、`outputs/debug_cond_trigger/off/20260209_172730`，`outputs/samples_tokens/cond_on_fix_20260209`、`outputs/samples_tokens/cond_off_baseline_20260209`）。
+- 2026-02-09: 采样端 post-project 增加 `vacuum` key（沿 c 轴扩展到 `vacuum_min`），并在 `projection_stats.json` 写入 vacuum before/after 分位数与触发率。
+- 2026-02-09: vacuum post-project 512 样本复测（`outputs/samples_tokens/20260207_004939_eval_vacproj_v2`）：`vacuum_ok_rate=0.4766`，`vacuum_project_trigger_rate=0.8359`，护栏触发仍高。
+- 2026-02-09: 引入按 `n_atoms` 分桶的 area_per_atom clamp（post-project volume key 走 2D 面积口径），复测 `outputs/samples_tokens/20260207_004939_eval_vacproj_area`：`bad_volume` 145→97，`vacuum_ok_rate=0.4316`，`area_project_trigger_rate=0.3516`。
+- 2026-02-09: 修复 vacuum thickness 估计使用 `torch.nanmin/max` 在当前环境不可用的问题（改为 mask + min/max），避免采样崩溃。
+- 2026-02-10: 采样后段引入“多次轻量 repulsion”调度（in-plane 轻微 expand → repulsion → angle/inplane 快速 clamp），新增 `min_dist_schedule_*` 配置项。
+- 2026-02-10: 复测 `outputs/samples_tokens/20260207_004939_eval_vacproj_area_repulse_relax`（512 + relax）：`valid_rate_eval=0.7109`、`valid_2d_rate=0.6660`、`vacuum_ok_rate=0.3691`、relax 成功率 111/512。
+- 2026-02-10: phase1b E0 on/off 复跑（`outputs/debug_cond_trigger/on/20260210_082247`、`outputs/debug_cond_trigger/off/20260210_082745`）。
+- 2026-02-10: 采样端新增 vacuum schedule（后段轻量扩展 c 轴，上限 1.08x）并复测 `outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch_relax`：`vacuum_ok_rate=0.3965`、`post_project_delta_norm_p95=0.3986`、relax 成功率 115/512。
+- 2026-02-10: vacuum schedule 改为“分段目标”（0.6→1.0 * vacuum_min 线性拉满）并复测 `outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch2_relax`：`vacuum_ok_rate=0.3965`、`vacuum_project_trigger_rate=0.8516`、relax 成功率 113/512。
+- 2026-02-10: vacuum schedule 加入触发阈值（仅当 vacuum<0.7*vacuum_min）复测 `outputs/samples_tokens/20260207_004939_eval_vacproj_area_vacsch3_relax`：指标基本不变（`vacuum_ok_rate=0.3965`、`vacuum_project_trigger_rate=0.8516`）。
+- 2026-02-10: 修复脚本直运行的导入路径问题（`sample_tokens.py`/`train_tokens.py`/`eval_checkpoints.py`/`test_tokens.py` 自动加入仓库根目录到 `sys.path`）。
+- 2026-02-10: 启动 phase0 落地，新增 `evaluate/run_layout.py`（原子写入与状态文件）、`evaluate/protocol.py`（quick/final 预算与种子）、`evaluate/aggregate_runs.py`（seed 级 mean±std/CI 聚合），并补齐 `evaluate/schemas/*.schema.json` 与 `configs/bench/experiments.yaml`。
+- 2026-02-10: `eval_samples.py` 新增 `metrics_summary.json` 与 `failure_breakdown.json` 导出；`sample_tokens.py` 的 `run_metadata.json`/`projection_stats.json` 切换到 schema envelope（含 schema_version/git_commit/experiment_id/seed/protocol/config_hash）并采用原子写入。
+- 2026-02-10: `evaluate/io.py` 支持读取 `metrics_summary/failure_breakdown`，并按 `schema_version` 给出兼容告警；新增 `twodgen/scripts/` 入口别名（兼容 legacy `twodgen/scrip/`）。
+- 2026-02-10: 新增测试 `tests/test_phase0_eval_artifacts.py`，并验证 `tests/test_evaluate_io.py`、`tests/test_eval_samples_relax.py`、`tests/test_energy_chain.py` 全部通过。
+- 2026-02-10: 新增 phase0 执行器 `twodgen/evaluate/run_e0.py` 与校验器 `twodgen/evaluate/validate_artifacts.py`，实现 E0 的状态机（running/success/failed）、失败 trace、resume 跳过与 artifact 完整性校验。
+- 2026-02-10: 修复 `eval_samples.py` 的 `metrics_summary` 生成健壮性问题（可选指标为 `None` 时不再触发 `float(None)` 崩溃）。
+- 2026-02-10: 完成 E0 实跑并通过 0.2 review 验收：`runs/E0/20260210_e0_seed0_n200`；再次运行同配置可由 `--resume` 正常跳过。
+- 2026-02-10: phase1 部分落地：新增 `evaluate/ablation_runner.py`、`scripts/exp_e1_baseline_vs_projection.sh`（及 legacy shim），支持 E1 variant×seed 批跑、状态追踪与 `_aggregate` 汇总。
+- 2026-02-10: 新增 E1 配置骨架（E1_1/E1_2/E1_3）并完成 smoke 运行 `runs/E1_1_smoke`，baseline/full_projection 两组 artifact 均通过 `validate_artifacts` 校验。
+- 2026-02-10: 修复 `ablation_runner` 聚合输出中的空指标 `NaN`（改为 `null`），避免非严格 JSON 导致后续资产导出失败。
+- 2026-02-10: phase1 继续落地：新增 `scripts/exp_e1_component_ablation.sh` 与 `scripts/exp_e1_gscale_sweep.sh`（均提供 `scrip/` 兼容 shim），并新增 `evaluate/collect_gscale_sweep.py` 生成 E1.3 汇总表。
+- 2026-02-10: `sample_tokens.py` 增加 `--g-scale`/`--override-g-scale`，支持在采样阶段显式覆盖 checkpoint g_scale（用于 E1.3 sweep 对照）。
+- 2026-02-10: 完成 E1.2/E1.3 smoke（`runs/E1_2_smoke`、`runs/E1_3_smoke`），并通过 artifact validator；新增测试 `tests/test_phase1_scripts.py`。
+- 2026-02-10: 完成 E1.1 正式 quick 对照（`runs/E1_1`, N=2000, seeds=0/1/2）：`success_geom_rate` 从 0.3127 提升到 0.4260（delta=+0.1133），`valid_rate_eval` 从 0.3508 提升到 0.4787；提升显著但未达 `+0.15` 阈值。

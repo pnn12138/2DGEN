@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CrPO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49250150
+_cell_length_b   8.07679127
+_cell_length_c   12.60511681
+_cell_angle_alpha   89.87410859
+_cell_angle_beta   90.02110761
+_cell_angle_gamma   97.17831512
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrPO3
+_chemical_formula_sum   'Cr2 P2 O6'
+_cell_volume   251.76927526
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.73063678  0.37333012  0.80549884  1
+  O  O1  1  0.82639337  0.69281310  0.53585315  1
+  O  O2  1  0.44905677  0.72229183  0.68025893  1
+  P  P3  1  0.63946706  0.66717601  0.16158453  1
+  Cr  Cr4  1  0.82277328  0.22752762  0.79676485  1
+  O  O5  1  0.49558553  0.58419561  0.73852998  1
+  O  O6  1  0.63829195  0.75092125  0.05504855  1
+  O  O7  1  0.14972910  0.65666449  0.09514163  1
+  Cr  Cr8  1  0.32360455  0.68397027  0.58797818  1
+  P  P9  1  0.93125516  0.76251435  0.72580379  1

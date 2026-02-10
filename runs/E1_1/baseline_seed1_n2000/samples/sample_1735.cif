@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_GeTeWI3Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.48436880
+_cell_length_b   23.14819617
+_cell_length_c   23.17002736
+_cell_angle_alpha   90.04273872
+_cell_angle_beta   90.00832143
+_cell_angle_gamma   118.10016265
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GeTeWI3Cl
+_chemical_formula_sum   'Ge1 Te1 W1 I3 Cl1'
+_cell_volume   2121.65724365
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.60390472  0.69786835  0.98350412  1
+  I  I1  1  0.71290731  0.00245857  0.88056397  1
+  Te  Te2  1  0.31351662  0.22175980  0.18348503  1
+  Cl  Cl3  1  0.34958267  0.99243927  0.90630817  1
+  I  I4  1  0.64276409  0.00133228  0.55356264  1
+  I  I5  1  0.50188065  0.13969040  0.86905050  1
+  W  W6  1  0.00587463  0.87360191  0.88091278  1

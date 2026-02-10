@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Sr3Co2Cl2O5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53113079
+_cell_length_b   12.49441891
+_cell_length_c   14.22042344
+_cell_angle_alpha   89.62660305
+_cell_angle_beta   90.07165062
+_cell_angle_gamma   102.00319510
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr3Co2Cl2O5
+_chemical_formula_sum   'Sr3 Co2 Cl2 O5'
+_cell_volume   439.87896934
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.91277122  0.13865328  0.77470779  1
+  O  O1  1  0.58591443  0.12896340  0.29691577  1
+  Co  Co2  1  0.04269409  0.31301880  0.30068207  1
+  O  O3  1  0.32640386  0.33246040  0.67007256  1
+  O  O4  1  0.95579708  0.04847210  0.67272007  1
+  Sr  Sr5  1  0.60105896  0.65340805  0.51677883  1
+  Cl  Cl6  1  0.19186662  0.15389450  0.35917491  1
+  Cl  Cl7  1  0.20274547  0.99147117  0.60559404  1
+  Co  Co8  1  0.70633245  0.63124996  0.12454171  1
+  O  O9  1  0.71849823  0.50406456  0.32712638  1
+  O  O10  1  0.74161798  0.74432033  0.13034089  1
+  Sr  Sr11  1  0.43204594  0.46822166  0.90792567  1

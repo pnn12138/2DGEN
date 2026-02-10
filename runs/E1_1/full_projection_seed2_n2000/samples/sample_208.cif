@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuRh(SBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.26782703
+_cell_length_b   13.79213569
+_cell_length_c   12.61597679
+_cell_angle_alpha   90.36298594
+_cell_angle_beta   89.98523578
+_cell_angle_gamma   92.49643303
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuRh(SBr)2
+_chemical_formula_sum   'Cu1 Rh1 S2 Br2'
+_cell_volume   394.22235286
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.23126793  0.96667480  0.66643190  1
+  S  S1  1  0.48361206  0.33178091  0.25235426  1
+  Rh  Rh2  1  0.12367773  0.62921524  0.15182877  1
+  S  S3  1  0.80140465  0.00232135  0.93763661  1
+  Br  Br4  1  0.26343080  0.07982554  0.93753839  1
+  Cu  Cu5  1  0.12355661  0.02726364  0.81799698  1

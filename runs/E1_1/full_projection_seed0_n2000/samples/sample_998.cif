@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Tl2Se
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.14423847
+_cell_length_b   10.78873821
+_cell_length_c   25.20563407
+_cell_angle_alpha   90.84807259
+_cell_angle_beta   90.70388676
+_cell_angle_gamma   39.89512103
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Tl2Se
+_chemical_formula_sum   'Tl4 Se2'
+_cell_volume   1071.53568643
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Tl  Tl0  1  0.39209461  0.81235504  0.02494240  1
+  Se  Se1  1  0.70250368  0.49516404  0.70637953  1
+  Tl  Tl2  1  0.08739245  0.42581975  0.36576802  1
+  Tl  Tl3  1  0.13704097  0.06091338  0.46815783  1
+  Se  Se4  1  0.23988831  0.92962044  0.42667717  1
+  Tl  Tl5  1  0.48959923  0.95677769  0.44774508  1

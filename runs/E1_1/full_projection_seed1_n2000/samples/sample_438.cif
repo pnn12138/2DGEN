@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_GaSI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.17310858
+_cell_length_b   6.92140412
+_cell_length_c   12.82493379
+_cell_angle_alpha   90.66007101
+_cell_angle_beta   90.81322257
+_cell_angle_gamma   41.00556537
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaSI
+_chemical_formula_sum   'Ga4 S4 I4'
+_cell_volume   243.02804125
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.24816506  0.84332937  0.57873577  1
+  Ga  Ga1  1  0.92177713  0.73928648  0.34685022  1
+  Ga  Ga2  1  0.19464310  0.87794524  0.47615626  1
+  S  S3  1  0.43443695  0.32454845  0.76773363  1
+  I  I4  1  0.49307156  0.43919232  0.34961328  1
+  Ga  Ga5  1  0.16890453  0.50334084  0.42134190  1
+  I  I6  1  0.58000326  0.47078514  0.52885056  1
+  S  S7  1  0.92571449  0.22363853  0.13322178  1
+  I  I8  1  0.47851372  0.30574226  0.02835310  1
+  S  S9  1  0.27789593  0.88868141  0.11902022  1
+  I  I10  1  0.87401712  0.71343327  0.07612550  1
+  S  S11  1  0.73959535  0.06080755  0.83379143  1

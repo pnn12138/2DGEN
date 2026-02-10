@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfZr(NbTe4)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.48831511
+_cell_length_b   13.90604078
+_cell_length_c   13.84265930
+_cell_angle_alpha   90.22032339
+_cell_angle_beta   89.98878739
+_cell_angle_gamma   93.05557923
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZr(NbTe4)2
+_chemical_formula_sum   'Hf1 Zr1 Nb2 Te8'
+_cell_volume   478.30763862
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.42031097  0.08904648  0.96817088  1
+  Zr  Zr1  1  0.38084412  0.12860727  0.01472092  1
+  Nb  Nb2  1  0.81805420  0.03582764  0.44061089  1
+  Hf  Hf3  1  0.97877502  0.75345802  0.72152996  1
+  Te  Te4  1  0.64768028  0.03195882  0.04319561  1
+  Te  Te5  1  0.24710178  0.44758129  0.74393755  1
+  Te  Te6  1  0.71837974  0.73565930  0.52416027  1
+  Nb  Nb7  1  0.47909546  0.42540741  0.23613867  1
+  Te  Te8  1  0.61623478  0.67110807  0.57487327  1
+  Te  Te9  1  0.13957891  0.33080959  0.73805845  1
+  Te  Te10  1  0.35405540  0.98194504  0.65171576  1
+  Te  Te11  1  0.25997353  0.22467613  0.55534053  1

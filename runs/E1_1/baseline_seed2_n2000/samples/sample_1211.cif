@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_YAuIBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24764824
+_cell_length_b   12.48579546
+_cell_length_c   13.52690154
+_cell_angle_alpha   89.54448409
+_cell_angle_beta   90.07001057
+_cell_angle_gamma   98.23101607
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   YAuIBr
+_chemical_formula_sum   'Y1 Au1 I1 Br1'
+_cell_volume   375.69225290
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Y  Y0  1  0.41520691  0.38239336  0.46301317  1
+  Br  Br1  1  0.06754780  0.21766472  0.11634398  1
+  I  I2  1  0.83516312  0.17803526  0.68158770  1
+  Au  Au3  1  0.79176903  0.84718418  0.94958210  1

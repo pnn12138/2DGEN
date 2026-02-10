@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Ti5IN3Cl2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58990741
+_cell_length_b   14.57956492
+_cell_length_c   14.40749683
+_cell_angle_alpha   89.87953167
+_cell_angle_beta   90.00608132
+_cell_angle_gamma   92.62680919
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti5IN3Cl2O
+_chemical_formula_sum   'Ti5 I1 N3 Cl2 O1'
+_cell_volume   543.45025039
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.03486558  0.10716154  0.88565791  1
+  Ti  Ti1  1  0.79578400  0.59866536  0.77157140  1
+  Ti  Ti2  1  0.33313400  0.18486351  0.87061328  1
+  Cl  Cl3  1  0.60033655  0.04000092  0.12781453  1
+  Ti  Ti4  1  0.87195492  0.14878631  0.52946258  1
+  I  I5  1  0.08506775  0.34492207  0.04070950  1
+  Ti  Ti6  1  0.27941751  0.97737408  0.22553325  1
+  O  O7  1  0.38167143  0.74865341  0.80328250  1
+  N  N8  1  0.51823378  0.27186590  0.88928342  1
+  N  N9  1  0.68404388  0.21054268  0.28918141  1
+  N  N10  1  0.00636005  0.82696766  0.00731754  1
+  Cl  Cl11  1  0.71473026  0.79567623  0.21376151  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiCuBr3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   15.86087704
+_cell_length_b   2.92214655
+_cell_length_c   12.98802417
+_cell_angle_alpha   91.21018494
+_cell_angle_beta   89.32575391
+_cell_angle_gamma   60.80124758
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiCuBr3
+_chemical_formula_sum   'Li2 Cu2 Br6'
+_cell_volume   525.19095763
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.38704380  0.26008159  0.04176872  1
+  Cu  Cu1  1  0.69212198  0.44192505  0.61004829  1
+  Li  Li2  1  0.93484926  0.73626184  0.24708676  1
+  Li  Li3  1  0.22941780  0.37570238  0.95649052  1
+  Br  Br4  1  0.26025105  0.40935087  0.75267804  1
+  Cu  Cu5  1  0.53254700  0.48813820  0.31602448  1
+  Br  Br6  1  0.32448816  0.15582228  0.17034650  1
+  Br  Br7  1  0.48633114  0.77758545  0.02300050  1
+  Br  Br8  1  0.63704491  0.16638279  0.97052228  1
+  Br  Br9  1  0.34412289  0.95077705  0.85015440  1

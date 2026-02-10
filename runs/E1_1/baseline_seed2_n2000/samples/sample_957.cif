@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_InTeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.55906677
+_cell_length_b   20.38742267
+_cell_length_c   28.39068205
+_cell_angle_alpha   90.53869529
+_cell_angle_beta   89.93777526
+_cell_angle_gamma   99.79571034
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InTeCl
+_chemical_formula_sum   'In2 Te2 Cl2'
+_cell_volume   2600.25838314
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.42672706  0.02073860  0.23133951  1
+  Te  Te1  1  0.17890930  0.78885841  0.92579001  1
+  Te  Te2  1  0.07544765  0.89441013  0.40566978  1
+  In  In3  1  0.84487891  0.86386204  0.10837984  1
+  Cl  Cl4  1  0.46848774  0.66855955  0.71542406  1
+  In  In5  1  0.10239863  0.99803442  0.54672140  1

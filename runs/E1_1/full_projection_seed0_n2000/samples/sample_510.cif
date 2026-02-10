@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NaGa(SbO3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54009962
+_cell_length_b   7.94282051
+_cell_length_c   12.84642139
+_cell_angle_alpha   90.55749550
+_cell_angle_beta   90.19825386
+_cell_angle_gamma   74.56948406
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaGa(SbO3)2
+_chemical_formula_sum   'Na1 Ga1 Sb2 O6'
+_cell_volume   249.82917826
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.55122185  0.41738462  0.79293269  1
+  Ga  Ga1  1  0.03044510  0.16586685  0.13311458  1
+  O  O2  1  0.72280407  0.76068139  0.19639561  1
+  O  O3  1  0.69973111  0.73740578  0.01781607  1
+  O  O4  1  0.30010319  0.04886627  0.86659336  1
+  O  O5  1  0.67530608  0.67389333  0.55645484  1
+  O  O6  1  0.79749584  0.70278484  0.66185832  1
+  O  O7  1  0.89688492  0.86015391  0.47415802  1
+  Na  Na8  1  0.01902443  0.75778741  0.74279451  1
+  Sb  Sb9  1  0.01122427  0.02793094  0.45251000  1

@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_Mn7GaS4I2(Br2Cl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.83947039
+_cell_length_b   10.66613459
+_cell_length_c   15.08700154
+_cell_angle_alpha   90.32074118
+_cell_angle_beta   90.08559108
+_cell_angle_gamma   71.20525316
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mn7GaS4I2(Br2Cl)2
+_chemical_formula_sum   'Mn7 Ga1 S4 I2 Br4 Cl2'
+_cell_volume   432.55681882
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.87511635  0.49752092  0.67139697  1
+  S  S1  1  0.45239305  0.31741428  0.13694644  1
+  Mn  Mn2  1  0.92443848  0.84886169  0.65430397  1
+  Ga  Ga3  1  0.45808110  0.63015014  0.04045203  1
+  Br  Br4  1  0.50317407  0.50034803  0.96109772  1
+  Mn  Mn5  1  0.93941498  0.83099151  0.35823891  1
+  Mn  Mn6  1  0.41502762  0.02015591  0.65294611  1
+  I  I7  1  0.91115248  0.88681835  0.94469267  1
+  Mn  Mn8  1  0.49609423  0.52074718  0.45508146  1
+  S  S9  1  0.71321678  0.05257416  0.75076872  1
+  S  S10  1  0.01399994  0.68050861  0.72480631  1
+  Cl  Cl11  1  0.45878157  0.35531414  0.93741822  1
+  Mn  Mn12  1  0.06996179  0.48105276  0.76564121  1
+  Br  Br13  1  0.05004406  0.17216313  0.03243363  1
+  I  I14  1  0.65853965  0.60122991  0.99987227  1
+  S  S15  1  0.47013533  0.24335076  0.88058430  1
+  Mn  Mn16  1  0.27349085  0.27649185  0.99526989  1
+  Br  Br17  1  0.66189194  0.23412132  0.42977548  1
+  Cl  Cl18  1  0.24609756  0.06017494  0.79805803  1
+  Mn  Mn19  1  0.02271981  0.97941357  0.98833317  1

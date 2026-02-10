@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_FeSbS2I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.38490391
+_cell_length_b   24.94655416
+_cell_length_c   29.64619590
+_cell_angle_alpha   89.13714471
+_cell_angle_beta   90.77339002
+_cell_angle_gamma   144.51055072
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   FeSbS2I
+_chemical_formula_sum   'Fe2 Sb2 S4 I2'
+_cell_volume   3599.72472960
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.37702179  0.02863979  0.82567835  1
+  S  S1  1  0.51255226  0.64894390  0.17217731  1
+  S  S2  1  0.54204917  0.76218414  0.12817764  1
+  Sb  Sb3  1  0.15339661  0.82549328  0.23618364  1
+  I  I4  1  0.08608437  0.20086098  0.75156569  1
+  Fe  Fe5  1  0.71320629  0.00128317  0.12441921  1
+  S  S6  1  0.90037251  0.54859352  0.14103556  1
+  S  S7  1  0.36067963  0.69680595  0.43252090  1
+  I  I8  1  0.72694445  0.46744728  0.37054729  1
+  Fe  Fe9  1  0.09707546  0.29063535  0.09231472  1

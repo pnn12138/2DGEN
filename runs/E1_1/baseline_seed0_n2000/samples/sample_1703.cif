@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_YHg(ClO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23773313
+_cell_length_b   13.23662884
+_cell_length_c   12.86420474
+_cell_angle_alpha   89.87259932
+_cell_angle_beta   90.01451632
+_cell_angle_gamma   95.64816643
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   YHg(ClO)2
+_chemical_formula_sum   'Y1 Hg1 Cl2 O2'
+_cell_volume   379.18742217
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Y  Y0  1  0.23134136  0.72448730  0.03690648  1
+  O  O1  1  0.44492316  0.55459785  0.38356113  1
+  Cl  Cl2  1  0.26493454  0.10939217  0.14936233  1
+  O  O3  1  0.51685357  0.67260122  0.45761490  1
+  Hg  Hg4  1  0.42916107  0.50138855  0.86881471  1
+  Cl  Cl5  1  0.65389800  0.91209269  0.26981303  1

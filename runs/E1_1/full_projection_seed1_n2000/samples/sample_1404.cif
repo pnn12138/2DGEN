@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Co3GeTe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.31072116
+_cell_length_b   7.58058134
+_cell_length_c   12.85436513
+_cell_angle_alpha   89.82252708
+_cell_angle_beta   90.00759077
+_cell_angle_gamma   94.84117544
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Co3GeTe2
+_chemical_formula_sum   'Co3 Ge1 Te2'
+_cell_volume   224.36053566
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.04919147  0.26234674  0.54073572  1
+  Co  Co1  1  0.72865367  0.94439507  0.29575396  1
+  Te  Te2  1  0.04761648  0.80078316  0.54196882  1
+  Te  Te3  1  0.24136877  0.26829529  0.83685660  1
+  Co  Co4  1  0.63092685  0.68586731  0.90835714  1
+  Co  Co5  1  0.77974415  0.28669930  0.11645317  1

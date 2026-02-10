@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SbRuS3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.78745985
+_cell_length_b   16.02004551
+_cell_length_c   13.99845830
+_cell_angle_alpha   89.71829837
+_cell_angle_beta   90.00789132
+_cell_angle_gamma   91.49463570
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbRuS3
+_chemical_formula_sum   'Sb2 Ru2 S6'
+_cell_volume   624.88419510
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ru  Ru0  1  0.25141907  0.44551468  0.73722720  1
+  Sb  Sb1  1  0.87705040  0.19020176  0.64919090  1
+  S  S2  1  0.85702133  0.64096832  0.43079996  1
+  S  S3  1  0.75981379  0.17967033  0.00205341  1
+  Sb  Sb4  1  0.80283624  0.53282857  0.02800932  1
+  S  S5  1  0.45277515  0.58170819  0.02450118  1
+  S  S6  1  0.65083313  0.28115630  0.76932478  1
+  S  S7  1  0.46412945  0.77611160  0.63957334  1
+  Ru  Ru8  1  0.12007141  0.00592232  0.32843590  1
+  S  S9  1  0.33742428  0.26270747  0.58724779  1

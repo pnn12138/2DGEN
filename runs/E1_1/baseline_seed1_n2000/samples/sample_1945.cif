@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_InPt5Br2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24275661
+_cell_length_b   13.58750058
+_cell_length_c   12.47685322
+_cell_angle_alpha   90.46065703
+_cell_angle_beta   90.03193979
+_cell_angle_gamma   86.02540341
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InPt5Br2
+_chemical_formula_sum   'In1 Pt5 Br2'
+_cell_volume   379.28612963
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.01423073  0.05551910  0.78876734  1
+  Pt  Pt1  1  0.42818832  0.77625656  0.00822496  1
+  Pt  Pt2  1  0.83553839  0.27712965  0.41683578  1
+  Pt  Pt3  1  0.94635963  0.04477310  0.06069279  1
+  Pt  Pt4  1  0.59722519  0.75648499  0.40690422  1
+  Pt  Pt5  1  0.73382664  0.04094648  0.62160265  1
+  Br  Br6  1  0.04381371  0.83096504  0.75083256  1
+  In  In7  1  0.83239055  0.41554499  0.55228436  1

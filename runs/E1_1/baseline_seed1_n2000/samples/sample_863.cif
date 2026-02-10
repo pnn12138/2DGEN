@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_NbSnP
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44561696
+_cell_length_b   12.49681875
+_cell_length_c   13.78478656
+_cell_angle_alpha   89.60807288
+_cell_angle_beta   90.08472286
+_cell_angle_gamma   101.14417377
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbSnP
+_chemical_formula_sum   'Nb2 Sn2 P2'
+_cell_volume   413.34293153
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  P  P0  1  0.26981211  0.01267767  0.87298024  1
+  P  P1  1  0.68106461  0.22376108  0.04191601  1
+  Sn  Sn2  1  0.89546514  0.87898159  0.79923820  1
+  Nb  Nb3  1  0.42217398  0.83255076  0.95468163  1
+  Sn  Sn4  1  0.77877301  0.47703403  0.06340954  1
+  Nb  Nb5  1  0.77987510  0.52516180  0.15368344  1

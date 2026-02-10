@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CuPbBr3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.64519334
+_cell_length_b   11.74508143
+_cell_length_c   14.68597646
+_cell_angle_alpha   89.95667863
+_cell_angle_beta   89.98463469
+_cell_angle_gamma   75.31210697
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuPbBr3
+_chemical_formula_sum   'Cu2 Pb2 Br6'
+_cell_volume   441.35385944
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.25342518  0.98902774  0.51617253  1
+  Br  Br1  1  0.84911096  0.79715616  0.24617547  1
+  Pb  Pb2  1  0.91320479  0.69544715  0.20555955  1
+  Cu  Cu3  1  0.85333633  0.58713973  0.84152806  1
+  Br  Br4  1  0.65290403  0.52761841  0.75746918  1
+  Pb  Pb5  1  0.84467697  0.85983658  0.84087038  1
+  Br  Br6  1  0.18633221  0.97450757  0.41684195  1
+  Br  Br7  1  0.62439632  0.52082431  0.40859342  1
+  Br  Br8  1  0.55769539  0.95275593  0.21765167  1
+  Br  Br9  1  0.43354416  0.97056389  0.74077237  1

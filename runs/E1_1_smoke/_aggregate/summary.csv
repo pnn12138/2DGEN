@@ -1,0 +1,15 @@
+variant,metric,mean,std,n
+baseline,success_geom_rate,0.375,0.0,1.0
+baseline,bad_volume_rate,0.0,0.0,1.0
+baseline,collision_rate,0.0,0.0,1.0
+baseline,inplane_degen_rate,0.0,0.0,1.0
+baseline,cross_vacuum_risk_rate,0.09375,0.0,1.0
+baseline,post_project_trigger_any_rate,None,None,0.0
+baseline,valid_rate_eval,0.375,0.0,1.0
+full_projection,success_geom_rate,0.53125,0.0,1.0
+full_projection,bad_volume_rate,0.0,0.0,1.0
+full_projection,collision_rate,0.0,0.0,1.0
+full_projection,inplane_degen_rate,0.0,0.0,1.0
+full_projection,cross_vacuum_risk_rate,0.09375,0.0,1.0
+full_projection,post_project_trigger_any_rate,0.15625,0.0,1.0
+full_projection,valid_rate_eval,0.53125,0.0,1.0

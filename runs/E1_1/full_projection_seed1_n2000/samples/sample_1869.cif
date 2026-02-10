@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_Mo2IBrN2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.77766442
+_cell_length_b   11.12590967
+_cell_length_c   15.20729353
+_cell_angle_alpha   89.76916958
+_cell_angle_beta   90.09303588
+_cell_angle_gamma   107.24894415
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo2IBrN2
+_chemical_formula_sum   'Mo2 I1 Br1 N2'
+_cell_volume   448.82660487
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.14148659  0.69836897  0.88855565  1
+  I  I1  1  0.58719349  0.31783366  0.17089629  1
+  Br  Br2  1  0.17408872  0.51077843  0.50535536  1
+  N  N3  1  0.80646574  0.61143488  0.93749928  1
+  Mo  Mo4  1  0.26037094  0.43913269  0.37808537  1
+  Mo  Mo5  1  0.67413652  0.72619140  0.88709676  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_LiCuMo(BrO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.90689039
+_cell_length_b   18.38083705
+_cell_length_c   13.56483407
+_cell_angle_alpha   90.33106831
+_cell_angle_beta   89.99393737
+_cell_angle_gamma   91.03566491
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiCuMo(BrO)2
+_chemical_formula_sum   'Li1 Cu1 Mo1 Br2 O2'
+_cell_volume   724.65321612
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.22399330  0.77158165  0.83521557  1
+  Mo  Mo1  1  0.94231224  0.43190002  0.23427963  1
+  O  O2  1  0.76190042  0.83024597  0.50850248  1
+  Br  Br3  1  0.05720234  0.25498581  0.21045399  1
+  Cu  Cu4  1  0.07875443  0.39099503  0.86443710  1
+  Li  Li5  1  0.20386124  0.98332214  0.09101486  1
+  Br  Br6  1  0.16996574  0.77602386  0.39310741  1

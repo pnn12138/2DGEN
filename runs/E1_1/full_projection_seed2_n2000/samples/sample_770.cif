@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_Li2Os
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.25618172
+_cell_length_b   6.76298888
+_cell_length_c   12.56313078
+_cell_angle_alpha   92.52777029
+_cell_angle_beta   91.12683573
+_cell_angle_gamma   64.68013781
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Li2Os
+_chemical_formula_sum   'Li2 Os1'
+_cell_volume   173.11095649
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Li  Li0  1  0.95892715  0.15172100  0.61876291  1
+  Li  Li1  1  0.05442810  0.91042137  0.03532338  1
+  Os  Os2  1  0.95424843  0.62343311  0.76796103  1

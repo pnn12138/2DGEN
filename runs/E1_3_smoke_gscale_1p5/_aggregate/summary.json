@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "full_projection": {
+      "runs": 1,
+      "success_geom_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "bad_volume_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "collision_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "inplane_degen_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "cross_vacuum_risk_rate": {
+        "mean": 0.5,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "post_project_trigger_any_rate": {
+        "mean": 1.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "valid_rate_eval": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      }
+    }
+  },
+  "experiment_id": "E1_3_smoke_gscale_1p5",
+  "protocol": "quick",
+  "num_samples": 8,
+  "steps": 5,
+  "variants_requested": [
+    "full_projection"
+  ],
+  "seeds_requested": [
+    0
+  ]
+}

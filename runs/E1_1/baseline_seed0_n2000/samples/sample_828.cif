@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfOs(SeI)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.19193316
+_cell_length_b   20.89422297
+_cell_length_c   31.38520631
+_cell_angle_alpha   91.08764839
+_cell_angle_beta   89.87607609
+_cell_angle_gamma   98.72543384
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfOs(SeI)2
+_chemical_formula_sum   'Hf1 Os1 Se2 I2'
+_cell_volume   3364.70024431
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Os  Os0  1  0.59536171  0.71895123  0.77269077  1
+  Se  Se1  1  0.25043106  0.55792236  0.38556051  1
+  I  I2  1  0.14174843  0.42106056  0.84962136  1
+  Se  Se3  1  0.68822670  0.59517384  0.70714498  1
+  Hf  Hf4  1  0.06583083  0.36975098  0.44114137  1
+  I  I5  1  0.90363121  0.52162457  0.65147233  1

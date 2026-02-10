@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnVBrClO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24365783
+_cell_length_b   14.05695477
+_cell_length_c   12.48177711
+_cell_angle_alpha   89.59380495
+_cell_angle_beta   90.01640829
+_cell_angle_gamma   92.06222174
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnVBrClO2
+_chemical_formula_sum   'Mn1 V1 Br1 Cl1 O2'
+_cell_volume   393.39787860
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.91072941  0.33119583  0.51651150  1
+  V  V1  1  0.34009811  0.23977752  0.50674164  1
+  Mn  Mn2  1  0.47086152  0.15578894  0.44131935  1
+  O  O3  1  0.18433928  0.75989723  0.65305263  1
+  Br  Br4  1  0.50100040  0.19259834  0.71512127  1
+  O  O5  1  0.54840183  0.48659325  0.82003272  1

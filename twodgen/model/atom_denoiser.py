@@ -57,6 +57,18 @@ class AtomDenoiserConfig:
     post_project_inplane_gamma_min: float = 30.0
     post_project_inplane_gamma_max: float = 150.0
     post_project_inplane_area_min: float = 4.0
+    post_project_area_per_atom_min: Optional[float] = None
+    post_project_area_per_atom_max: Optional[float] = None
+    vacuum_schedule_start: float = 0.7
+    vacuum_schedule_interval: int = 2
+    vacuum_expand_max: float = 1.08
+    vacuum_schedule_min_scale_start: float = 0.6
+    vacuum_schedule_trigger_scale: float = 0.7
+    min_dist_schedule_start: float = 0.7
+    min_dist_schedule_interval: int = 2
+    min_dist_schedule_iters: Optional[int] = None
+    min_dist_schedule_strength_scale: float = 0.5
+    min_dist_expand_max: float = 1.1
     z_norm_clip: float = 1.5
     min_dist_iter: int = 0
     min_dist_strength: float = 0.03
@@ -339,6 +351,8 @@ class AtomDenoiser(nn.Module):
     def _post_project_step(
         self,
         cell: torch.Tensor,
+        frac: Optional[torch.Tensor] = None,
+        atom_mask: Optional[torch.Tensor] = None,
         *,
         keys: list[str],
         record_stats: bool = False,
@@ -349,15 +363,44 @@ class AtomDenoiser(nn.Module):
         cond_max = self.cfg.post_project_cond_max
         if cond_max is None and self.cfg.project_gram_cond:
             cond_max = float(self.cfg.project_gram_max_cond)
+        thickness_est = None
+        n_atoms = None
+        if frac is not None and atom_mask is not None:
+            frac_mod = frac - torch.floor(frac)
+            mask = atom_mask > 0.5
+            if mask.any():
+                from twodgen.common.geometry_torch import choose_vacuum_axis_torch
+
+                c_idx, c_len, _ = choose_vacuum_axis_torch(lattice_phys)
+                z = frac_mod.gather(
+                    -1, c_idx.view(-1, 1, 1).expand(frac_mod.shape[0], frac_mod.shape[1], 1)
+                ).squeeze(-1)
+                z_min = torch.where(
+                    mask, z, torch.tensor(float("inf"), device=z.device, dtype=z.dtype)
+                ).min(dim=-1).values
+                z_max = torch.where(
+                    mask, z, torch.tensor(float("-inf"), device=z.device, dtype=z.dtype)
+                ).max(dim=-1).values
+                valid = mask.any(dim=-1)
+                thickness = (z_max - z_min).clamp_min(0.0) * c_len
+                thickness = torch.where(valid, thickness, torch.zeros_like(thickness))
+                thickness = torch.where(torch.isfinite(thickness), thickness, torch.zeros_like(thickness))
+                thickness_est = thickness
+                n_atoms = mask.sum(dim=-1).to(device=frac.device, dtype=frac.dtype)
         lat_proj, stats = post_step_project(
             lattice_phys,
             keys=keys,
             pbc_mask=self.cfg.model.pbc_mask,
+            n_atoms=n_atoms,
             angle_min=float(self.cfg.diffusion.angle_min),
             angle_max=float(self.cfg.diffusion.angle_max),
             cond_max=float(cond_max) if cond_max is not None else None,
+            vacuum_min=float(self.cfg.diffusion.vacuum_min) if hasattr(self.cfg.diffusion, "vacuum_min") else None,
+            thickness_est=thickness_est,
             vol_min=float(self.cfg.post_project_v_min) if self.cfg.post_project_v_min is not None else None,
             vol_max=float(self.cfg.post_project_v_max) if self.cfg.post_project_v_max is not None else None,
+            area_per_atom_min=self.cfg.post_project_area_per_atom_min,
+            area_per_atom_max=self.cfg.post_project_area_per_atom_max,
             inplane_a_min=float(self.cfg.post_project_inplane_a_min),
             inplane_b_min=float(self.cfg.post_project_inplane_b_min),
             inplane_gamma_min=float(self.cfg.post_project_inplane_gamma_min),
@@ -714,6 +757,132 @@ class AtomDenoiser(nn.Module):
             frac = frac - torch.floor(frac)
         return frac
 
+    def _schedule_min_dist_repair(
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        atom_mask: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        cut = float(self.cfg.min_dist_cut)
+        if cut <= 0.0:
+            return frac, cell
+        lattice = self._cell_to_lattice(cell)
+        dist = frac_mic_dist(frac, lattice, atom_mask, pbc_mask=self.cfg.model.pbc_mask)
+        min_dist = dist.amin(dim=(1, 2))
+        valid = torch.isfinite(min_dist) & (min_dist > 0)
+        need = valid & (min_dist < cut)
+        if bool(need.any().item()):
+            scale = torch.ones_like(min_dist)
+            scale = torch.where(
+                need,
+                (cut / min_dist).clamp(max=float(self.cfg.min_dist_expand_max)),
+                scale,
+            )
+            c_idx, _, _ = choose_vacuum_axis_torch(lattice)
+            lattice = lattice.clone()
+            for axis in range(3):
+                axis_mask = need & (c_idx != axis)
+                if bool(axis_mask.any().item()):
+                    lattice[axis_mask, axis, :] = lattice[axis_mask, axis, :] * scale[axis_mask].view(-1, 1)
+            cell = self._lattice_to_cell(lattice, relaxed_bounds=True)
+        schedule_iters = self.cfg.min_dist_schedule_iters
+        if schedule_iters is None:
+            schedule_iters = int(self.cfg.min_dist_iter)
+        schedule_iters = int(schedule_iters)
+        if schedule_iters > 0 and self.cfg.min_dist_strength > 0:
+            frac = self._apply_min_dist_repulsion(
+                frac,
+                cell,
+                atom_mask,
+                iters=schedule_iters,
+                strength=float(self.cfg.min_dist_strength) * float(self.cfg.min_dist_schedule_strength_scale),
+            )
+            lattice = self._cell_to_lattice(cell)
+            lattice, _ = post_step_project(
+                lattice,
+                keys=("angle", "inplane"),
+                pbc_mask=self.cfg.model.pbc_mask,
+                angle_min=self.cfg.diffusion.angle_min,
+                angle_max=self.cfg.diffusion.angle_max,
+                cond_max=None,
+                vol_min=None,
+                vol_max=None,
+                area_per_atom_min=None,
+                area_per_atom_max=None,
+                inplane_a_min=self.cfg.post_project_inplane_a_min,
+                inplane_b_min=self.cfg.post_project_inplane_b_min,
+                inplane_gamma_min=self.cfg.post_project_inplane_gamma_min,
+                inplane_gamma_max=self.cfg.post_project_inplane_gamma_max,
+                inplane_area_min=self.cfg.post_project_inplane_area_min,
+                max_iters=1,
+            )
+            cell = self._lattice_to_cell(lattice, relaxed_bounds=True)
+        return frac, cell
+
+    def _estimate_thickness_vacuum(
+        self,
+        frac: torch.Tensor,
+        atom_mask: torch.Tensor,
+        lattice: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        frac_mod = frac - torch.floor(frac)
+        mask = atom_mask > 0.5
+        c_idx, c_len, _ = choose_vacuum_axis_torch(lattice)
+        z = frac_mod.gather(
+            -1, c_idx.view(-1, 1, 1).expand(frac_mod.shape[0], frac_mod.shape[1], 1)
+        ).squeeze(-1)
+        z_min = torch.where(mask, z, torch.tensor(float("inf"), device=z.device, dtype=z.dtype)).min(dim=-1).values
+        z_max = torch.where(mask, z, torch.tensor(float("-inf"), device=z.device, dtype=z.dtype)).max(dim=-1).values
+        valid = mask.any(dim=-1)
+        thickness = (z_max - z_min).clamp_min(0.0) * c_len
+        thickness = torch.where(valid, thickness, torch.zeros_like(thickness))
+        thickness = torch.where(torch.isfinite(thickness), thickness, torch.zeros_like(thickness))
+        vacuum = c_len - thickness
+        vacuum = torch.where(torch.isfinite(vacuum), vacuum, torch.zeros_like(vacuum))
+        return thickness, vacuum
+
+    def _schedule_vacuum_repair(
+        self,
+        frac: torch.Tensor,
+        cell: torch.Tensor,
+        atom_mask: torch.Tensor,
+        *,
+        step: int,
+        total_steps: int,
+        start_step: int,
+    ) -> torch.Tensor:
+        vac_min = float(self.cfg.diffusion.vacuum_min) if hasattr(self.cfg.diffusion, "vacuum_min") else 0.0
+        if vac_min <= 0.0:
+            return cell
+        if total_steps <= 0:
+            return cell
+        trigger_scale = float(self.cfg.vacuum_schedule_trigger_scale)
+        trigger_scale = max(0.0, min(1.0, trigger_scale))
+        trigger_min = vac_min * trigger_scale
+        denom = max(1, total_steps - max(start_step, 0))
+        phase = (float(step - start_step) / float(denom)) if step >= start_step else 0.0
+        phase = max(0.0, min(1.0, phase))
+        scale_start = float(self.cfg.vacuum_schedule_min_scale_start)
+        scale_start = max(0.0, min(1.0, scale_start))
+        target_min = vac_min * (scale_start + (1.0 - scale_start) * phase)
+        lattice = self._cell_to_lattice(cell)
+        thickness, vacuum = self._estimate_thickness_vacuum(frac, atom_mask, lattice)
+        need = vacuum < trigger_min
+        if not bool(need.any().item()):
+            return cell
+        need = vacuum < target_min
+        if not bool(need.any().item()):
+            return cell
+        c_idx, c_len, _ = choose_vacuum_axis_torch(lattice)
+        target = thickness + target_min
+        scale = (target / c_len.clamp_min(1e-6)).clamp(max=float(self.cfg.vacuum_expand_max))
+        lattice = lattice.clone()
+        for axis in range(3):
+            axis_mask = need & (c_idx == axis)
+            if bool(axis_mask.any().item()):
+                lattice[axis_mask, axis, :] = lattice[axis_mask, axis, :] * scale[axis_mask].view(-1, 1)
+        return self._lattice_to_cell(lattice, relaxed_bounds=True)
+
     @torch.no_grad()
     def _heun_step(
         self,
@@ -1045,8 +1214,16 @@ class AtomDenoiser(nn.Module):
                         self.last_project_stats.setdefault("post_project_vol_before_steps", [])
                         self.last_project_stats.setdefault("post_project_vol_after_steps", [])
                         self.last_project_stats.setdefault("post_project_vol_scale_inplane_steps", [])
+                        self.last_project_stats.setdefault("post_project_vacuum_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_vacuum_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_vacuum_trigger_steps", [])
+                        self.last_project_stats.setdefault("post_project_area_before_steps", [])
+                        self.last_project_stats.setdefault("post_project_area_after_steps", [])
+                        self.last_project_stats.setdefault("post_project_area_trigger_steps", [])
                     keys = [k.strip() for k in str(self.cfg.post_project_keys).split(",") if k.strip()]
-                    cell, post_stats = self._post_project_step(cell, keys=keys, record_stats=True)
+                    cell, post_stats = self._post_project_step(
+                        cell, frac=frac, atom_mask=atom_mask, keys=keys, record_stats=True
+                    )
                     if isinstance(self.last_project_stats, dict) and post_stats is not None:
                         self.last_project_stats["post_project_trigger_any_steps"].append(
                             float(torch.mean(post_stats["trigger_any"]).item())
@@ -1081,6 +1258,38 @@ class AtomDenoiser(nn.Module):
                         self.last_project_stats["post_project_vol_scale_inplane_steps"].append(
                             float(torch.quantile(post_stats["vol_scale_inplane"], 0.95).item())
                         )  # type: ignore[index]
+                        if "vacuum_before" in post_stats:
+                            self.last_project_stats["post_project_vacuum_before_steps"].append(
+                                float(torch.nanmedian(post_stats["vacuum_before"]).item())
+                            )  # type: ignore[index]
+                            self.last_project_stats["post_project_vacuum_after_steps"].append(
+                                float(torch.nanmedian(post_stats["vacuum_after"]).item())
+                            )  # type: ignore[index]
+                            self.last_project_stats["post_project_vacuum_trigger_steps"].append(
+                                float(torch.mean(post_stats["vacuum_oob_before"]).item())
+                            )  # type: ignore[index]
+                        if "area_before" in post_stats:
+                            self.last_project_stats["post_project_area_before_steps"].append(
+                                float(torch.nanmedian(post_stats["area_before"]).item())
+                            )  # type: ignore[index]
+                            self.last_project_stats["post_project_area_after_steps"].append(
+                                float(torch.nanmedian(post_stats["area_after"]).item())
+                            )  # type: ignore[index]
+                            self.last_project_stats["post_project_area_trigger_steps"].append(
+                                float(torch.mean(post_stats["area_oob_before"]).item())
+                            )  # type: ignore[index]
+            if self.cfg.vacuum_schedule_interval > 0:
+                start = int(max(0.0, float(self.cfg.vacuum_schedule_start)) * steps)
+                if i >= start and (i - start) % int(self.cfg.vacuum_schedule_interval) == 0:
+                    keys = {k.strip().lower() for k in str(self.cfg.post_project_keys).split(",") if k.strip()}
+                    if "vacuum" in keys:
+                        cell = self._schedule_vacuum_repair(
+                            frac, cell, atom_mask, step=i, total_steps=steps, start_step=start
+                        )
+            if self.cfg.min_dist_schedule_interval > 0:
+                start = int(max(0.0, float(self.cfg.min_dist_schedule_start)) * steps)
+                if i >= start and (i - start) % int(self.cfg.min_dist_schedule_interval) == 0:
+                    frac, cell = self._schedule_min_dist_repair(frac, cell, atom_mask)
             if self.cfg.project_geometry and uv_angle is not None and z_norm is not None:
                 uv_angle, z_norm = self._project_geometry_step(uv_angle, z_norm, atom_mask)
             if self.cfg.z_clamp:
@@ -1139,7 +1348,9 @@ class AtomDenoiser(nn.Module):
 
         if self.cfg.post_project and self.cfg.project_final:
             keys = [k.strip() for k in str(self.cfg.post_project_keys).split(",") if k.strip()]
-            cell, post_stats = self._post_project_step(cell, keys=keys, record_stats=True)
+            cell, post_stats = self._post_project_step(
+                cell, frac=frac, atom_mask=atom_mask, keys=keys, record_stats=True
+            )
             if post_stats is not None:
                 if self.last_project_stats is None:
                     self.last_project_stats = {}
@@ -1157,6 +1368,12 @@ class AtomDenoiser(nn.Module):
                         "post_project_vol_before": post_stats["vol_before"],
                         "post_project_vol_after": post_stats["vol_after"],
                         "post_project_vol_scale_inplane": post_stats["vol_scale_inplane"],
+                        "post_project_vacuum_before": post_stats["vacuum_before"],
+                        "post_project_vacuum_after": post_stats["vacuum_after"],
+                        "post_project_vacuum_trigger": post_stats["vacuum_oob_before"],
+                        "post_project_area_before": post_stats["area_before"],
+                        "post_project_area_after": post_stats["area_after"],
+                        "post_project_area_trigger": post_stats["area_oob_before"],
                     }
                 )
 

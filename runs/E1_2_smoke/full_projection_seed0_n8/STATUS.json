@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "note": "full_projection finished",
+  "schema_version": "run_layout_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:02:50+00:00",
+  "experiment_id": "E1_2_smoke",
+  "config_hash": "4635eb630e217bb181d760a274b123c64dd34b9ce5906de8956064d5268ce16f",
+  "seed": 0,
+  "protocol": "quick"
+}

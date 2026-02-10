@@ -10,10 +10,11 @@ fully differentiable.
 
 from dataclasses import dataclass
 import math
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import torch
 
+from twodgen.common.geometry_torch import choose_vacuum_axis_torch
 
 @dataclass(frozen=True)
 class CellParams:
@@ -27,6 +28,23 @@ class CellParams:
 
 def _safe_norm(x: torch.Tensor, eps: float = 1e-8) -> torch.Tensor:
     return torch.linalg.norm(x, dim=-1).clamp_min(eps)
+
+
+def _vacuum_axis(
+    lattice: torch.Tensor, *, pbc_mask: Optional[Tuple[int, int, int]]
+) -> torch.Tensor:
+    if pbc_mask is not None:
+        non_periodic = [i for i, v in enumerate(pbc_mask) if int(v) == 0]
+        if len(non_periodic) == 1:
+            idx = torch.full(
+                (lattice.shape[0],),
+                int(non_periodic[0]),
+                device=lattice.device,
+                dtype=torch.long,
+            )
+            return idx
+    idx, _, _ = choose_vacuum_axis_torch(lattice)
+    return idx
 
 
 def lattice_to_cell(lattice: torch.Tensor) -> CellParams:
@@ -309,16 +327,79 @@ def project_cond_svd(
     return proj
 
 
+def project_vacuum_or_c_len(
+    lattice: torch.Tensor,
+    *,
+    vacuum_min: float,
+    thickness_est: Optional[Union[float, torch.Tensor]] = None,
+    pbc_mask: Optional[Tuple[int, int, int]] = None,
+    mode: str = "expand_c",
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    """
+    Expand c-axis to satisfy vacuum_min (or c_len_min if thickness_est is None).
+
+    Returns:
+        lattice_new, vacuum_before, vacuum_after, scale_c
+    """
+    if mode != "expand_c":
+        raise ValueError(f"Unknown vacuum projection mode: {mode}")
+    if lattice.ndim != 3 or lattice.shape[-2:] != (3, 3):
+        raise ValueError(f"Expected lattice shape (B,3,3), got {tuple(lattice.shape)}")
+    vacuum_min = float(vacuum_min)
+    if not (vacuum_min > 0.0):
+        vacuum_before = torch.full((lattice.shape[0],), float("nan"), device=lattice.device, dtype=lattice.dtype)
+        return lattice, vacuum_before, vacuum_before, torch.ones_like(vacuum_before)
+
+    c_idx = _vacuum_axis(lattice, pbc_mask=pbc_mask)
+    lengths = torch.linalg.norm(lattice, dim=-1)
+    c_len = lengths.gather(-1, c_idx.unsqueeze(-1)).squeeze(-1)
+    invalid = (~torch.isfinite(c_len)) | (c_len <= 0.0)
+
+    if thickness_est is None:
+        thickness = torch.zeros_like(c_len)
+    else:
+        if isinstance(thickness_est, torch.Tensor):
+            thickness = thickness_est.to(device=c_len.device, dtype=c_len.dtype)
+            if thickness.ndim == 0:
+                thickness = thickness.expand_as(c_len)
+        else:
+            thickness = torch.full_like(c_len, float(thickness_est))
+        thickness = torch.clamp(thickness, min=0.0)
+
+    vacuum_before = c_len - thickness
+    target_c = thickness + vacuum_min
+    scale = (target_c / c_len.clamp_min(1e-8)).clamp_min(1.0)
+    scale = torch.where(invalid, torch.ones_like(scale), scale)
+
+    lattice_new = lattice.clone()
+    for axis in range(3):
+        axis_mask = (c_idx == axis).unsqueeze(-1)
+        if axis_mask.any():
+            lattice_new[:, axis, :] = torch.where(
+                axis_mask, lattice[:, axis, :] * scale.unsqueeze(-1), lattice_new[:, axis, :]
+            )
+
+    lengths_new = torch.linalg.norm(lattice_new, dim=-1)
+    c_len_new = lengths_new.gather(-1, c_idx.unsqueeze(-1)).squeeze(-1)
+    vacuum_after = c_len_new - thickness
+    return lattice_new, vacuum_before, vacuum_after, scale
+
+
 def post_step_project(
     lattice: torch.Tensor,
     *,
     keys: Sequence[str],
     pbc_mask: Tuple[int, int, int],
+    n_atoms: Optional[torch.Tensor] = None,
     angle_min: float,
     angle_max: float,
     cond_max: Optional[float],
+    vacuum_min: Optional[float] = None,
+    thickness_est: Optional[Union[float, torch.Tensor]] = None,
     vol_min: Optional[float] = None,
     vol_max: Optional[float] = None,
+    area_per_atom_min: Optional[float] = None,
+    area_per_atom_max: Optional[float] = None,
     inplane_a_min: float,
     inplane_b_min: float,
     inplane_gamma_min: float,
@@ -338,11 +419,35 @@ def post_step_project(
     before_cond = cond_gram(lattice, pbc_mask=pbc_mask)
     before_vol = torch.linalg.det(lattice).abs().clamp_min(1e-12)
     before_vol_oob = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
+    before_area = torch.full((lattice.shape[0],), float("nan"), device=lattice.device, dtype=torch.float32)
+    before_area_oob = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
     if "volume" in keys_set and (vol_min is not None or vol_max is not None):
         if vol_min is not None:
             before_vol_oob = torch.where(before_vol < float(vol_min), torch.ones_like(before_vol_oob), before_vol_oob)
         if vol_max is not None:
             before_vol_oob = torch.where(before_vol > float(vol_max), torch.ones_like(before_vol_oob), before_vol_oob)
+    if "volume" in keys_set and (area_per_atom_min is not None or area_per_atom_max is not None):
+        axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+        if len(axes) == 2:
+            a_vec = lattice[:, axes[0], :]
+            b_vec = lattice[:, axes[1], :]
+            area = _safe_norm(torch.cross(a_vec, b_vec, dim=-1))
+            before_area = area.float()
+            if n_atoms is not None:
+                n = n_atoms.to(device=area.device, dtype=area.dtype).clamp_min(1.0)
+                area_per_atom = area / n
+                if area_per_atom_min is not None:
+                    before_area_oob = torch.where(
+                        area_per_atom < float(area_per_atom_min),
+                        torch.ones_like(before_area_oob),
+                        before_area_oob,
+                    )
+                if area_per_atom_max is not None:
+                    before_area_oob = torch.where(
+                        area_per_atom > float(area_per_atom_max),
+                        torch.ones_like(before_area_oob),
+                        before_area_oob,
+                    )
     before_inplane = inplane_degenerate(
         lattice,
         pbc_mask=pbc_mask,
@@ -352,6 +457,11 @@ def post_step_project(
         gamma_max=inplane_gamma_max,
         area_min=inplane_area_min,
     ).float()
+    vacuum_before = torch.full((lattice.shape[0],), float("nan"), device=lattice.device, dtype=torch.float32)
+    vacuum_after = torch.full((lattice.shape[0],), float("nan"), device=lattice.device, dtype=torch.float32)
+    vacuum_oob_before = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
+    vacuum_oob_after = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
+    vacuum_scale_c = torch.ones((lattice.shape[0],), device=lattice.device, dtype=lattice.dtype)
 
     lat = lattice
     for _ in range(max(int(max_iters), 1)):
@@ -418,7 +528,47 @@ def post_step_project(
     # dominating failure reasons. If this increases collision rate, compensate
     # via stronger min_dist repulsion (sampling-side), not by disabling clamp.
     vol_scale = torch.ones((lattice.shape[0],), device=lattice.device, dtype=lattice.dtype)
-    if "volume" in keys_set and (vol_min is not None or vol_max is not None):
+    area_scale = torch.ones((lattice.shape[0],), device=lattice.device, dtype=lattice.dtype)
+    if (
+        "volume" in keys_set
+        and (area_per_atom_min is not None or area_per_atom_max is not None)
+        and n_atoms is not None
+    ):
+        axes = [i for i, vv in enumerate(pbc_mask) if int(vv) == 1]
+        if len(axes) == 2:
+            a_vec = lat[:, axes[0], :]
+            b_vec = lat[:, axes[1], :]
+            area = _safe_norm(torch.cross(a_vec, b_vec, dim=-1))
+            n = n_atoms.to(device=area.device, dtype=area.dtype).clamp_min(1.0)
+            area_per_atom = area / n
+            target = area_per_atom
+            if area_per_atom_max is not None:
+                target = torch.minimum(
+                    target, torch.tensor(float(area_per_atom_max), device=area.device, dtype=area.dtype)
+                )
+            if area_per_atom_min is not None:
+                target = torch.maximum(
+                    target, torch.tensor(float(area_per_atom_min), device=area.device, dtype=area.dtype)
+                )
+            target_area = target * n
+            scale = torch.sqrt((target_area / area).clamp(min=1e-6, max=1e6))
+            s_min = torch.maximum(
+                torch.maximum(
+                    torch.tensor(float(inplane_a_min), device=area.device, dtype=area.dtype) / _safe_norm(a_vec),
+                    torch.tensor(float(inplane_b_min), device=area.device, dtype=area.dtype) / _safe_norm(b_vec),
+                ),
+                torch.sqrt(torch.tensor(float(inplane_area_min), device=area.device, dtype=area.dtype) / area),
+            )
+            scale = torch.maximum(scale, s_min)
+            lat = lat.clone()
+            lat[:, axes[0], :] = lat[:, axes[0], :] * scale.view(-1, 1)
+            lat[:, axes[1], :] = lat[:, axes[1], :] * scale.view(-1, 1)
+            area_scale = scale
+            det = torch.linalg.det(lat)
+            flip = det < 0
+            if flip.any():
+                lat[flip, axes[0], :] = -lat[flip, axes[0], :]
+    elif "volume" in keys_set and (vol_min is not None or vol_max is not None):
         v = torch.linalg.det(lat).abs().clamp_min(1e-12)
         v_lo = float(vol_min) if vol_min is not None else None
         v_hi = float(vol_max) if vol_max is not None else None
@@ -457,16 +607,50 @@ def post_step_project(
             if flip.any():
                 lat[flip, axes[0], :] = -lat[flip, axes[0], :]
 
+    if "vacuum" in keys_set and vacuum_min is not None:
+        lat, vacuum_before, vacuum_after, vacuum_scale_c = project_vacuum_or_c_len(
+            lat,
+            vacuum_min=float(vacuum_min),
+            thickness_est=thickness_est,
+            pbc_mask=pbc_mask,
+            mode="expand_c",
+        )
+        vacuum_oob_before = (vacuum_before < float(vacuum_min)).float()
+        vacuum_oob_after = (vacuum_after < float(vacuum_min)).float()
+
     after_cell = lattice_to_cell(lat)
     after_angle_oob = _angle_out_of_range(after_cell, angle_min, angle_max).float()
     after_cond = cond_gram(lat, pbc_mask=pbc_mask)
     after_vol = torch.linalg.det(lat).abs().clamp_min(1e-12)
     after_vol_oob = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
+    after_area = torch.full((lattice.shape[0],), float("nan"), device=lattice.device, dtype=torch.float32)
+    after_area_oob = torch.zeros((lattice.shape[0],), device=lattice.device, dtype=torch.float32)
     if "volume" in keys_set and (vol_min is not None or vol_max is not None):
         if vol_min is not None:
             after_vol_oob = torch.where(after_vol < float(vol_min), torch.ones_like(after_vol_oob), after_vol_oob)
         if vol_max is not None:
             after_vol_oob = torch.where(after_vol > float(vol_max), torch.ones_like(after_vol_oob), after_vol_oob)
+    if "volume" in keys_set and (area_per_atom_min is not None or area_per_atom_max is not None):
+        axes = [i for i, v in enumerate(pbc_mask) if int(v) == 1]
+        if len(axes) == 2 and n_atoms is not None:
+            a_vec = lat[:, axes[0], :]
+            b_vec = lat[:, axes[1], :]
+            area = _safe_norm(torch.cross(a_vec, b_vec, dim=-1))
+            after_area = area.float()
+            n = n_atoms.to(device=area.device, dtype=area.dtype).clamp_min(1.0)
+            area_per_atom = area / n
+            if area_per_atom_min is not None:
+                after_area_oob = torch.where(
+                    area_per_atom < float(area_per_atom_min),
+                    torch.ones_like(after_area_oob),
+                    after_area_oob,
+                )
+            if area_per_atom_max is not None:
+                after_area_oob = torch.where(
+                    area_per_atom > float(area_per_atom_max),
+                    torch.ones_like(after_area_oob),
+                    after_area_oob,
+                )
     after_inplane = inplane_degenerate(
         lat,
         pbc_mask=pbc_mask,
@@ -479,7 +663,7 @@ def post_step_project(
     delta = (lat - lattice).reshape(lattice.shape[0], -1)
     base = lattice.reshape(lattice.shape[0], -1)
     delta_norm = torch.linalg.norm(delta, dim=-1) / torch.linalg.norm(base, dim=-1).clamp_min(1e-8)
-    trigger_any_bool = (before_angle_oob > 0) | (before_inplane > 0) | (before_vol_oob > 0)
+    trigger_any_bool = (before_angle_oob > 0) | (before_inplane > 0) | (before_vol_oob > 0) | (vacuum_oob_before > 0)
     if cond_max is not None:
         trigger_any_bool = trigger_any_bool | (before_cond > float(cond_max))
     stats = {
@@ -492,8 +676,18 @@ def post_step_project(
         "vol_oob_before": before_vol_oob,
         "vol_oob_after": after_vol_oob,
         "vol_scale_inplane": vol_scale,
+        "area_before": before_area,
+        "area_after": after_area,
+        "area_oob_before": before_area_oob,
+        "area_oob_after": after_area_oob,
+        "area_scale_inplane": area_scale,
         "inplane_degen_before": before_inplane,
         "inplane_degen_after": after_inplane,
+        "vacuum_before": vacuum_before,
+        "vacuum_after": vacuum_after,
+        "vacuum_oob_before": vacuum_oob_before,
+        "vacuum_oob_after": vacuum_oob_after,
+        "vacuum_scale_c": vacuum_scale_c,
         "delta_norm": delta_norm,
         "trigger_any": trigger_any_bool.float(),
     }
@@ -508,4 +702,5 @@ __all__ = [
     "cell_to_lattice_oriented",
     "post_step_project",
     "project_cond_svd",
+    "project_vacuum_or_c_len",
 ]

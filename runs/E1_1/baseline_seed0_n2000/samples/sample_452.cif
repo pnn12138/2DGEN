@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_ZnCdSbPdBrCl2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51819491
+_cell_length_b   13.51575672
+_cell_length_c   14.01533804
+_cell_angle_alpha   90.31070081
+_cell_angle_beta   90.05438361
+_cell_angle_gamma   80.48356408
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnCdSbPdBrCl2O3
+_chemical_formula_sum   'Zn1 Cd1 Sb1 Pd1 Br1 Cl2 O3'
+_cell_volume   470.44485804
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.68270683  0.72965622  0.53324008  1
+  O  O1  1  0.22863960  0.73227310  0.99860740  1
+  Cl  Cl2  1  0.82478428  0.99097276  0.40179658  1
+  O  O3  1  0.73251581  0.58569098  0.53142929  1
+  Pd  Pd4  1  0.15412140  0.18796921  0.52766407  1
+  Zn  Zn5  1  0.80793762  0.79228687  0.82204747  1
+  Cl  Cl6  1  0.91691017  0.04832200  0.09851049  1
+  Br  Br7  1  0.97299767  0.13096714  0.86438704  1
+  Cd  Cd8  1  0.95391774  0.08392227  0.19722791  1
+  Sb  Sb9  1  0.32775807  0.62278175  0.33087808  1

@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_HfZrTe2S
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51416779
+_cell_length_b   11.76133320
+_cell_length_c   11.95163454
+_cell_angle_alpha   89.54625188
+_cell_angle_beta   89.93074112
+_cell_angle_gamma   130.49577165
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZrTe2S
+_chemical_formula_sum   'Hf1 Zr1 Te2 S1'
+_cell_volume   268.73376331
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zr  Zr0  1  0.18963242  0.35109043  0.39329004  1
+  Te  Te1  1  0.12041688  0.74278307  0.06164491  1
+  Te  Te2  1  0.69005519  0.29838753  0.65307128  1
+  S  S3  1  0.68763900  0.44370079  0.87454993  1
+  Hf  Hf4  1  0.29995632  0.57748318  0.75249290  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnAsSe2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.02895594
+_cell_length_b   16.58902443
+_cell_length_c   23.78193586
+_cell_angle_alpha   90.02270604
+_cell_angle_beta   90.02347779
+_cell_angle_gamma   123.94971450
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnAsSe2Cl
+_chemical_formula_sum   'Mn2 As2 Se4 Cl2'
+_cell_volume   1318.53442273
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.67996979  0.66080821  0.59106398  1
+  Cl  Cl1  1  0.99028111  0.08761692  0.36780787  1
+  Cl  Cl2  1  0.78499222  0.75264740  0.39017105  1
+  Se  Se3  1  0.31105995  0.93222284  0.09665966  1
+  As  As4  1  0.88795471  0.43282700  0.51398373  1
+  As  As5  1  0.87974548  0.17931557  0.00219345  1
+  Se  Se6  1  0.20028865  0.95538330  0.86633682  1
+  Mn  Mn7  1  0.20242667  0.00731659  0.28012466  1
+  Se  Se8  1  0.84367019  0.60610545  0.53192860  1
+  Se  Se9  1  0.50605208  0.53485525  0.54365891  1

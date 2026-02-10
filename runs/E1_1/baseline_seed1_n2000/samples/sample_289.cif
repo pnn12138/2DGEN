@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NbTePd2Se
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.27184820
+_cell_length_b   13.61845605
+_cell_length_c   12.72662355
+_cell_angle_alpha   89.89593794
+_cell_angle_beta   90.00989925
+_cell_angle_gamma   94.66954653
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbTePd2Se
+_chemical_formula_sum   'Nb2 Te2 Pd4 Se2'
+_cell_volume   392.44224881
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.43925095  0.39601135  0.05229688  1
+  Se  Se1  1  0.95954561  0.98316526  0.11860859  1
+  Te  Te2  1  0.09575748  0.87228012  0.43116188  1
+  Pd  Pd3  1  0.65371704  0.35586834  0.46422672  1
+  Pd  Pd4  1  0.41866469  0.69948125  0.30988312  1
+  Pd  Pd5  1  0.77702451  0.89875031  0.93096590  1
+  Pd  Pd6  1  0.26271272  0.53795242  0.65596676  1
+  Te  Te7  1  0.69398355  0.53612852  0.86154842  1
+  Se  Se8  1  0.34093475  0.85760641  0.01974666  1
+  Nb  Nb9  1  0.01310730  0.90839672  0.65952444  1

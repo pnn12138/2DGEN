@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GaSbS3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.08609009
+_cell_length_b   19.51659900
+_cell_length_c   26.98402857
+_cell_angle_alpha   89.74757238
+_cell_angle_beta   90.01880595
+_cell_angle_gamma   95.55129504
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaSbS3
+_chemical_formula_sum   'Ga2 Sb2 S6'
+_cell_volume   2665.93233556
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.83441734  0.34017944  0.39389229  1
+  Ga  Ga1  1  0.78315163  0.71156979  0.54016638  1
+  S  S2  1  0.79189682  0.27016258  0.54971409  1
+  S  S3  1  0.11944485  0.85896921  0.24271977  1
+  S  S4  1  0.69488549  0.55078125  0.67753506  1
+  S  S5  1  0.45693874  0.35341263  0.62274194  1
+  S  S6  1  0.47257233  0.38262749  0.33429885  1
+  Ga  Ga7  1  0.76322746  0.25295472  0.81361175  1
+  Sb  Sb8  1  0.10037041  0.25191307  0.82622111  1
+  Sb  Sb9  1  0.19838142  0.56695557  0.80645800  1

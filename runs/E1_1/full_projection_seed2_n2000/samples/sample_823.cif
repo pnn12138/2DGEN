@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_CrAg(AsSe3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.39558649
+_cell_length_b   19.84854294
+_cell_length_c   29.33787425
+_cell_angle_alpha   90.22093173
+_cell_angle_beta   90.01250173
+_cell_angle_gamma   81.25747167
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrAg(AsSe3)2
+_chemical_formula_sum   'Cr2 Ag2 As4 Se12'
+_cell_volume   3105.39758702
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.40658283  0.69101381  0.15031648  1
+  Se  Se1  1  0.16170692  0.55069447  0.38549733  1
+  Se  Se2  1  0.42464724  0.68452722  0.33363846  1
+  As  As3  1  0.03491879  0.42189980  0.54029226  1
+  Se  Se4  1  0.43562984  0.98193002  0.40656233  1
+  Cr  Cr5  1  0.57819557  0.61679459  0.77070045  1
+  Ag  Ag6  1  0.77875042  0.12869167  0.70112598  1
+  As  As7  1  0.07422066  0.80152512  0.47556663  1
+  Se  Se8  1  0.71841431  0.41732121  0.21214771  1
+  Se  Se9  1  0.66260767  0.59267712  0.66230768  1
+  Se  Se10  1  0.06395364  0.70626020  0.30716157  1
+  Se  Se11  1  0.84626579  0.56060028  0.16356039  1
+  As  As12  1  0.26523018  0.34642410  0.09339237  1
+  Cr  Cr13  1  0.68288231  0.04834557  0.94786996  1
+  As  As14  1  0.29331398  0.07395029  0.06860209  1
+  Se  Se15  1  0.92832851  0.90011168  0.05676842  1
+  Se  Se16  1  0.89091873  0.40912294  0.98004246  1
+  Se  Se17  1  0.63563156  0.30203438  0.94574904  1
+  Se  Se18  1  0.95555592  0.29953706  0.50112152  1
+  Ag  Ag19  1  0.53300947  0.73848075  0.31223032  1

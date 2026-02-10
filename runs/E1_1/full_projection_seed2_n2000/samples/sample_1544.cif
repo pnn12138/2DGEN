@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Ta3SeBr7
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.55284834
+_cell_length_b   13.16772367
+_cell_length_c   37.49353447
+_cell_angle_alpha   90.15556686
+_cell_angle_beta   90.00620431
+_cell_angle_gamma   78.92057923
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta3SeBr7
+_chemical_formula_sum   'Ta3 Se1 Br7'
+_cell_volume   2690.35993092
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.67356735  0.21421337  0.67374885  1
+  Br  Br1  1  0.05997133  0.13222122  0.34582615  1
+  Br  Br2  1  0.90376437  0.89830017  0.18892908  1
+  Br  Br3  1  0.73536777  0.49893475  0.66508436  1
+  Br  Br4  1  0.27184868  0.07648849  0.62385130  1
+  Br  Br5  1  0.39061356  0.92310619  0.39302611  1
+  Br  Br6  1  0.81565499  0.67008549  0.24855483  1
+  Ta  Ta7  1  0.06520653  0.98377132  0.96419549  1
+  Ta  Ta8  1  0.43662262  0.62898254  0.34138346  1
+  Ta  Ta9  1  0.47686005  0.29808426  0.10724688  1
+  Br  Br10  1  0.91000128  0.28679466  0.06604552  1

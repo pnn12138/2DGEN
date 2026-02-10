@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiMnNbSi(Te2Br)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.03748536
+_cell_length_b   18.66443932
+_cell_length_c   16.60187393
+_cell_angle_alpha   90.87026403
+_cell_angle_beta   89.75243007
+_cell_angle_gamma   103.24428133
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiMnNbSi(Te2Br)2
+_chemical_formula_sum   'Li1 Mn1 Nb1 Si1 Te4 Br2'
+_cell_volume   916.06920628
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.04500198  0.00491333  0.49868023  1
+  Te  Te1  1  0.97127295  0.63564968  0.87142491  1
+  Te  Te2  1  0.19490242  0.86539459  0.88062322  1
+  Li  Li3  1  0.09736347  0.16264057  0.33230257  1
+  Te  Te4  1  0.39624882  0.77355671  0.65289021  1
+  Nb  Nb5  1  0.72324419  0.32347870  0.48388410  1
+  Br  Br6  1  0.77870083  0.56295061  0.29581052  1
+  Mn  Mn7  1  0.57400894  0.49423695  0.88218904  1
+  Te  Te8  1  0.17029953  0.64085579  0.39234418  1
+  Br  Br9  1  0.24086094  0.20273852  0.02865410  1

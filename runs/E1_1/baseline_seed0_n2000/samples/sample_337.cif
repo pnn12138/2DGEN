@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Sr2InCuHgO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51758099
+_cell_length_b   13.65609020
+_cell_length_c   14.21608037
+_cell_angle_alpha   89.20368537
+_cell_angle_beta   90.06983323
+_cell_angle_gamma   94.96052848
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2InCuHgO5
+_chemical_formula_sum   'Sr2 In1 Cu1 Hg1 O5'
+_cell_volume   486.87564245
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.53462690  0.88255006  0.25853285  1
+  Sr  Sr1  1  0.88747597  0.86180246  0.32219067  1
+  O  O2  1  0.63867950  0.74542522  0.42703819  1
+  Hg  Hg3  1  0.00992012  0.24801326  0.44951367  1
+  Cu  Cu4  1  0.55536366  0.89071274  0.49170971  1
+  O  O5  1  0.37786415  0.84795475  0.37250254  1
+  Sr  Sr6  1  0.87386149  0.06473456  0.81031138  1
+  O  O7  1  0.56600267  0.08986117  0.74401277  1
+  In  In8  1  0.69004822  0.34770393  0.23497200  1
+  O  O9  1  0.23623276  0.00029564  0.23432630  1

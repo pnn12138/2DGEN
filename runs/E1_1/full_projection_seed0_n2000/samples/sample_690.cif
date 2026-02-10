@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NaCaI3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.62536716
+_cell_length_b   10.61080290
+_cell_length_c   12.70758883
+_cell_angle_alpha   91.74889810
+_cell_angle_beta   91.48185561
+_cell_angle_gamma   30.00243723
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaCaI3
+_chemical_formula_sum   'Na2 Ca2 I6'
+_cell_volume   311.71448364
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.22672209  0.72128916  0.74297005  1
+  I  I1  1  0.15200472  0.19702075  0.36674336  1
+  Ca  Ca2  1  0.55850554  0.05375648  0.81439602  1
+  I  I3  1  0.97383946  0.68809462  0.71867412  1
+  I  I4  1  0.04272461  0.14194489  0.06246638  1
+  I  I5  1  0.45993042  0.11481285  0.23172259  1
+  Ca  Ca6  1  0.15629077  0.45452112  0.08723950  1
+  I  I7  1  0.42422485  0.99317980  0.18660367  1
+  Na  Na8  1  0.66989136  0.73427296  0.43725508  1
+  Na  Na9  1  0.72734696  0.30661368  0.44441351  1

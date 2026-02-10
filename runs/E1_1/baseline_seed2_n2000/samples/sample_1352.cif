@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GaSiTe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.43801308
+_cell_length_b   21.90463779
+_cell_length_c   41.69794723
+_cell_angle_alpha   89.97113815
+_cell_angle_beta   90.00366348
+_cell_angle_gamma   72.01875052
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaSiTe3
+_chemical_formula_sum   'Ga2 Si2 Te6'
+_cell_volume   6461.89805230
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.77483940  0.47554398  0.64889169  1
+  Si  Si1  1  0.49452686  0.97462058  0.40858436  1
+  Ga  Ga2  1  0.58138311  0.43619496  0.59880310  1
+  Te  Te3  1  0.57133484  0.26177979  0.74310446  1
+  Te  Te4  1  0.47216350  0.44398540  0.62734240  1
+  Ga  Ga5  1  0.52680206  0.23112583  0.01338431  1
+  Te  Te6  1  0.64671373  0.53008842  0.14867353  1
+  Te  Te7  1  0.34207726  0.77398634  0.37148735  1
+  Te  Te8  1  0.48729181  0.03348827  0.03958225  1
+  Te  Te9  1  0.91230059  0.52076244  0.25898308  1

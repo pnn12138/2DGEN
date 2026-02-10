@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_CrGaAgS3I2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.51741076
+_cell_length_b   14.82606011
+_cell_length_c   29.83207421
+_cell_angle_alpha   90.62428157
+_cell_angle_beta   89.89431243
+_cell_angle_gamma   99.08649061
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrGaAgS3I2
+_chemical_formula_sum   'Cr1 Ga1 Ag1 S3 I2'
+_cell_volume   1972.82512624
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.55727339  0.97400761  0.56020236  1
+  Cr  Cr1  1  0.11574507  0.68421555  0.52001429  1
+  S  S2  1  0.04059154  0.54404593  0.83474410  1
+  I  I3  1  0.91725874  0.12758636  0.33371842  1
+  Ga  Ga4  1  0.30902958  0.97013938  0.52049303  1
+  S  S5  1  0.08945084  0.45166111  0.04408097  1
+  I  I6  1  0.69931030  0.86408424  0.19085383  1
+  S  S7  1  0.64630699  0.30123091  0.46637893  1

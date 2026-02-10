@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnNi(SeS)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.26265669
+_cell_length_b   20.09491134
+_cell_length_c   27.55772983
+_cell_angle_alpha   91.11764001
+_cell_angle_beta   89.94695947
+_cell_angle_gamma   95.24385120
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnNi(SeS)2
+_chemical_formula_sum   'Mn1 Ni1 Se2 S2'
+_cell_volume   2901.55182378
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.06953430  0.37747192  0.92724347  1
+  Mn  Mn1  1  0.99130058  0.27293873  0.51746702  1
+  Se  Se2  1  0.09345937  0.80570793  0.60994697  1
+  S  S3  1  0.31437731  0.80449533  0.00019193  1
+  S  S4  1  0.54939175  0.32344055  0.89432454  1
+  Se  Se5  1  0.42160034  0.57936192  0.10841179  1

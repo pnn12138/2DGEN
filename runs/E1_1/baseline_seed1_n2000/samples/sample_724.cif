@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_TlAuSeS
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.27636337
+_cell_length_b   19.78977942
+_cell_length_c   19.81432624
+_cell_angle_alpha   89.91889791
+_cell_angle_beta   90.00504939
+_cell_angle_gamma   98.15475910
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlAuSeS
+_chemical_formula_sum   'Tl1 Au1 Se1 S1'
+_cell_volume   2048.05124586
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.01266193  0.79333144  0.70922917  1
+  Tl  Tl1  1  0.39920902  0.21437073  0.27346230  1
+  Se  Se2  1  0.72374344  0.58250427  0.68482208  1
+  S  S3  1  0.81801373  0.73765916  0.69171602  1

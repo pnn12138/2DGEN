@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Mo2NCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.22426343
+_cell_length_b   7.32172767
+_cell_length_c   12.37361151
+_cell_angle_alpha   89.85024429
+_cell_angle_beta   90.03024598
+_cell_angle_gamma   94.19766680
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo2NCl2
+_chemical_formula_sum   'Mo2 N1 Cl2'
+_cell_volume   200.96858860
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.20385456  0.50633383  0.65072513  1
+  Cl  Cl1  1  0.81416625  0.70433545  0.50800824  1
+  N  N2  1  0.05170560  0.43797827  0.47648874  1
+  Mo  Mo3  1  0.63324368  0.65315795  0.03920770  1
+  Mo  Mo4  1  0.87807465  0.66533947  0.85516083  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SiTe3P
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.72759390
+_cell_length_b   13.64292859
+_cell_length_c   34.82212169
+_cell_angle_alpha   90.56735865
+_cell_angle_beta   89.98944306
+_cell_angle_gamma   83.10541714
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SiTe3P
+_chemical_formula_sum   'Si2 Te6 P2'
+_cell_volume   2229.61236755
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.14555311  0.95160270  0.27149045  1
+  Te  Te1  1  0.99181557  0.90381432  0.67402679  1
+  Te  Te2  1  0.88073969  0.30859494  0.53024924  1
+  Te  Te3  1  0.89092541  0.19657135  0.34500554  1
+  Te  Te4  1  0.69698715  0.23931825  0.87332237  1
+  Te  Te5  1  0.76876545  0.25574017  0.82092571  1
+  Si  Si6  1  0.38982058  0.83381319  0.19623715  1
+  P  P7  1  0.26543522  0.83390522  0.82743526  1
+  Si  Si8  1  0.53412485  0.21348441  0.90278304  1
+  P  P9  1  0.78362751  0.64379883  0.44707632  1

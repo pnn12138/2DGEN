@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_NiS2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.48409057
+_cell_length_b   8.24390988
+_cell_length_c   12.56295645
+_cell_angle_alpha   90.45123848
+_cell_angle_beta   90.00172370
+_cell_angle_gamma   92.73157574
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiS2Cl
+_chemical_formula_sum   'Ni2 S4 Cl2'
+_cell_volume   256.97168300
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.26749635  0.08611751  0.36998856  1
+  S  S1  1  0.22687036  0.17355728  0.64312124  1
+  S  S2  1  0.40821743  0.53200054  0.29388189  1
+  S  S3  1  0.46587557  0.85358906  0.09753826  1
+  Ni  Ni4  1  0.09747076  0.46200943  0.81952858  1
+  Cl  Cl5  1  0.96192831  0.83435464  0.14803614  1
+  S  S6  1  0.12551868  0.98317540  0.50710809  1
+  Cl  Cl7  1  0.29253158  0.01661095  0.09775121  1

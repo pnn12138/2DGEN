@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfBiSe3Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.35017705
+_cell_length_b   8.88892339
+_cell_length_c   12.71554431
+_cell_angle_alpha   89.98227135
+_cell_angle_beta   89.96595434
+_cell_angle_gamma   112.41003258
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfBiSe3Br
+_chemical_formula_sum   'Hf1 Bi1 Se3 Br1'
+_cell_volume   245.57363492
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Bi  Bi0  1  0.34998333  0.97484869  0.18028481  1
+  Se  Se1  1  0.37471282  0.13213530  0.13160841  1
+  Se  Se2  1  0.63950348  0.89207268  0.31646037  1
+  Br  Br3  1  0.66267395  0.14472389  0.54696608  1
+  Hf  Hf4  1  0.90472984  0.54914570  0.08691835  1
+  Se  Se5  1  0.53261375  0.02684307  0.43585491  1

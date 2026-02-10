@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GeAuO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.52103853
+_cell_length_b   19.78718790
+_cell_length_c   34.25380284
+_cell_angle_alpha   90.40909880
+_cell_angle_beta   90.07701889
+_cell_angle_gamma   79.24264907
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GeAuO3
+_chemical_formula_sum   'Ge2 Au2 O6'
+_cell_volume   3676.22961686
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.61963606  0.24095154  0.76115608  1
+  Ge  Ge1  1  0.33884764  0.84524310  0.80977893  1
+  O  O2  1  0.80748892  0.27757263  0.12217271  1
+  O  O3  1  0.71321106  0.65687990  0.10150075  1
+  O  O4  1  0.48757923  0.92626286  0.85664606  1
+  O  O5  1  0.45565605  0.25742865  0.39514112  1
+  O  O6  1  0.25742245  0.46484470  0.62898278  1
+  Au  Au7  1  0.26637948  0.32523537  0.01121712  1
+  O  O8  1  0.70400953  0.02982330  0.00519419  1
+  Ge  Ge9  1  0.18084145  0.10330963  0.06271064  1

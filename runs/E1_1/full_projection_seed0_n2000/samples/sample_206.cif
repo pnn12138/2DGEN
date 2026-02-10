@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Y2NO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.26711297
+_cell_length_b   12.66168895
+_cell_length_c   13.60628345
+_cell_angle_alpha   89.63451928
+_cell_angle_beta   90.05303839
+_cell_angle_gamma   98.03992634
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Y2NO2
+_chemical_formula_sum   'Y2 N1 O2'
+_cell_volume   386.72799812
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Y  Y0  1  0.78089905  0.21303177  0.16105533  1
+  Y  Y1  1  0.29021454  0.49890137  0.83746815  1
+  O  O2  1  0.88309860  0.67761612  0.31856775  1
+  O  O3  1  0.73605800  0.25522995  0.56744927  1
+  N  N4  1  0.78475952  0.68421936  0.06546092  1

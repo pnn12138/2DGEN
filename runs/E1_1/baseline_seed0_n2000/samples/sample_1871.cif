@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TlSb2Te6Au
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.26895189
+_cell_length_b   18.23569748
+_cell_length_c   13.82143308
+_cell_angle_alpha   87.78375012
+_cell_angle_beta   89.82314330
+_cell_angle_gamma   76.45952803
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlSb2Te6Au
+_chemical_formula_sum   'Tl1 Sb2 Te6 Au1'
+_cell_volume   800.40273342
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.67605245  0.24859048  0.68725926  1
+  Sb  Sb1  1  0.11626434  0.89914703  0.89362878  1
+  Tl  Tl2  1  0.99925804  0.23516488  0.52793407  1
+  Te  Te3  1  0.92022514  0.10317826  0.08787298  1
+  Sb  Sb4  1  0.01816177  0.12230492  0.61958694  1
+  Te  Te5  1  0.80736256  0.76091003  0.53763151  1
+  Te  Te6  1  0.54866028  0.78727746  0.88065934  1
+  Te  Te7  1  0.83323860  0.49988556  0.38189220  1
+  Te  Te8  1  0.03987694  0.41825390  0.96303272  1
+  Au  Au9  1  0.30793822  0.25071657  0.65202862  1

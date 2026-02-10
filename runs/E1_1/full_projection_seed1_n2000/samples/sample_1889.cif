@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_CdAgSeF
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.67689133
+_cell_length_b   13.66044252
+_cell_length_c   31.40009305
+_cell_angle_alpha   89.78190780
+_cell_angle_beta   89.91880539
+_cell_angle_gamma   82.12049683
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdAgSeF
+_chemical_formula_sum   'Cd2 Ag2 Se2 F2'
+_cell_volume   1987.14618625
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.85026956  0.10183239  0.49884033  1
+  Cd  Cd1  1  0.54597616  0.96754360  0.43539977  1
+  Ag  Ag2  1  0.69796371  0.76938248  0.97410965  1
+  Se  Se3  1  0.89222813  0.39943314  0.32096869  1
+  Cd  Cd4  1  0.58189154  0.23503494  0.09817815  1
+  F  F5  1  0.52918053  0.26577759  0.14875752  1
+  F  F6  1  0.50114059  0.67085457  0.56452346  1
+  Se  Se7  1  0.57645035  0.57163858  0.09577453  1

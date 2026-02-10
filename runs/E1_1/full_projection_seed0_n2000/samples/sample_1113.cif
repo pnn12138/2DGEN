@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_H2AuC2IN
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42149234
+_cell_length_b   13.26381909
+_cell_length_c   13.34044754
+_cell_angle_alpha   90.29556520
+_cell_angle_beta   89.95497827
+_cell_angle_gamma   98.74774748
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   H2AuC2IN
+_chemical_formula_sum   'H4 Au2 C4 I2 N2'
+_cell_volume   423.48181135
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.17968652  0.92591327  0.90886217  1
+  Au  Au1  1  0.21319580  0.88586140  0.75267649  1
+  Au  Au2  1  0.45911884  0.66570663  0.76929235  1
+  C  C3  1  0.24924469  0.71560383  0.09198666  1
+  H  H4  1  0.33189058  0.97150469  0.45076376  1
+  I  I5  1  0.18655948  0.02752209  0.56763053  1
+  H  H6  1  0.61068511  0.91932869  0.29399395  1
+  H  H7  1  0.19266683  0.88656944  0.99997360  1
+  I  I8  1  0.58803749  0.78759575  0.47129500  1
+  C  C9  1  0.08093238  0.60014725  0.92751825  1
+  N  N10  1  0.02993960  0.91078866  0.06552737  1
+  C  C11  1  0.80263376  0.25737667  0.79991651  1
+  H  H12  1  0.92370296  0.13946295  0.89722085  1
+  C  C13  1  0.22371864  0.37734604  0.14298487  1

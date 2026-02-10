@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_NbCrCl6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.61824846
+_cell_length_b   7.21479210
+_cell_length_c   12.71914407
+_cell_angle_alpha   89.22520063
+_cell_angle_beta   90.78410885
+_cell_angle_gamma   129.31304615
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbCrCl6
+_chemical_formula_sum   'Nb1 Cr1 Cl6'
+_cell_volume   185.87187789
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.62904942  0.83350825  0.57005757  1
+  Cl  Cl1  1  0.61469269  0.89886951  0.09842443  1
+  Cl  Cl2  1  0.03906131  0.10337257  0.82639074  1
+  Cr  Cr3  1  0.92138851  0.70788121  0.56924444  1
+  Cl  Cl4  1  0.35682392  0.84976768  0.77481461  1
+  Nb  Nb5  1  0.63942337  0.27062988  0.45394802  1
+  Cl  Cl6  1  0.77283663  0.52166414  0.96063477  1
+  Cl  Cl7  1  0.18917513  0.29856429  0.93635720  1

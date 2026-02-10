@@ -1,0 +1,252 @@
+{
+  "valid_rate_eval": 0.0,
+  "fail_reason_counts": {
+    "bad_volume": 8,
+    "collision": 8,
+    "inplane_degenerate": 8
+  },
+  "min_dist": {
+    "count": 8,
+    "mean": 0.29614581147237296,
+    "median": 0.18319439302348167,
+    "p10": 0.078497977349458,
+    "p90": 0.566475728942434
+  },
+  "min_dist_collision": {
+    "count": 8,
+    "mean": 0.29614581147237296,
+    "median": 0.18319439302348167,
+    "p10": 0.078497977349458,
+    "p90": 0.566475728942434
+  },
+  "min_dist_same_elem": {
+    "count": 8,
+    "mean": 0.5353847761448356,
+    "median": 0.4822899941674769,
+    "p10": 0.14596905484015588,
+    "p90": 0.9802801701927322
+  },
+  "volume": {
+    "count": 8,
+    "mean": 3.956616312265396,
+    "median": 4.258080959320068,
+    "p10": 2.2053380012512207,
+    "p90": 5.275277090072632
+  },
+  "cond": {
+    "count": 8,
+    "mean": 1.7753064781427383,
+    "median": 1.4235056638717651,
+    "p10": 1.4076744079589845,
+    "p90": 2.284205257892608
+  },
+  "cond_full": {
+    "count": 8,
+    "mean": 2.593511462211609,
+    "median": 1.870080828666687,
+    "p10": 1.495141899585724,
+    "p90": 4.333983850479125
+  },
+  "cond_lattice": {
+    "count": 8,
+    "mean": 1.3010071543770603,
+    "median": 1.1931053673876404,
+    "p10": 1.1864545388686027,
+    "p90": 1.4589433309197037
+  },
+  "spd_rate": 1.0,
+  "energy_mlip": {
+    "count": 0
+  },
+  "formation_energy_per_atom": {
+    "count": 0
+  },
+  "relaxed_rate": 0.0,
+  "min_dist_relax": {
+    "count": 0
+  },
+  "success_rate": 0.0,
+  "success_geom_rate": 0.0,
+  "success_energy_rate": null,
+  "energy_available_rate": 0.0,
+  "energy_skipped_geom_rate": 1.0,
+  "energy_skipped_mlip_rate": 0.0,
+  "fail_reason_energy_counts": {},
+  "spacegroup_match_rate": null,
+  "symmetry_violation_rate": null,
+  "angle_alpha": {
+    "count": 8,
+    "mean": 89.36399987681781,
+    "median": 89.7449194552437,
+    "p10": 84.99923654636137,
+    "p90": 93.10532398582302
+  },
+  "angle_beta": {
+    "count": 8,
+    "mean": 90.12592967844206,
+    "median": 90.00010495709782,
+    "p10": 89.99299405087464,
+    "p90": 90.38994843317093
+  },
+  "angle_gamma": {
+    "count": 8,
+    "mean": 93.41716786697009,
+    "median": 89.1666640069491,
+    "p10": 87.01541706749781,
+    "p90": 102.38884960031601
+  },
+  "angle_out_of_range_rate": 0.0,
+  "inplane_degen_rate": 1.0,
+  "inplane_area": {
+    "count": 8,
+    "mean": 2.3825334906578064,
+    "median": 2.3882118463516235,
+    "p10": 2.2617007970809935,
+    "p90": 2.4872410774230955
+  },
+  "inplane_gamma": {
+    "count": 8,
+    "mean": 93.41716786697009,
+    "median": 89.1666640069491,
+    "p10": 87.01541706749781,
+    "p90": 102.38884960031601
+  },
+  "n_atoms": {
+    "count": 8,
+    "mean": 11.75,
+    "median": 10.0,
+    "p10": 6.1000000000000005,
+    "p90": 20.3
+  },
+  "element_counts": {},
+  "total_samples": 8,
+  "fail_reason_top3": [
+    [
+      "bad_volume",
+      8
+    ],
+    [
+      "collision",
+      8
+    ],
+    [
+      "inplane_degenerate",
+      8
+    ]
+  ],
+  "cond_violation_rate": 0.0,
+  "cond_lattice_violation_rate": 0.0,
+  "project_trigger_rate": 0.0,
+  "project_delta_cond": {
+    "count": 8,
+    "mean": 1.043081283569336e-07,
+    "median": 0.0,
+    "p10": -7.033348083496093e-07,
+    "p90": 9.059906005859372e-07
+  },
+  "project_angle_out_rate_before": 0.0,
+  "project_angle_out_rate_after": 0.0,
+  "post_project_trigger_any_rate": 1.0,
+  "post_project_delta_norm": {
+    "count": 8,
+    "mean": 1.4672578498721123,
+    "median": 1.398766815662384,
+    "p10": 0.8359957635402679,
+    "p90": 2.261792230606079
+  },
+  "post_project_vol_scale_inplane": {
+    "count": 8,
+    "mean": 1.0,
+    "median": 1.0,
+    "p10": 1.0,
+    "p90": 1.0
+  },
+  "post_project_vol_scaled_rate": 0.0,
+  "post_project_vol_before": {
+    "count": 8,
+    "mean": 2.7644619792699814,
+    "median": 2.9105770587921143,
+    "p10": 1.5320665955543518,
+    "p90": 3.538488173484802
+  },
+  "post_project_vol_after": {
+    "count": 8,
+    "mean": 25.314597368240356,
+    "median": 25.73348903656006,
+    "p10": 9.916215705871583,
+    "p90": 38.07328796386719
+  },
+  "cond_match": {
+    "exact_match_rate": 1.0,
+    "l1_count_error": {
+      "count": 8,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "l1_count_error_norm": {
+      "count": 8,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_l1": {
+      "count": 8,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_cosine": {
+      "count": 8,
+      "mean": 1.0,
+      "median": 1.0,
+      "p10": 0.9999999999999998,
+      "p90": 1.0000000000000002
+    },
+    "source": "target",
+    "suspect_all_match": false
+  },
+  "schema_version": "eval_samples_v1",
+  "valid_criteria": [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "determinant > 0",
+    "lattice Gram matrix is SPD",
+    "condition number <= cond_max when provided (in-plane Gram for 2D slabs)",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees"
+  ],
+  "eval_params": {
+    "min_dist_cut": 1.5,
+    "bond_cut": 3.0,
+    "dup_eps": 0.001,
+    "vacuum_min": 15.0,
+    "v_min": 131.28549194335938,
+    "v_max": 2596.493408203125,
+    "pbc_mask": [
+      1,
+      1,
+      0
+    ],
+    "formation_energy_threshold": 0.0,
+    "element_refs_path": "data/ref_energies.json",
+    "target_spacegroup": null,
+    "spacegroup_symprec": 0.01,
+    "cond_max": 40.0
+  },
+  "run_context": {
+    "source": "sample_tokens",
+    "samples": "runs/E1_3_smoke_gscale_0p5/full_projection_seed0_n8/samples/samples.npz",
+    "cond_split": "all",
+    "cond_split_json": null,
+    "seed": 0,
+    "protocol": "quick",
+    "experiment_id": "E1_3_smoke_gscale_0p5",
+    "config_hash": "390b26485bf54d998a4282735aa8421a4a72332bd9bb9c7a9be52707f843105b"
+  }
+}

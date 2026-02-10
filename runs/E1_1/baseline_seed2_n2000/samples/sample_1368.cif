@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_SbTeHO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54589939
+_cell_length_b   14.06260242
+_cell_length_c   14.16314782
+_cell_angle_alpha   90.33896369
+_cell_angle_beta   89.97649354
+_cell_angle_gamma   93.77591459
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbTeHO5
+_chemical_formula_sum   'Sb2 Te2 H2 O10'
+_cell_volume   505.95902808
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.37098312  0.40621185  0.86429024  1
+  Sb  Sb1  1  0.89972019  0.16954613  0.17302299  1
+  O  O2  1  0.83806086  0.02095938  0.63871282  1
+  H  H3  1  0.33715394  0.29150876  0.57574493  1
+  Te  Te4  1  0.35083961  0.82491302  0.50930786  1
+  Te  Te5  1  0.15462957  0.46380052  0.35901785  1
+  O  O6  1  0.21872890  0.70070463  0.38821605  1
+  Sb  Sb7  1  0.93514681  0.06247711  0.84023058  1
+  H  H8  1  0.40930608  0.71774858  0.30600229  1
+  O  O9  1  0.98196602  0.54300976  0.66438401  1
+  O  O10  1  0.43443921  0.49499583  0.25579110  1
+  O  O11  1  0.34679100  0.55674416  0.33410531  1
+  O  O12  1  0.83917427  0.56073570  0.86646152  1
+  O  O13  1  0.74624890  0.61274463  0.10841582  1
+  O  O14  1  0.72316486  0.58857721  0.20800307  1
+  O  O15  1  0.73281622  0.36162344  0.59371251  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SbAs2AuS6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49448538
+_cell_length_b   14.16112283
+_cell_length_c   13.87676281
+_cell_angle_alpha   89.75370597
+_cell_angle_beta   90.01001548
+_cell_angle_gamma   92.27837084
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbAs2AuS6
+_chemical_formula_sum   'Sb1 As2 Au1 S6'
+_cell_volume   489.80063970
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.93551636  0.60377502  0.33222103  1
+  S  S1  1  0.45756483  0.55848217  0.05250812  1
+  S  S2  1  0.23931217  0.13037586  0.01483297  1
+  S  S3  1  0.64570236  0.68800354  0.10830641  1
+  S  S4  1  0.54826337  0.95465440  0.94801527  1
+  Au  Au5  1  0.59178734  0.93997574  0.07096124  1
+  S  S6  1  0.42689276  0.49853098  0.57594895  1
+  Sb  Sb7  1  0.91814440  0.96188837  0.87162071  1
+  As  As8  1  0.92466950  0.37471199  0.37414771  1
+  S  S9  1  0.05570698  0.15323597  0.51481485  1

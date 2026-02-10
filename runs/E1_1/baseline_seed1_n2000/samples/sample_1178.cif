@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_SbClO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   14.53530788
+_cell_length_b   4.40077485
+_cell_length_c   12.53075608
+_cell_angle_alpha   101.01610206
+_cell_angle_beta   102.08854939
+_cell_angle_gamma   35.26912084
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbClO
+_chemical_formula_sum   'Sb1 Cl1 O1'
+_cell_volume   452.27909730
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.97049713  0.30958414  0.53850007  1
+  Cl  Cl1  1  0.12809753  0.75954342  0.17162943  1
+  O  O2  1  0.05273438  0.72578812  0.76997912  1

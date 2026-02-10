@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_TiSeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.27966785
+_cell_length_b   13.99681122
+_cell_length_c   35.96538001
+_cell_angle_alpha   90.01670914
+_cell_angle_beta   89.99102765
+_cell_angle_gamma   82.89307629
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiSeBr
+_chemical_formula_sum   'Ti4 Se4 Br4'
+_cell_volume   2637.36818532
+_cell_formula_units_Z   4
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.82646394  0.16267753  0.49361610  1
+  Ti  Ti1  1  0.83927155  0.82444429  0.94291878  1
+  Br  Br2  1  0.80978203  0.48412609  0.73050719  1
+  Br  Br3  1  0.63181603  0.38588920  0.27444351  1
+  Br  Br4  1  0.08330154  0.58006668  0.08220220  1
+  Ti  Ti5  1  0.62730789  0.46171761  0.65469742  1
+  Se  Se6  1  0.52174950  0.41929817  0.11431885  1
+  Ti  Ti7  1  0.54893303  0.69991684  0.04962063  1
+  Se  Se8  1  0.00983953  0.18911171  0.21036625  1
+  Ti  Ti9  1  0.73603797  0.45358467  0.33575821  1
+  Br  Br10  1  0.33731604  0.02166843  0.68044901  1
+  Se  Se11  1  0.52620876  0.44065365  0.30658984  1

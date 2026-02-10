@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_HfICl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.19582605
+_cell_length_b   16.16360818
+_cell_length_c   12.16695220
+_cell_angle_alpha   90.42475790
+_cell_angle_beta   90.75491158
+_cell_angle_gamma   39.37701222
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfICl
+_chemical_formula_sum   'Hf1 I1 Cl1'
+_cell_volume   523.44723688
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.43076706  0.48189735  0.56206310  1
+  Cl  Cl1  1  0.78292084  0.30345106  0.17236090  1
+  Hf  Hf2  1  0.26472855  0.77992225  0.15616757  1

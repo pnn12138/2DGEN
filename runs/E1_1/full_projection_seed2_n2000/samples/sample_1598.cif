@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_Bi2Mo
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.53935885
+_cell_length_b   8.66370772
+_cell_length_c   20.89090912
+_cell_angle_alpha   90.37537572
+_cell_angle_beta   90.25143438
+_cell_angle_gamma   53.28957741
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Bi2Mo
+_chemical_formula_sum   'Bi2 Mo1'
+_cell_volume   513.53529336
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Bi  Bi0  1  0.07353210  0.84160137  0.83380842  1
+  Mo  Mo1  1  0.02395535  0.75287247  0.53664517  1
+  Bi  Bi2  1  0.15058517  0.57775068  0.39004421  1

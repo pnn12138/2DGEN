@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Cu2Sb4Se3Br2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.40537643
+_cell_length_b   14.34453710
+_cell_length_c   15.07835552
+_cell_angle_alpha   90.26143471
+_cell_angle_beta   89.97341965
+_cell_angle_gamma   97.45585042
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2Sb4Se3Br2
+_chemical_formula_sum   'Cu2 Sb4 Se3 Br2'
+_cell_volume   515.85962312
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.36471558  0.18420219  0.64907098  1
+  Se  Se1  1  0.78818417  0.76796579  0.37942475  1
+  Se  Se2  1  0.25063175  0.47887230  0.91351837  1
+  Sb  Sb3  1  0.74573517  0.38381577  0.69555974  1
+  Cu  Cu4  1  0.43945885  0.30006385  0.38011789  1
+  Br  Br5  1  0.83107042  0.04762268  0.27046251  1
+  Sb  Sb6  1  0.77038789  0.96462679  0.45235461  1
+  Cu  Cu7  1  0.12199438  0.16385317  0.52580404  1
+  Br  Br8  1  0.79350376  0.49289310  0.67681456  1
+  Sb  Sb9  1  0.09108925  0.48376942  0.50007951  1
+  Sb  Sb10  1  0.87204552  0.62362242  0.97116601  1

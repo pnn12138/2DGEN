@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_Na2Sc
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.28266597
+_cell_length_b   8.21087579
+_cell_length_c   11.82701862
+_cell_angle_alpha   87.79334977
+_cell_angle_beta   91.29218228
+_cell_angle_gamma   123.88583966
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Na2Sc
+_chemical_formula_sum   'Na2 Sc1'
+_cell_volume   183.88284473
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Na  Na0  1  0.18662739  0.58732414  0.96297860  1
+  Na  Na1  1  0.04279327  0.54249287  0.06874490  1
+  Sc  Sc2  1  0.78889656  0.83961105  0.66204715  1

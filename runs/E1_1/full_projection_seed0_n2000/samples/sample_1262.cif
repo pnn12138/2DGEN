@@ -1,0 +1,44 @@
+# generated using pymatgen
+data_RbRuC(I2O)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.93829966
+_cell_length_b   9.50736798
+_cell_length_c   12.53012131
+_cell_angle_alpha   89.65906023
+_cell_angle_beta   90.10660744
+_cell_angle_gamma   96.19316781
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RbRuC(I2O)2
+_chemical_formula_sum   'Rb2 Ru2 C2 I8 O4'
+_cell_volume   347.98586914
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ru  Ru0  1  0.30342495  0.69166750  0.48256969  1
+  C  C1  1  0.93689531  0.59231645  0.29690248  1
+  I  I2  1  0.80578232  0.97578812  0.29352236  1
+  I  I3  1  0.44043228  0.18902016  0.60455024  1
+  O  O4  1  0.34641358  0.13000458  0.19054176  1
+  C  C5  1  0.84023809  0.25525284  0.02857661  1
+  I  I6  1  0.99072754  0.50057983  0.57342148  1
+  I  I7  1  0.04606323  0.22911277  0.14916959  1
+  O  O8  1  0.50558472  0.59533215  0.92413378  1
+  Ru  Ru9  1  0.24344447  0.09329824  0.03941600  1
+  I  I10  1  0.49198914  0.47860527  0.47102043  1
+  O  O11  1  0.67859411  0.88486290  0.61188507  1
+  I  I12  1  0.33929420  0.32620806  0.58550984  1
+  I  I13  1  0.06493991  0.62680316  0.40757376  1
+  Rb  Rb14  1  0.81625414  0.30905253  0.60595155  1
+  I  I15  1  0.29243785  0.55262834  0.37758535  1
+  O  O16  1  0.09501839  0.32377863  0.85826445  1
+  Rb  Rb17  1  0.56877190  0.09222591  0.10897108  1

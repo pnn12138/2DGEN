@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_CaAgIBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23710799
+_cell_length_b   14.03233168
+_cell_length_c   12.44509778
+_cell_angle_alpha   90.18879543
+_cell_angle_beta   89.99381448
+_cell_angle_gamma   92.12873209
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaAgIBr
+_chemical_formula_sum   'Ca1 Ag1 I1 Br1'
+_cell_volume   390.40280792
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ca  Ca0  1  0.02022266  0.49824286  0.73417664  1
+  Ag  Ag1  1  0.53532887  0.11445427  0.21536732  1
+  Br  Br2  1  0.35537672  0.18658161  0.50199127  1
+  I  I3  1  0.41315317  0.40150070  0.94654131  1

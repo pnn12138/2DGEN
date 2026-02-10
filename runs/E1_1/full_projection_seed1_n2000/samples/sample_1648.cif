@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_CoSb2S3Br2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.95930338
+_cell_length_b   19.75054278
+_cell_length_c   30.95139359
+_cell_angle_alpha   90.18189042
+_cell_angle_beta   90.01801368
+_cell_angle_gamma   79.99721948
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoSb2S3Br2
+_chemical_formula_sum   'Co2 Sb4 S6 Br4'
+_cell_volume   2985.55764515
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sb  Sb0  1  0.90159225  0.39125347  0.47935462  1
+  Sb  Sb1  1  0.08743286  0.70136988  0.45876598  1
+  Sb  Sb2  1  0.44714832  0.10677147  0.50718427  1
+  S  S3  1  0.63842010  0.28881264  0.63823795  1
+  Sb  Sb4  1  0.60433912  0.93585205  0.04500818  1
+  Br  Br5  1  0.32988548  0.60504031  0.81254148  1
+  S  S6  1  0.95612335  0.96057034  0.33577085  1
+  Co  Co7  1  0.58385754  0.95060825  0.58740735  1
+  Br  Br8  1  0.26366425  0.78660917  0.20553446  1
+  S  S9  1  0.34039307  0.57223892  0.07198429  1
+  S  S10  1  0.03569984  0.52110100  0.88648498  1
+  S  S11  1  0.81682301  0.29510689  0.27589512  1
+  S  S12  1  0.29462433  0.54276752  0.14620662  1
+  Co  Co13  1  0.11915207  0.81980515  0.84671336  1
+  Br  Br14  1  0.39860535  0.71040726  0.86036944  1
+  Br  Br15  1  0.61912918  0.12928081  0.29168415  1

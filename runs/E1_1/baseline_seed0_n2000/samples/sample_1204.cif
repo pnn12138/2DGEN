@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_Sc3In2IBrCl4O5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43878436
+_cell_length_b   13.38581045
+_cell_length_c   13.42398626
+_cell_angle_alpha   89.91143800
+_cell_angle_beta   90.01382662
+_cell_angle_gamma   98.67874426
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sc3In2IBrCl4O5
+_chemical_formula_sum   'Sc3 In2 I1 Br1 Cl4 O5'
+_cell_volume   433.20919277
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.64828968  0.69221497  0.76420188  1
+  Cl  Cl1  1  0.11148310  0.60420322  0.02346665  1
+  O  O2  1  0.40636840  0.25269240  0.98429602  1
+  Sc  Sc3  1  0.86504555  0.98842716  0.71830273  1
+  O  O4  1  0.32687122  0.69485652  0.43057024  1
+  Br  Br5  1  0.77843952  0.97032928  0.22742152  1
+  Sc  Sc6  1  0.11193544  0.25517732  0.89332801  1
+  O  O7  1  0.88083363  0.43510079  0.11237305  1
+  Cl  Cl8  1  0.30549192  0.82139516  0.75518656  1
+  In  In9  1  0.66814423  0.67093754  0.03782654  1
+  Cl  Cl10  1  0.71032631  0.08115353  0.41230547  1
+  Cl  Cl11  1  0.29158974  0.69114304  0.21794009  1
+  I  I12  1  0.58600229  0.79336846  0.44382653  1
+  O  O13  1  0.31619191  0.38805962  0.41775632  1
+  Sc  Sc14  1  0.50071514  0.15027556  0.45565355  1
+  In  In15  1  0.27547646  0.04720688  0.19491708  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TaNi2TeSe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44570613
+_cell_length_b   13.15603018
+_cell_length_c   13.59699133
+_cell_angle_alpha   90.09981884
+_cell_angle_beta   89.97565991
+_cell_angle_gamma   99.42785965
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaNi2TeSe
+_chemical_formula_sum   'Ta2 Ni4 Te2 Se2'
+_cell_volume   431.58380012
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ta  Ta0  1  0.45673522  0.99784356  0.40398929  1
+  Te  Te1  1  0.43431473  0.82942200  0.01189399  1
+  Se  Se2  1  0.46864122  0.16971874  0.88838100  1
+  Se  Se3  1  0.23241374  0.07776465  0.44324318  1
+  Te  Te4  1  0.76434612  0.11998510  0.12885082  1
+  Ni  Ni5  1  0.04606152  0.56471252  0.54862356  1
+  Ni  Ni6  1  0.94721365  0.34401804  0.28694451  1
+  Ni  Ni7  1  0.13192534  0.39790344  0.95307529  1
+  Ta  Ta8  1  0.61549282  0.53303504  0.06939125  1
+  Ni  Ni9  1  0.87713480  0.57362080  0.24675775  1

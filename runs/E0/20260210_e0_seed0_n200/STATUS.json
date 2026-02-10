@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "note": "phase0 E0 run finished",
+  "schema_version": "run_layout_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T04:29:33+00:00",
+  "experiment_id": "E0",
+  "config_hash": "615c2c904d21da630e9b16bfd4d24d3e020dfd34efcab6c9f43b974243156e50",
+  "seed": 0,
+  "protocol": "quick"
+}

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_AsIrO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.36584449
+_cell_length_b   14.95494761
+_cell_length_c   12.57169388
+_cell_angle_alpha   90.04163249
+_cell_angle_beta   89.99893700
+_cell_angle_gamma   91.73222551
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AsIrO3
+_chemical_formula_sum   'As2 Ir2 O6'
+_cell_volume   444.59672773
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.55263710  0.51705647  0.31697306  1
+  O  O1  1  0.70696092  0.94087219  0.58224201  1
+  Ir  Ir2  1  0.17987227  0.44581509  0.87302423  1
+  O  O3  1  0.40916061  0.69986153  0.12462711  1
+  As  As4  1  0.15048122  0.21534610  0.99102163  1
+  As  As5  1  0.06650114  0.37038565  0.05334520  1
+  Ir  Ir6  1  0.23079300  0.97849655  0.73145795  1
+  O  O7  1  0.44436741  0.62539697  0.81981254  1
+  O  O8  1  0.45657253  0.32006264  0.78387916  1
+  O  O9  1  0.38898277  0.60785961  0.41166306  1

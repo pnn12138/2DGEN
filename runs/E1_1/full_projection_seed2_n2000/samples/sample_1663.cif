@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_CaAgTe2N
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.32119393
+_cell_length_b   13.59752039
+_cell_length_c   13.18183643
+_cell_angle_alpha   90.01147722
+_cell_angle_beta   90.00327413
+_cell_angle_gamma   96.42584379
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaAgTe2N
+_chemical_formula_sum   'Ca1 Ag1 Te2 N1'
+_cell_volume   413.43763630
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.97351956  0.59910822  0.20718288  1
+  Ca  Ca1  1  0.80471188  0.15447178  0.32469147  1
+  Ag  Ag2  1  0.56807232  0.36305428  0.28110456  1
+  Te  Te3  1  0.41328621  0.43741989  0.54467726  1
+  Te  Te4  1  0.09361031  0.06604630  0.35247189  1

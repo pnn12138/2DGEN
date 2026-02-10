@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_TlI
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.31677485
+_cell_length_b   16.11626911
+_cell_length_c   26.22057316
+_cell_angle_alpha   90.11485210
+_cell_angle_beta   90.01657933
+_cell_angle_gamma   93.85130953
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlI
+_chemical_formula_sum   'Tl6 I6'
+_cell_volume   1820.04995673
+_cell_formula_units_Z   6
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.37546793  0.12725645  0.30757704  1
+  Tl  Tl1  1  0.08692741  0.48658800  0.92771769  1
+  Tl  Tl2  1  0.42041716  0.13527101  0.35543999  1
+  Tl  Tl3  1  0.28429413  0.44201088  0.15403867  1
+  I  I4  1  0.17097855  0.97761345  0.75245899  1
+  Tl  Tl5  1  0.10233593  0.17625189  0.93051600  1
+  I  I6  1  0.21148491  0.30542469  0.75385737  1
+  I  I7  1  0.90367222  0.90511227  0.51916218  1
+  I  I8  1  0.63480186  0.05348969  0.54353046  1
+  Tl  Tl9  1  0.31169415  0.49238777  0.99969387  1
+  Tl  Tl10  1  0.89899826  0.90772921  0.32179594  1
+  I  I11  1  0.39207649  0.74862337  0.64040256  1

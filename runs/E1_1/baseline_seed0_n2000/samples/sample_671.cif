@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ca2Cu(BrO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.18427396
+_cell_length_b   12.09725423
+_cell_length_c   13.16572526
+_cell_angle_alpha   89.75958680
+_cell_angle_beta   90.03552563
+_cell_angle_gamma   98.34693511
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca2Cu(BrO)2
+_chemical_formula_sum   'Ca2 Cu1 Br2 O2'
+_cell_volume   344.19927316
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.08241415  0.18580246  0.32844758  1
+  O  O1  1  0.55702162  0.11009598  0.67595106  1
+  Br  Br2  1  0.69135618  0.39845371  0.56350803  1
+  Cu  Cu3  1  0.59104347  0.44707489  0.90751457  1
+  Ca  Ca4  1  0.28882599  0.55544543  0.86208272  1
+  Ca  Ca5  1  0.05063725  0.59873962  0.51458883  1
+  Br  Br6  1  0.39053726  0.60599613  0.02604914  1

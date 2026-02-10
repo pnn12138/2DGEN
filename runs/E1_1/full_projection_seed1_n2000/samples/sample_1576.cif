@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ni2AuO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47999549
+_cell_length_b   15.67763258
+_cell_length_c   12.78719940
+_cell_angle_alpha   89.95923313
+_cell_angle_beta   90.00099287
+_cell_angle_gamma   91.60123087
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ni2AuO4
+_chemical_formula_sum   'Ni2 Au1 O4'
+_cell_volume   496.97790589
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.51791954  0.37242675  0.70227379  1
+  O  O1  1  0.46268559  0.48731995  0.54670095  1
+  Au  Au2  1  0.84916687  0.98957682  0.31005478  1
+  O  O3  1  0.60296631  0.88742256  0.68030214  1
+  O  O4  1  0.98869324  0.69192696  0.35106754  1
+  Ni  Ni5  1  0.39379883  0.27532101  0.85737860  1
+  Ni  Ni6  1  0.42187881  0.73434448  0.01716024  1

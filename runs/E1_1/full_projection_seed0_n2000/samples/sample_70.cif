@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_BaNiSn
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.22921324
+_cell_length_b   13.48428459
+_cell_length_c   23.54165058
+_cell_angle_alpha   90.78201768
+_cell_angle_beta   90.49328399
+_cell_angle_gamma   53.48088804
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BaNiSn
+_chemical_formula_sum   'Ba2 Ni2 Sn2'
+_cell_volume   1078.83582230
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ba  Ba0  1  0.77309322  0.25996780  0.63865137  1
+  Sn  Sn1  1  0.78564453  0.76663780  0.35232162  1
+  Ni  Ni2  1  0.52056551  0.77172065  0.11248875  1
+  Sn  Sn3  1  0.81837022  0.33472013  0.38443494  1
+  Ba  Ba4  1  0.80724204  0.40040654  0.43698868  1
+  Ni  Ni5  1  0.93569273  0.21631336  0.08543682  1

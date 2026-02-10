@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Te2As2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.17422843
+_cell_length_b   6.80518208
+_cell_length_c   12.09565043
+_cell_angle_alpha   90.47710980
+_cell_angle_beta   89.84328701
+_cell_angle_gamma   105.25913182
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Te2As2O
+_chemical_formula_sum   'Te2 As2 O1'
+_cell_volume   172.65204729
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.84776586  0.34818792  0.13939703  1
+  As  As1  1  0.21820635  0.02240539  0.45595169  1
+  Te  Te2  1  0.45949650  0.92502975  0.23949170  1
+  As  As3  1  0.96987152  0.80415630  0.56743217  1
+  Te  Te4  1  0.99277639  0.22090805  0.78263843  1

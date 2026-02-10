@@ -1,0 +1,35 @@
+{
+  "fail_reason_counts": {
+    "bad_volume": 8,
+    "collision": 8,
+    "inplane_degenerate": 8
+  },
+  "fail_reason_top3": [
+    [
+      "bad_volume",
+      8
+    ],
+    [
+      "collision",
+      8
+    ],
+    [
+      "inplane_degenerate",
+      8
+    ]
+  ],
+  "symmetry_violation_breakdown": {},
+  "energy_failure_counts": {},
+  "energy_skipped_breakdown": {},
+  "cross_vacuum_rate": 0.75,
+  "inplane_degen_rate": 1.0,
+  "angle_out_of_range_rate": 0.0,
+  "bad_volume_rate": 0.0,
+  "schema_version": "failure_breakdown_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:03:20+00:00",
+  "experiment_id": "E1_3_smoke_gscale_0p5",
+  "config_hash": "390b26485bf54d998a4282735aa8421a4a72332bd9bb9c7a9be52707f843105b",
+  "seed": 0,
+  "protocol": "quick"
+}

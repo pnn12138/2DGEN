@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_In2Fe2Te5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.79199791
+_cell_length_b   16.01020370
+_cell_length_c   13.58619820
+_cell_angle_alpha   90.51997092
+_cell_angle_beta   89.76997003
+_cell_angle_gamma   94.01951496
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   In2Fe2Te5
+_chemical_formula_sum   'In2 Fe2 Te5'
+_cell_volume   605.78698372
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.22514297  0.18085071  0.49684715  1
+  Te  Te1  1  0.67977715  0.41116714  0.70353508  1
+  Te  Te2  1  0.30665112  0.50220966  0.09860706  1
+  Fe  Fe3  1  0.13367271  0.04990888  0.34573364  1
+  In  In4  1  0.40433982  0.19356564  0.40209830  1
+  Te  Te5  1  0.33451653  0.26991701  0.62289381  1
+  In  In6  1  0.14732456  0.94608521  0.18629479  1
+  Te  Te7  1  0.11346102  0.73100972  0.76888621  1
+  Te  Te8  1  0.32763314  0.80977249  0.12456417  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_AlInHgSe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58362246
+_cell_length_b   8.32380014
+_cell_length_c   13.06598035
+_cell_angle_alpha   90.14786912
+_cell_angle_beta   89.95941786
+_cell_angle_gamma   98.30630510
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlInHgSe4
+_chemical_formula_sum   'Al1 In1 Hg1 Se4'
+_cell_volume   278.04261631
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Hg  Hg0  1  0.77089500  0.63591003  0.99155152  1
+  Se  Se1  1  0.13839889  0.10418701  0.03183770  1
+  Se  Se2  1  0.18317273  0.83930677  0.05699755  1
+  In  In3  1  0.75210571  0.49148941  0.74226093  1
+  Al  Al4  1  0.71065354  0.75293905  0.10569865  1
+  Se  Se5  1  0.05767345  0.69578552  0.74585295  1
+  Se  Se6  1  0.84359360  0.58983648  0.09215062  1

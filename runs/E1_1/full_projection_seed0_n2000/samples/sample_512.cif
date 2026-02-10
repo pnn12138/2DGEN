@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiCo(PSe3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42942333
+_cell_length_b   10.72186345
+_cell_length_c   12.28642697
+_cell_angle_alpha   89.73951989
+_cell_angle_beta   90.16720415
+_cell_angle_gamma   62.27156433
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiCo(PSe3)2
+_chemical_formula_sum   'Li1 Co1 P2 Se6'
+_cell_volume   283.27661614
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.73653221  0.59934425  0.97674227  1
+  P  P1  1  0.36565399  0.59512329  0.18303466  1
+  Li  Li2  1  0.83929980  0.28092411  0.73425859  1
+  Se  Se3  1  0.81654221  0.32451037  0.83421659  1
+  Se  Se4  1  0.19552660  0.48778796  0.86130762  1
+  P  P5  1  0.54397964  0.57843494  0.03205848  1
+  Se  Se6  1  0.47806072  0.81499481  0.60895193  1
+  Se  Se7  1  0.92258698  0.37444922  0.91830432  1
+  Se  Se8  1  0.48172998  0.99296951  0.82526159  1
+  Se  Se9  1  0.38163185  0.88611889  0.90234995  1

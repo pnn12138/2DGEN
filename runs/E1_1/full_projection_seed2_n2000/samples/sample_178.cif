@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_InGaHgTe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.63770533
+_cell_length_b   15.56403735
+_cell_length_c   13.71659618
+_cell_angle_alpha   90.60557365
+_cell_angle_beta   89.40230742
+_cell_angle_gamma   148.71580258
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InGaHgTe4
+_chemical_formula_sum   'In1 Ga1 Hg1 Te4'
+_cell_volume   624.95625192
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  In  In0  1  0.49374008  0.10964203  0.28780866  1
+  Ga  Ga1  1  0.01516724  0.88771057  0.88956833  1
+  Te  Te2  1  0.31074262  0.91447127  0.70139724  1
+  Te  Te3  1  0.85235852  0.77322459  0.68300027  1
+  Te  Te4  1  0.63306236  0.51303101  0.46545315  1
+  Te  Te5  1  0.95904326  0.27210170  0.70231247  1
+  Hg  Hg6  1  0.79213524  0.29384089  0.52491677  1

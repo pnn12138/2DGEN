@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SbOsO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.20298266
+_cell_length_b   13.36417343
+_cell_length_c   12.25527950
+_cell_angle_alpha   90.21792613
+_cell_angle_beta   89.98548866
+_cell_angle_gamma   93.87264280
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SbOsO3
+_chemical_formula_sum   'Sb2 Os2 O6'
+_cell_volume   359.98174439
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.71973324  0.34143591  0.88838196  1
+  O  O1  1  0.40743542  0.70916605  0.33200765  1
+  Sb  Sb2  1  0.42334175  0.65830421  0.68787432  1
+  Sb  Sb3  1  0.51555061  0.96053076  0.99849856  1
+  O  O4  1  0.81414032  0.63239670  0.56453109  1
+  Os  Os5  1  0.34460354  0.30211687  0.76761293  1
+  O  O6  1  0.78531623  0.83578587  0.60450763  1
+  O  O7  1  0.59009266  0.81728268  0.18516135  1
+  O  O8  1  0.10920334  0.12030029  0.71260071  1
+  Os  Os9  1  0.17195129  0.35974765  0.54760885  1

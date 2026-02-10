@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_BiSbIBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.61234498
+_cell_length_b   6.28097958
+_cell_length_c   12.75734782
+_cell_angle_alpha   90.15030056
+_cell_angle_beta   90.42476862
+_cell_angle_gamma   46.86274716
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BiSbIBr
+_chemical_formula_sum   'Bi1 Sb1 I1 Br1'
+_cell_volume   152.74215462
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.81040484  0.13001029  0.04381829  1
+  Sb  Sb1  1  0.87360668  0.87332726  0.85818958  1
+  I  I2  1  0.27350041  0.83118343  0.09071930  1
+  Bi  Bi3  1  0.46992254  0.19216442  0.91030884  1

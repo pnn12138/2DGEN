@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TiNF
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45322084
+_cell_length_b   14.34164411
+_cell_length_c   13.08527564
+_cell_angle_alpha   89.96913008
+_cell_angle_beta   90.00392297
+_cell_angle_gamma   96.50028349
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiNF
+_chemical_formula_sum   'Ti2 N2 F2'
+_cell_volume   457.42240804
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.99634677  0.62282026  0.64404267  1
+  Ti  Ti1  1  0.99105406  0.09732437  0.31990385  1
+  F  F2  1  0.19541734  0.44574410  0.87224317  1
+  N  N3  1  0.47719991  0.63077319  0.58873564  1
+  N  N4  1  0.99808598  0.51938248  0.69101453  1
+  F  F5  1  0.20499229  0.73731184  0.34596682  1

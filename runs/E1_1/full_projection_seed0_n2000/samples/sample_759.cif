@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_RhIN
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.41804361
+_cell_length_b   13.13653576
+_cell_length_c   13.61031866
+_cell_angle_alpha   90.46276130
+_cell_angle_beta   89.96319492
+_cell_angle_gamma   94.84903435
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RhIN
+_chemical_formula_sum   'Rh2 I2 N2'
+_cell_volume   430.76650866
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.44703871  0.56291085  0.83309746  1
+  I  I1  1  0.17588788  0.46764827  0.80396056  1
+  Rh  Rh2  1  0.75439835  0.16075993  0.83301926  1
+  Rh  Rh3  1  0.68909669  0.26860738  0.79975009  1
+  N  N4  1  0.63244510  0.44792938  0.93144584  1
+  N  N5  1  0.12533569  0.83836746  0.88445199  1

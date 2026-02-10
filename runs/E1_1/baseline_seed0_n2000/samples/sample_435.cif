@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TeRhF
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.20828629
+_cell_length_b   20.36295198
+_cell_length_c   29.09795744
+_cell_angle_alpha   90.88372575
+_cell_angle_beta   89.91922908
+_cell_angle_gamma   96.77565157
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TeRhF
+_chemical_formula_sum   'Te2 Rh2 F2'
+_cell_volume   3064.09708903
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.99364042  0.78876567  0.70613241  1
+  F  F1  1  0.31260586  0.25859451  0.92411947  1
+  Rh  Rh2  1  0.64088058  0.44910526  0.48143578  1
+  F  F3  1  0.65947533  0.22507739  0.07021832  1
+  Rh  Rh4  1  0.40401459  0.79071808  0.58588886  1
+  Te  Te5  1  0.91723061  0.78372049  0.40118980  1

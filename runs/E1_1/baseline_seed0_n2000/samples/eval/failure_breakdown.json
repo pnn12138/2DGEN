@@ -1,0 +1,40 @@
+{
+  "fail_reason_counts": {
+    "collision": 913,
+    "bad_volume": 521,
+    "low_atoms": 16,
+    "angle_out_of_range": 2,
+    "inplane_degenerate": 2,
+    "cond_overflow": 1
+  },
+  "fail_reason_top3": [
+    [
+      "collision",
+      913
+    ],
+    [
+      "bad_volume",
+      521
+    ],
+    [
+      "low_atoms",
+      16
+    ]
+  ],
+  "symmetry_violation_breakdown": {},
+  "energy_failure_counts": {
+    "missing": 609
+  },
+  "energy_skipped_breakdown": {},
+  "cross_vacuum_rate": 0.1935,
+  "inplane_degen_rate": 0.001,
+  "angle_out_of_range_rate": 0.001,
+  "bad_volume_rate": 0.0,
+  "schema_version": "failure_breakdown_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T05:14:11+00:00",
+  "experiment_id": "E1_1",
+  "config_hash": "a92bbb08afd522484d1d06208c585488699699fd89b6e56848adb79db847f8f1",
+  "seed": 0,
+  "protocol": "quick"
+}

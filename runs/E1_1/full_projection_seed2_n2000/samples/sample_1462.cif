@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_CrP2AuO6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   9.10099888
+_cell_length_b   14.69088004
+_cell_length_c   55.16350677
+_cell_angle_alpha   89.98574790
+_cell_angle_beta   90.23219465
+_cell_angle_gamma   125.30433772
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrP2AuO6
+_chemical_formula_sum   'Cr2 P4 Au2 O12'
+_cell_volume   6018.99308559
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cr  Cr0  1  0.72753751  0.52018595  0.03553486  1
+  O  O1  1  0.52995682  0.69003534  0.23809603  1
+  O  O2  1  0.82068968  0.15356433  0.39476696  1
+  P  P3  1  0.04069328  0.52164489  0.45470166  1
+  O  O4  1  0.52514267  0.20454741  0.31281072  1
+  P  P5  1  0.88160539  0.26719093  0.72584224  1
+  Au  Au6  1  0.04362869  0.19273758  0.03686899  1
+  Au  Au7  1  0.29048443  0.66236687  0.05882692  1
+  O  O8  1  0.61630106  0.52922773  0.87039757  1
+  O  O9  1  0.96943486  0.22134399  0.62878561  1
+  O  O10  1  0.21582103  0.41741276  0.88076663  1
+  O  O11  1  0.74742508  0.88051033  0.05884266  1
+  O  O12  1  0.61299419  0.00873089  0.55646753  1
+  O  O13  1  0.10466576  0.79977083  0.19917297  1
+  P  P14  1  0.28116798  0.95802498  0.21194363  1
+  O  O15  1  0.11072636  0.25685549  0.00288367  1
+  Cr  Cr16  1  0.81971741  0.16602135  0.47129172  1
+  O  O17  1  0.92792702  0.83879471  0.70593214  1
+  P  P18  1  0.60811722  0.19384670  0.11487985  1
+  O  O19  1  0.75245190  0.65948772  0.80980277  1

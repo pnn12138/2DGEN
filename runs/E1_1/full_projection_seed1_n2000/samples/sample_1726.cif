@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfPdIBrO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.60923624
+_cell_length_b   11.79324563
+_cell_length_c   23.99479662
+_cell_angle_alpha   90.40604335
+_cell_angle_beta   89.97529780
+_cell_angle_gamma   94.02556329
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfPdIBrO2
+_chemical_formula_sum   'Hf1 Pd1 I1 Br1 O2'
+_cell_volume   1018.78376837
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.13954496  0.21460724  0.15253982  1
+  Pd  Pd1  1  0.23051548  0.74470854  0.19494319  1
+  Hf  Hf2  1  0.10218525  0.13478863  0.66123271  1
+  O  O3  1  0.55699730  0.39632130  0.30300713  1
+  O  O4  1  0.30879211  0.47042847  0.55117750  1
+  Br  Br5  1  0.77423477  0.09960324  0.47126412  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TlInO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.40176439
+_cell_length_b   13.19167883
+_cell_length_c   13.36121682
+_cell_angle_alpha   90.26271937
+_cell_angle_beta   89.98008583
+_cell_angle_gamma   94.12094829
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlInO3
+_chemical_formula_sum   'Tl2 In2 O6'
+_cell_volume   422.22858095
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.60666877  0.75553083  0.83102387  1
+  O  O1  1  0.10665417  0.82986546  0.92006671  1
+  O  O2  1  0.26026356  0.86032438  0.45637670  1
+  In  In3  1  0.65671802  0.56733036  0.19681633  1
+  O  O4  1  0.17238484  0.26460814  0.23040459  1
+  O  O5  1  0.99519897  0.77026176  0.13093215  1
+  Tl  Tl6  1  0.47956848  0.23588943  0.74303305  1
+  Tl  Tl7  1  0.70164776  0.47833443  0.88338584  1
+  O  O8  1  0.10681234  0.24121878  0.13672021  1
+  In  In9  1  0.83696264  0.66431570  0.80246699  1

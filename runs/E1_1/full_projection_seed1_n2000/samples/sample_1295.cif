@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_HfMnI2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.47719383
+_cell_length_b   7.47571357
+_cell_length_c   12.52792425
+_cell_angle_alpha   89.64677280
+_cell_angle_beta   90.15345512
+_cell_angle_gamma   114.89400923
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfMnI2O
+_chemical_formula_sum   'Hf1 Mn1 I2 O1'
+_cell_volume   210.44225363
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.68416876  0.41445810  0.03684570  1
+  I  I1  1  0.22993428  0.39799431  0.08786716  1
+  Mn  Mn2  1  0.05435562  0.48997211  0.26889205  1
+  Hf  Hf3  1  0.43064499  0.35861754  0.62875521  1
+  I  I4  1  0.55175668  0.21114624  0.05945570  1

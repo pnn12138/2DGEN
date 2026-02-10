@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sc2H2CO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.28305674
+_cell_length_b   7.40498356
+_cell_length_c   12.70053641
+_cell_angle_alpha   90.27009518
+_cell_angle_beta   89.94909761
+_cell_angle_gamma   96.90651159
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sc2H2CO2
+_chemical_formula_sum   'Sc2 H2 C1 O2'
+_cell_volume   213.15481656
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sc  Sc0  1  0.53115845  0.90408325  0.08584857  1
+  C  C1  1  0.60513306  0.41011691  0.88325500  1
+  O  O2  1  0.39992619  0.36046219  0.34105018  1
+  H  H3  1  0.62568665  0.47105026  0.76491612  1
+  O  O4  1  0.12463379  0.24528885  0.97594452  1
+  Sc  Sc5  1  0.71829224  0.39671326  0.14061642  1
+  H  H6  1  0.12995434  0.69292641  0.17411375  1

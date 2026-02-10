@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_GeTe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.31819797
+_cell_length_b   14.17571377
+_cell_length_c   12.89614024
+_cell_angle_alpha   89.92981556
+_cell_angle_beta   90.00434642
+_cell_angle_gamma   93.39026883
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GeTe
+_chemical_formula_sum   'Ge2 Te2'
+_cell_volume   423.05238379
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.62061310  0.69249845  0.15305901  1
+  Te  Te1  1  0.08851814  0.86684990  0.25726318  1
+  Ge  Ge2  1  0.71398187  0.96110475  0.31427336  1
+  Te  Te3  1  0.19932061  0.15433156  0.16525984  1

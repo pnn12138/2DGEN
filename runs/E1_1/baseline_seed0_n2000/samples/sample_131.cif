@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_HfZr(TeSe)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.37746572
+_cell_length_b   9.52520891
+_cell_length_c   12.75471693
+_cell_angle_alpha   90.16549077
+_cell_angle_beta   89.93551989
+_cell_angle_gamma   108.91531510
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZr(TeSe)2
+_chemical_formula_sum   'Hf1 Zr1 Te2 Se2'
+_cell_volume   273.24255478
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.25240993  0.78277647  0.93129516  1
+  Se  Se1  1  0.86242467  0.19080803  0.64287525  1
+  Hf  Hf2  1  0.91754222  0.43867016  0.64699709  1
+  Te  Te3  1  0.17071716  0.23091868  0.74691123  1
+  Zr  Zr4  1  0.06399155  0.48111343  0.85346222  1
+  Te  Te5  1  0.12408853  0.00187469  0.72058177  1

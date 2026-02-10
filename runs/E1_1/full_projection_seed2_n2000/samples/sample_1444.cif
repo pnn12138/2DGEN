@@ -1,0 +1,46 @@
+# generated using pymatgen
+data_CrCu(PS3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.43605518
+_cell_length_b   19.46929720
+_cell_length_c   14.48773069
+_cell_angle_alpha   88.07296043
+_cell_angle_beta   89.50489810
+_cell_angle_gamma   80.59429749
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrCu(PS3)2
+_chemical_formula_sum   'Cr2 Cu2 P4 S12'
+_cell_volume   955.61856066
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.69363815  0.92202926  0.50123131  1
+  P  P1  1  0.93805438  0.27130234  0.95315123  1
+  S  S2  1  0.40110373  0.28412247  0.39911389  1
+  P  P3  1  0.14690876  0.82976055  0.89687705  1
+  P  P4  1  0.60322857  0.41832304  0.10847473  1
+  S  S5  1  0.26461267  0.33405304  0.22643065  1
+  Cu  Cu6  1  0.42583823  0.17913514  0.19295539  1
+  Cr  Cr7  1  0.29861259  0.82461166  0.23070812  1
+  S  S8  1  0.72499061  0.97227216  0.96333838  1
+  S  S9  1  0.64978123  0.95766950  0.29494929  1
+  S  S10  1  0.54592705  0.57604468  0.90687656  1
+  S  S11  1  0.38087010  0.94749284  0.43025792  1
+  S  S12  1  0.67773175  0.81498718  0.07956654  1
+  Cu  Cu13  1  0.11443777  0.26082176  0.29465050  1
+  S  S14  1  0.09796476  0.85641956  0.72144175  1
+  Cr  Cr15  1  0.69240236  0.25300503  0.54177439  1
+  S  S16  1  0.16987801  0.62912035  0.22710133  1
+  S  S17  1  0.09181023  0.52310133  0.77784848  1
+  P  P18  1  0.13402659  0.22632067  0.22898629  1
+  S  S19  1  0.81350899  0.47032070  0.31877995  1

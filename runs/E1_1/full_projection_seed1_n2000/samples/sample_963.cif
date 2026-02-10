@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_ZrBrCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.70226383
+_cell_length_b   11.49154226
+_cell_length_c   25.56016078
+_cell_angle_alpha   91.19689713
+_cell_angle_beta   89.86263425
+_cell_angle_gamma   97.48647588
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrBrCl
+_chemical_formula_sum   'Zr2 Br2 Cl2'
+_cell_volume   1077.94480580
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.43827486  0.37071991  0.83071709  1
+  Br  Br1  1  0.38251400  0.80452466  0.02264488  1
+  Br  Br2  1  0.31631279  0.24805307  0.63687348  1
+  Cl  Cl3  1  0.45779610  0.15552235  0.96060300  1
+  Zr  Zr4  1  0.10854340  0.55097759  0.58042526  1
+  Zr  Zr5  1  0.15796089  0.03141403  0.09495044  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_AlNi(SBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24907279
+_cell_length_b   13.15287485
+_cell_length_c   13.15939705
+_cell_angle_alpha   90.62764506
+_cell_angle_beta   89.92876472
+_cell_angle_gamma   96.39095065
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlNi(SBr)2
+_chemical_formula_sum   'Al1 Ni1 S2 Br2'
+_cell_volume   386.83591881
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.88769817  0.11950397  0.79999173  1
+  Al  Al1  1  0.04256392  0.31397128  0.82626247  1
+  Ni  Ni2  1  0.15112305  0.72168064  0.69121891  1
+  Br  Br3  1  0.99074370  0.14511847  0.40753776  1
+  Br  Br4  1  0.39669228  0.38658261  0.61150479  1
+  S  S5  1  0.55390644  0.76672506  0.88744700  1

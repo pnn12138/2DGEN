@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Al2CrSe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23950505
+_cell_length_b   6.76276941
+_cell_length_c   12.45818687
+_cell_angle_alpha   89.90543182
+_cell_angle_beta   89.88776995
+_cell_angle_gamma   114.42349368
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Al2CrSe4
+_chemical_formula_sum   'Al2 Cr1 Se4'
+_cell_volume   171.79707642
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Al  Al0  1  0.01595688  0.42607880  0.21080780  1
+  Se  Se1  1  0.12586355  0.23125839  0.24677038  1
+  Se  Se2  1  0.39038467  0.61624146  0.97152925  1
+  Se  Se3  1  0.19796562  0.27384567  0.46228755  1
+  Al  Al4  1  0.23437119  0.86366272  0.20970631  1
+  Cr  Cr5  1  0.94888687  0.78405952  0.40326786  1
+  Se  Se6  1  0.68862200  0.89934444  0.78935909  1

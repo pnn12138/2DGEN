@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MnNbSIBr2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.95763350
+_cell_length_b   20.11843997
+_cell_length_c   30.64944617
+_cell_angle_alpha   90.79394352
+_cell_angle_beta   89.97767472
+_cell_angle_gamma   99.28357028
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnNbSIBr2
+_chemical_formula_sum   'Mn1 Nb1 S1 I1 Br2'
+_cell_volume   3016.63614233
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.95032692  0.16156256  0.87408173  1
+  Br  Br1  1  0.13063312  0.99924850  0.83008528  1
+  Mn  Mn2  1  0.07397842  0.66029358  0.99820566  1
+  S  S3  1  0.48971939  0.62937737  0.53531015  1
+  I  I4  1  0.19049931  0.33710957  0.04069591  1
+  Br  Br5  1  0.19757652  0.95349789  0.50541902  1

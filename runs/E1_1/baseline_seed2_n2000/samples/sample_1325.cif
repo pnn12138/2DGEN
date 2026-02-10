@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_NbGeSeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.67512989
+_cell_length_b   14.95756533
+_cell_length_c   12.67516863
+_cell_angle_alpha   93.09438346
+_cell_angle_beta   93.49353272
+_cell_angle_gamma   30.00123590
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbGeSeBr
+_chemical_formula_sum   'Nb1 Ge1 Se1 Br1'
+_cell_volume   726.23560144
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.67326880  0.98675060  0.62498331  1
+  Br  Br1  1  0.73059464  0.45578384  0.85964060  1
+  Se  Se2  1  0.08667850  0.98775995  0.45004797  1
+  Ge  Ge3  1  0.25217843  0.65562820  0.92035437  1

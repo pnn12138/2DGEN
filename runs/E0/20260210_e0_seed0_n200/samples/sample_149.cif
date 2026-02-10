@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Cr(GaS2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   1.93429017
+_cell_length_b   451.09396674
+_cell_length_c   106.10268316
+_cell_angle_alpha   86.91044032
+_cell_angle_beta   93.06958444
+_cell_angle_gamma   179.52774509
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cr(GaS2)2
+_chemical_formula_sum   'Cr1 Ga2 S4'
+_cell_volume   761.28533342
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.54878998  0.31248283  0.04322433  1
+  S  S1  1  0.01059341  0.36336517  0.90237641  1
+  S  S2  1  0.93071747  0.47288346  0.35037804  1
+  S  S3  1  0.43253326  0.64326859  0.47318840  1
+  S  S4  1  0.44005585  0.52078629  0.93461037  1
+  Cr  Cr5  1  0.51393127  0.10612488  0.84148026  1
+  Ga  Ga6  1  0.74950790  0.40809631  0.35555845  1

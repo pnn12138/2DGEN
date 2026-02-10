@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SiPO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.68680620
+_cell_length_b   16.98755632
+_cell_length_c   12.87837792
+_cell_angle_alpha   90.40237536
+_cell_angle_beta   89.99104143
+_cell_angle_gamma   91.25278493
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SiPO3
+_chemical_formula_sum   'Si2 P2 O6'
+_cell_volume   587.64342825
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.91326523  0.16422653  0.71178269  1
+  O  O1  1  0.08263874  0.99437046  0.03009200  1
+  O  O2  1  0.98675060  0.38540363  0.28569192  1
+  Si  Si3  1  0.85939479  0.70848465  0.13966084  1
+  P  P4  1  0.23437119  0.86836386  0.11526263  1
+  O  O5  1  0.36800289  0.28494787  0.95391774  1
+  O  O6  1  0.34560585  0.82056236  0.53499603  1
+  Si  Si7  1  0.06075287  0.95812988  0.42927933  1
+  P  P8  1  0.48626709  0.72775459  0.66904020  1
+  O  O9  1  0.01078272  0.25412369  0.61575031  1

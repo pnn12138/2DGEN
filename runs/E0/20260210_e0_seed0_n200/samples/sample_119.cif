@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_Cd2SO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   1.98857081
+_cell_length_b   381.52704007
+_cell_length_c   109.50775375
+_cell_angle_alpha   83.59910040
+_cell_angle_beta   96.39936251
+_cell_angle_gamma   179.50368154
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cd2SO
+_chemical_formula_sum   'Cd2 S1 O1'
+_cell_volume   715.19808913
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cd  Cd0  1  0.41738892  0.54396439  0.32428551  1
+  O  O1  1  0.78056717  0.42356873  0.53299105  1
+  Cd  Cd2  1  0.79974747  0.48030853  0.56565189  1
+  S  S3  1  0.40174484  0.87113953  0.22416496  1

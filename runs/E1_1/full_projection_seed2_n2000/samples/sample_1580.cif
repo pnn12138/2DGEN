@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Zn(ReS4)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59078336
+_cell_length_b   14.88606613
+_cell_length_c   14.40852958
+_cell_angle_alpha   90.11093156
+_cell_angle_beta   89.99661476
+_cell_angle_gamma   91.95058625
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Zn(ReS4)2
+_chemical_formula_sum   'Zn1 Re2 S8'
+_cell_volume   555.36456716
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Re  Re0  1  0.48879337  0.02941608  0.39235878  1
+  S  S1  1  0.98637438  0.69718647  0.79046988  1
+  S  S2  1  0.46620464  0.76612377  0.24871624  1
+  S  S3  1  0.61295128  0.55160046  0.42540294  1
+  S  S4  1  0.66446781  0.50023270  0.28744787  1
+  S  S5  1  0.12133861  0.83922613  0.03588270  1
+  Zn  Zn6  1  0.20792007  0.23773766  0.64922333  1
+  Re  Re7  1  0.42435336  0.70936227  0.70614755  1
+  S  S8  1  0.19006348  0.92520046  0.20683908  1
+  S  S9  1  0.31333920  0.93446171  0.05180253  1
+  S  S10  1  0.27831554  0.02540469  0.54140514  1

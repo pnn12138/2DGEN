@@ -1,0 +1,10 @@
+experiment_id: E1_1
+protocol: final
+variants:
+  - baseline
+  - full_projection
+seeds: [0, 1, 2]
+num_samples: 20000
+steps: 50
+cond_max: 40.0
+require_delta: 0.15

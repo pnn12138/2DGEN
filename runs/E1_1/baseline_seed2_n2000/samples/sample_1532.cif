@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuPdIBrO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.40596676
+_cell_length_b   10.88664392
+_cell_length_c   14.72780740
+_cell_angle_alpha   90.09072786
+_cell_angle_beta   89.97951913
+_cell_angle_gamma   104.21028255
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuPdIBrO2
+_chemical_formula_sum   'Cu1 Pd1 I1 Br1 O2'
+_cell_volume   373.95969308
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.76654017  0.29904556  0.55981827  1
+  O  O1  1  0.45121861  0.51359737  0.40250063  1
+  Br  Br2  1  0.28730726  0.59236908  0.89286447  1
+  O  O3  1  0.04290128  0.33243752  0.70202374  1
+  Cu  Cu4  1  0.32800674  0.17563057  0.17995262  1
+  Pd  Pd5  1  0.30776024  0.63280582  0.13236189  1

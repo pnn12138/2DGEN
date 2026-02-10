@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_MgMnSi
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.38042784
+_cell_length_b   14.92531861
+_cell_length_c   13.24241662
+_cell_angle_alpha   89.77692224
+_cell_angle_beta   90.00890888
+_cell_angle_gamma   92.03485214
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MgMnSi
+_chemical_formula_sum   'Mg2 Mn2 Si2'
+_cell_volume   470.18485904
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.15123272  0.92476845  0.56901360  1
+  Mg  Mg1  1  0.44304419  0.51919127  0.38632727  1
+  Mn  Mn2  1  0.59271622  0.50514811  0.80705357  1
+  Mn  Mn3  1  0.01762724  0.98232269  0.26597214  1
+  Si  Si4  1  0.24654007  0.58743620  0.66640854  1
+  Mg  Mg5  1  0.37406921  0.13445997  0.46570396  1

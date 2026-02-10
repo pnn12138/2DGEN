@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Zr2MnBrO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54632449
+_cell_length_b   8.22649423
+_cell_length_c   12.87801337
+_cell_angle_alpha   90.49926139
+_cell_angle_beta   89.89576184
+_cell_angle_gamma   97.57669919
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Zr2MnBrO5
+_chemical_formula_sum   'Zr2 Mn1 Br1 O5'
+_cell_volume   267.39449403
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.88564819  0.64998001  0.29741329  1
+  Mn  Mn1  1  0.96617317  0.71327686  0.66988242  1
+  Zr  Zr2  1  0.68130916  0.83532137  0.48101068  1
+  O  O3  1  0.81817150  0.95805645  0.17602265  1
+  O  O4  1  0.19681054  0.82218283  0.31477967  1
+  O  O5  1  0.94802856  0.13808823  0.91102600  1
+  Br  Br6  1  0.75335646  0.15578461  0.74097610  1
+  O  O7  1  0.99958938  0.74764091  0.40901026  1
+  Zr  Zr8  1  0.74823570  0.20513153  0.57888436  1

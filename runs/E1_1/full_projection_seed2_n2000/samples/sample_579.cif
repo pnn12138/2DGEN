@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Co2AgS4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53956366
+_cell_length_b   14.34287176
+_cell_length_c   14.12741607
+_cell_angle_alpha   90.03285570
+_cell_angle_beta   89.99776222
+_cell_angle_gamma   92.48376691
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Co2AgS4
+_chemical_formula_sum   'Co2 Ag1 S4'
+_cell_volume   514.10246821
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.44432765  0.36474195  0.96494347  1
+  Co  Co1  1  0.76424217  0.99141884  0.58733177  1
+  Ag  Ag2  1  0.80279732  0.95964241  0.72045302  1
+  S  S3  1  0.85221654  0.29864654  0.93569940  1
+  S  S4  1  0.95032597  0.91741562  0.43099785  1
+  Co  Co5  1  0.23800302  0.61718178  0.10386038  1
+  S  S6  1  0.89279175  0.03390694  0.21779633  1

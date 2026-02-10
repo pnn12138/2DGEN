@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_NaNiAs
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46367955
+_cell_length_b   2.29359183
+_cell_length_c   12.53724361
+_cell_angle_alpha   84.00344789
+_cell_angle_beta   93.32939168
+_cell_angle_gamma   101.54390995
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaNiAs
+_chemical_formula_sum   'Na2 Ni2 As2'
+_cell_volume   68.98078980
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  As  As0  1  0.44452506  0.53125197  0.77282274  1
+  Ni  Ni1  1  0.78154522  0.05573657  0.78068006  1
+  Ni  Ni2  1  0.20208231  0.35937643  0.64683944  1
+  Na  Na3  1  0.94605619  0.15467590  0.55171961  1
+  As  As4  1  0.24845314  0.00926709  0.01940918  1
+  Na  Na5  1  0.70917785  0.70157790  0.25964713  1

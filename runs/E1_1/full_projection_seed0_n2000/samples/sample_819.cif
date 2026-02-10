@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_CaAg
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.79286218
+_cell_length_b   10.13299298
+_cell_length_c   27.21283245
+_cell_angle_alpha   89.96618625
+_cell_angle_beta   90.00695561
+_cell_angle_gamma   97.42376728
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaAg
+_chemical_formula_sum   'Ca2 Ag2'
+_cell_volume   1037.10499000
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.01339245  0.47395563  0.73473406  1
+  Ca  Ca1  1  0.23927236  0.79348660  0.66050887  1
+  Ag  Ag2  1  0.10105133  0.51111794  0.34311742  1
+  Ca  Ca3  1  0.45951802  0.07737327  0.09569526  1

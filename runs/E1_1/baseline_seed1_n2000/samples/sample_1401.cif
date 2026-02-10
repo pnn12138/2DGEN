@@ -1,0 +1,39 @@
+# generated using pymatgen
+data_CdB4H4(BrN)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.49256420
+_cell_length_b   20.94762713
+_cell_length_c   34.06109227
+_cell_angle_alpha   90.46723650
+_cell_angle_beta   90.07128210
+_cell_angle_gamma   100.93672838
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdB4H4(BrN)2
+_chemical_formula_sum   'Cd1 B4 H4 Br2 N2'
+_cell_volume   3847.61736909
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.67277145  0.60329437  0.45266050  1
+  B  B1  1  0.67774630  0.12086296  0.88751215  1
+  B  B2  1  0.61106324  0.38201904  0.68892908  1
+  B  B3  1  0.60634470  0.68353701  0.57022798  1
+  H  H4  1  0.95826840  0.00038642  0.99854803  1
+  N  N5  1  0.30420303  0.96129322  0.28166580  1
+  Br  Br6  1  0.42934132  0.84605789  0.89159250  1
+  B  B7  1  0.23945141  0.22434187  0.22108221  1
+  N  N8  1  0.67891979  0.15810013  0.21468544  1
+  Cd  Cd9  1  0.22009277  0.88985634  0.66763353  1
+  Br  Br10  1  0.67392206  0.45566940  0.10980964  1
+  H  H11  1  0.93891907  0.12113142  0.64826488  1
+  H  H12  1  0.96359825  0.76345682  0.27560067  1

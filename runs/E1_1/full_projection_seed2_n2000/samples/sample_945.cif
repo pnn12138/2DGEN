@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sr2Au(ClO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42922592
+_cell_length_b   13.05217140
+_cell_length_c   14.00357449
+_cell_angle_alpha   90.03069053
+_cell_angle_beta   89.99971564
+_cell_angle_gamma   95.74125374
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2Au(ClO)2
+_chemical_formula_sum   'Sr2 Au1 Cl2 O2'
+_cell_volume   441.77946817
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.27723649  0.06535777  0.23484495  1
+  Au  Au1  1  0.29989290  0.96888924  0.82446307  1
+  Cl  Cl2  1  0.94379997  0.61600113  0.21151865  1
+  Cl  Cl3  1  0.54164433  0.47818375  0.63126576  1
+  O  O4  1  0.35433960  0.51545334  0.10645974  1
+  Sr  Sr5  1  0.78466636  0.08843318  0.23052451  1
+  O  O6  1  0.64857602  0.96949387  0.99628103  1

@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_NiAuSeI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.27836990
+_cell_length_b   13.57258544
+_cell_length_c   12.92743733
+_cell_angle_alpha   89.29145963
+_cell_angle_beta   90.06814587
+_cell_angle_gamma   95.11728180
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiAuSeI2
+_chemical_formula_sum   'Ni1 Au1 Se1 I2'
+_cell_volume   398.13612373
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.80178273  0.93606377  0.46675396  1
+  I  I1  1  0.90552711  0.95717621  0.65896082  1
+  Au  Au2  1  0.70412064  0.07160091  0.21373725  1
+  Se  Se3  1  0.96165276  0.47557640  0.45355386  1
+  Ni  Ni4  1  0.20341492  0.67388058  0.94683719  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NiAuI3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.79681301
+_cell_length_b   15.30859227
+_cell_length_c   23.23820128
+_cell_angle_alpha   89.94348270
+_cell_angle_beta   89.95778533
+_cell_angle_gamma   51.38722937
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiAuI3
+_chemical_formula_sum   'Ni2 Au2 I6'
+_cell_volume   1333.37836867
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.20159674  0.60438037  0.16136354  1
+  I  I1  1  0.36777902  0.89914036  0.99007630  1
+  Ni  Ni2  1  0.41690826  0.51710045  0.58613586  1
+  I  I3  1  0.05294037  0.39958191  0.10096097  1
+  Au  Au4  1  0.15077782  0.90958166  0.91317761  1
+  I  I5  1  0.68958950  0.28841352  0.70057231  1
+  I  I6  1  0.06033373  0.00439441  0.37218356  1
+  I  I7  1  0.07463074  0.70533133  0.58453691  1
+  Au  Au8  1  0.69262695  0.09782982  0.84512019  1
+  I  I9  1  0.13486099  0.17430687  0.45947242  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_HfZrN(ClO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.48114562
+_cell_length_b   13.46572980
+_cell_length_c   14.01680961
+_cell_angle_alpha   89.93605147
+_cell_angle_beta   90.00642966
+_cell_angle_gamma   94.97272821
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZrN(ClO)2
+_chemical_formula_sum   'Hf1 Zr1 N1 Cl2 O2'
+_cell_volume   466.54475968
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.21002865  0.71338177  0.40086353  1
+  O  O1  1  0.12371063  0.11254120  0.75964379  1
+  Zr  Zr2  1  0.44224167  0.32498193  0.31717300  1
+  Hf  Hf3  1  0.74711668  0.35479760  0.76889384  1
+  Cl  Cl4  1  0.70271051  0.27347261  0.72496569  1
+  N  N5  1  0.58062744  0.19560432  0.17092150  1
+  Cl  Cl6  1  0.53281426  0.53867340  0.69209599  1

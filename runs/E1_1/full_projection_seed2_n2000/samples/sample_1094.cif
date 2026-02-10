@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CdTeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.31929159
+_cell_length_b   13.16611179
+_cell_length_c   13.80461649
+_cell_angle_alpha   90.73638524
+_cell_angle_beta   89.90082914
+_cell_angle_gamma   97.45114452
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdTeCl
+_chemical_formula_sum   'Cd2 Te2 Cl2'
+_cell_volume   417.94441463
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.54279661  0.27543354  0.60572797  1
+  Cl  Cl1  1  0.34836793  0.73200226  0.13978931  1
+  Te  Te2  1  0.80057430  0.07164383  0.29551226  1
+  Te  Te3  1  0.81103283  0.36365414  0.77200693  1
+  Cd  Cd4  1  0.96740949  0.67561817  0.63089520  1
+  Cd  Cd5  1  0.46041775  0.52450275  0.84044981  1

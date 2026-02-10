@@ -1,0 +1,283 @@
+{
+  "valid_rate_eval": 0.53125,
+  "fail_reason_counts": {
+    "collision": 11,
+    "bad_volume": 4
+  },
+  "min_dist": {
+    "count": 32,
+    "mean": 2.010061359195716,
+    "median": 1.6109519437591726,
+    "p10": 1.273412575578142,
+    "p90": 3.0587405590614805
+  },
+  "min_dist_collision": {
+    "count": 11,
+    "mean": 1.3168001108080447,
+    "median": 1.3088713834859254,
+    "p10": 1.183907180671614,
+    "p90": 1.4567925152004213
+  },
+  "min_dist_same_elem": {
+    "count": 32,
+    "mean": 3.416153734636712,
+    "median": 2.590682116814481,
+    "p10": 1.4532479775314422,
+    "p90": 8.112995104013052
+  },
+  "volume": {
+    "count": 32,
+    "mean": 1162.348687171936,
+    "median": 716.8503723144531,
+    "p10": 412.5805389404297,
+    "p90": 2645.8697509765625
+  },
+  "cond": {
+    "count": 32,
+    "mean": 21.16990651190281,
+    "median": 16.383204460144043,
+    "p10": 6.841344976425171,
+    "p90": 39.580117034912114
+  },
+  "cond_full": {
+    "count": 32,
+    "mean": 38.26547056436539,
+    "median": 39.77577209472656,
+    "p10": 24.249143981933592,
+    "p90": 53.64737854003907
+  },
+  "cond_lattice": {
+    "count": 32,
+    "mean": 4.382338835019923,
+    "median": 4.047531885223139,
+    "p10": 2.613262689792015,
+    "p90": 6.291200726793429
+  },
+  "spd_rate": 1.0,
+  "energy_mlip": {
+    "count": 0
+  },
+  "formation_energy_per_atom": {
+    "count": 0
+  },
+  "relaxed_rate": 0.0,
+  "min_dist_relax": {
+    "count": 0
+  },
+  "success_rate": 0.53125,
+  "success_geom_rate": 0.53125,
+  "success_energy_rate": null,
+  "energy_available_rate": 0.0,
+  "energy_skipped_geom_rate": 0.46875,
+  "energy_skipped_mlip_rate": 0.53125,
+  "fail_reason_energy_counts": {
+    "missing": 17
+  },
+  "spacegroup_match_rate": null,
+  "symmetry_violation_rate": null,
+  "angle_alpha": {
+    "count": 32,
+    "mean": 91.1446194527551,
+    "median": 90.72582252683316,
+    "p10": 89.14498496947876,
+    "p90": 93.2543123259255
+  },
+  "angle_beta": {
+    "count": 32,
+    "mean": 89.78826569285665,
+    "median": 89.99009195261654,
+    "p10": 89.55449180997032,
+    "p90": 90.24479337506719
+  },
+  "angle_gamma": {
+    "count": 32,
+    "mean": 84.01867133631491,
+    "median": 88.61742734446136,
+    "p10": 65.1533719234021,
+    "p90": 93.44243021185092
+  },
+  "angle_out_of_range_rate": 0.0,
+  "inplane_degen_rate": 0.0,
+  "inplane_area": {
+    "count": 32,
+    "mean": 52.13162338733673,
+    "median": 46.8802375793457,
+    "p10": 27.87023220062256,
+    "p90": 76.14283523559571
+  },
+  "inplane_gamma": {
+    "count": 32,
+    "mean": 84.01867133631491,
+    "median": 88.61742734446136,
+    "p10": 65.1533719234021,
+    "p90": 93.44243021185092
+  },
+  "n_atoms": {
+    "count": 32,
+    "mean": 10.625,
+    "median": 9.0,
+    "p10": 4.0,
+    "p90": 20.0
+  },
+  "element_counts": {
+    "41": 9,
+    "16": 37,
+    "33": 4,
+    "47": 4,
+    "8": 23,
+    "40": 3,
+    "7": 4,
+    "1": 2,
+    "34": 9,
+    "31": 1,
+    "15": 2,
+    "11": 1,
+    "52": 8,
+    "14": 2,
+    "35": 9,
+    "17": 6,
+    "79": 2,
+    "48": 1,
+    "46": 1,
+    "76": 6,
+    "19": 2,
+    "20": 3,
+    "25": 5,
+    "45": 2,
+    "53": 2,
+    "24": 2,
+    "5": 2,
+    "28": 2,
+    "49": 2,
+    "72": 1,
+    "32": 1,
+    "27": 1,
+    "9": 2
+  },
+  "total_samples": 32,
+  "fail_reason_top3": [
+    [
+      "collision",
+      11
+    ],
+    [
+      "bad_volume",
+      4
+    ]
+  ],
+  "cond_violation_rate": 0.0,
+  "cond_lattice_violation_rate": 0.0,
+  "project_trigger_rate": 0.5,
+  "project_delta_cond": {
+    "count": 32,
+    "mean": -18.135973870754242,
+    "median": -0.0017271041870117188,
+    "p10": -53.98644561767578,
+    "p90": 7.438659667968754e-06
+  },
+  "project_angle_out_rate_before": 0.0,
+  "project_angle_out_rate_after": 0.0,
+  "post_project_trigger_any_rate": 0.15625,
+  "post_project_delta_norm": {
+    "count": 32,
+    "mean": 0.017146772573535474,
+    "median": 2.17089996112918e-05,
+    "p10": 1.234006546724231e-07,
+    "p90": 0.049147565290331846
+  },
+  "post_project_vol_scale_inplane": {
+    "count": 32,
+    "mean": 1.0,
+    "median": 1.0,
+    "p10": 1.0,
+    "p90": 1.0
+  },
+  "post_project_vol_scaled_rate": 0.0,
+  "post_project_vol_before": {
+    "count": 32,
+    "mean": 1308.916696548462,
+    "median": 725.2673950195312,
+    "p10": 471.86150817871095,
+    "p90": 3276.3358154296884
+  },
+  "post_project_vol_after": {
+    "count": 32,
+    "mean": 1129.6758213043213,
+    "median": 725.2563781738281,
+    "p10": 413.85915222167966,
+    "p90": 2429.6041259765625
+  },
+  "cond_match": {
+    "exact_match_rate": 1.0,
+    "l1_count_error": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "l1_count_error_norm": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_l1": {
+      "count": 32,
+      "mean": 0.0,
+      "median": 0.0,
+      "p10": 0.0,
+      "p90": 0.0
+    },
+    "comp_cosine": {
+      "count": 32,
+      "mean": 1.0,
+      "median": 1.0,
+      "p10": 0.9999999999999998,
+      "p90": 1.0000000000000002
+    },
+    "source": "target",
+    "suspect_all_match": false
+  },
+  "schema_version": "eval_samples_v1",
+  "valid_criteria": [
+    "n_atoms >= 3",
+    "non-empty atoms",
+    "volume within [v_min, v_max] when provided",
+    "determinant > 0",
+    "lattice Gram matrix is SPD",
+    "condition number <= cond_max when provided (in-plane Gram for 2D slabs)",
+    "min_dist >= min_dist_cut (exact MIC under pbc_mask)",
+    "dup_ratio <= 0.2 (grid-quantized with dup_eps)",
+    "angles alpha/beta/gamma within [30, 150] degrees"
+  ],
+  "eval_params": {
+    "min_dist_cut": 1.5,
+    "bond_cut": 3.0,
+    "dup_eps": 0.001,
+    "vacuum_min": 15.0,
+    "v_min": 131.28549194335938,
+    "v_max": 2596.493408203125,
+    "pbc_mask": [
+      1,
+      1,
+      0
+    ],
+    "formation_energy_threshold": 0.0,
+    "element_refs_path": "data/ref_energies.json",
+    "target_spacegroup": null,
+    "spacegroup_symprec": 0.01,
+    "cond_max": 40.0
+  },
+  "run_context": {
+    "source": "sample_tokens",
+    "samples": "runs/E1_1_smoke/full_projection_seed0_n32/samples/samples.npz",
+    "cond_split": "all",
+    "cond_split_json": null,
+    "seed": 0,
+    "protocol": "quick",
+    "experiment_id": "E1_1_smoke",
+    "config_hash": "e9a0885f9fe68983ad361acc526a9fdd53ad776e58cc5300ebf75141422bf34c"
+  }
+}

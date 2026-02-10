@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Cd(GaO2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.56821132
+_cell_length_b   15.23687999
+_cell_length_c   13.37934501
+_cell_angle_alpha   89.86652016
+_cell_angle_beta   90.00408693
+_cell_angle_gamma   91.64489708
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cd(GaO2)2
+_chemical_formula_sum   'Cd1 Ga2 O4'
+_cell_volume   523.33704703
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.94962204  0.65896297  0.36967370  1
+  O  O1  1  0.84707177  0.59160924  0.29212841  1
+  O  O2  1  0.22378349  0.36681652  0.09749454  1
+  Ga  Ga3  1  0.95858002  0.67796803  0.04250002  1
+  Cd  Cd4  1  0.28553677  0.84335208  0.64668649  1
+  O  O5  1  0.23016644  0.98476696  0.73507285  1
+  Ga  Ga6  1  0.60021746  0.20350409  0.51127338  1

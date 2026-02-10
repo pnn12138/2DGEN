@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_CuIrBr2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49355483
+_cell_length_b   14.04316908
+_cell_length_c   13.87174239
+_cell_angle_alpha   90.12415395
+_cell_angle_beta   89.99439500
+_cell_angle_gamma   92.68343793
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuIrBr2O3
+_chemical_formula_sum   'Cu2 Ir2 Br4 O6'
+_cell_volume   485.21872867
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.17225580  0.34365568  0.51248848  1
+  O  O1  1  0.36525536  0.60065746  0.97908473  1
+  O  O2  1  0.58804512  0.06215239  0.57131863  1
+  Br  Br3  1  0.95000196  0.23570919  0.77765179  1
+  O  O4  1  0.46805954  0.13775635  0.90772450  1
+  Ir  Ir5  1  0.13417053  0.37153268  0.82424212  1
+  Br  Br6  1  0.04574776  0.58065319  0.65675831  1
+  O  O7  1  0.75868988  0.48205137  0.66592634  1
+  O  O8  1  0.04198286  0.28365555  0.59707987  1
+  Ir  Ir9  1  0.09055650  0.98063946  0.97987479  1
+  Br  Br10  1  0.57344437  0.97614098  0.48165655  1
+  Cu  Cu11  1  0.67340279  0.80701828  0.04100484  1
+  Br  Br12  1  0.04105663  0.59899139  0.40124375  1
+  Cu  Cu13  1  0.68814278  0.11470222  0.15615082  1

@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_KMo2(SI3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   16.57318878
+_cell_length_b   19.78699614
+_cell_length_c   90.01806892
+_cell_angle_alpha   92.12075528
+_cell_angle_beta   88.88054177
+_cell_angle_gamma   96.62489901
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   KMo2(SI3)2
+_chemical_formula_sum   'K1 Mo2 S2 I6'
+_cell_volume   29299.28769939
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.40809441  0.43063354  0.50149918  1
+  I  I1  1  0.19884872  0.27728653  0.45269871  1
+  Mo  Mo2  1  0.57735348  0.74974298  0.76765501  1
+  K  K3  1  0.16732724  0.90149212  0.29122734  1
+  S  S4  1  0.19701385  0.18812227  0.91103268  1
+  I  I5  1  0.67450809  0.08830500  0.17045641  1
+  I  I6  1  0.29025078  0.85138321  0.25805330  1
+  I  I7  1  0.76986885  0.36271000  0.91886091  1
+  I  I8  1  0.44920349  0.16709423  0.72239161  1
+  I  I9  1  0.84849548  0.56725311  0.09542012  1
+  Mo  Mo10  1  0.26387691  0.33876765  0.56429720  1

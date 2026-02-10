@@ -12,6 +12,12 @@ from pymatgen.core import Element
 
 from twodgen.common.geometry_np import choose_vacuum_axis, min_dist_and_shifts, thickness_vacuum
 from twodgen.evaluate.cache import load_eval_cache
+from twodgen.evaluate.run_layout import (
+    FAILURE_BREAKDOWN_SCHEMA_VERSION,
+    METRICS_SUMMARY_SCHEMA_VERSION,
+    atomic_write_json,
+    make_schema_payload,
+)
 
 
 EVAL_SCHEMA_VERSION = "eval_samples_v1"
@@ -185,6 +191,48 @@ def build_eval_params(
     }
 
 
+def _build_metrics_summary(tier0: Dict[str, Any], tier1: Dict[str, Any]) -> Dict[str, Any]:
+    def _opt_float(value: Any) -> Optional[float]:
+        if value is None:
+            return None
+        try:
+            return float(value)
+        except Exception:
+            return None
+
+    return {
+        "success_geom_rate": float(tier0.get("success_geom_rate", 0.0)),
+        "success_rate": float(tier0.get("success_rate", 0.0)),
+        "valid_rate_eval": float(tier0.get("valid_rate_eval", 0.0)),
+        "collision_rate": float(tier0.get("min_dist_collision_rate", 0.0)),
+        "cross_vacuum_risk_rate": float(tier1.get("cross_vacuum_rate", 0.0)),
+        "inplane_degen_rate": float(tier0.get("inplane_degen_rate", 0.0)),
+        "bad_volume_rate": float(tier0.get("bad_volume_rate", 0.0)),
+        "post_project_trigger_any_rate": _opt_float(tier0.get("post_project_trigger_any_rate")),
+        "cond_lattice_violation_rate": _opt_float(tier0.get("cond_lattice_violation_rate")),
+        "spacegroup_match_rate": _opt_float(tier0.get("spacegroup_match_rate")),
+        "spglib_fail_rate": _opt_float(tier0.get("spglib_fail_rate")),
+        "vacuum_ok_rate": _opt_float(tier1.get("vacuum_ok_rate")),
+        "energy_available_rate": _opt_float(tier0.get("energy_available_rate")),
+        "success_energy_rate": _opt_float(tier0.get("success_energy_rate")),
+        "total_samples": int(tier0.get("total_samples", 0)),
+    }
+
+
+def _build_failure_breakdown(tier0: Dict[str, Any], tier1: Dict[str, Any]) -> Dict[str, Any]:
+    return {
+        "fail_reason_counts": tier0.get("fail_reason_counts", {}),
+        "fail_reason_top3": tier0.get("fail_reason_top3", []),
+        "symmetry_violation_breakdown": tier0.get("symmetry_violation_breakdown", {}),
+        "energy_failure_counts": tier0.get("fail_reason_energy_counts", {}),
+        "energy_skipped_breakdown": tier0.get("energy_skipped_reason_counts", {}),
+        "cross_vacuum_rate": float(tier1.get("cross_vacuum_rate", 0.0)),
+        "inplane_degen_rate": float(tier0.get("inplane_degen_rate", 0.0)),
+        "angle_out_of_range_rate": float(tier0.get("angle_out_of_range_rate", 0.0)),
+        "bad_volume_rate": float(tier0.get("bad_volume_rate", 0.0)),
+    }
+
+
 def write_eval_outputs(
     *,
     out_dir: Path,
@@ -217,6 +265,29 @@ def write_eval_outputs(
     if success_manifest:
         with (out_dir / "success_manifest.json").open("w", encoding="utf-8") as f:
             json.dump(success_manifest, f, indent=2, ensure_ascii=True)
+
+    experiment_id = run_context.get("experiment_id") if isinstance(run_context, dict) else None
+    seed = run_context.get("seed") if isinstance(run_context, dict) else None
+    protocol = run_context.get("protocol") if isinstance(run_context, dict) else None
+    cfg_hash = run_context.get("config_hash") if isinstance(run_context, dict) else None
+    metrics_summary = make_schema_payload(
+        schema_version=METRICS_SUMMARY_SCHEMA_VERSION,
+        payload=_build_metrics_summary(tier0, tier1),
+        experiment_id=experiment_id,
+        seed=seed if isinstance(seed, int) else None,
+        protocol=protocol if isinstance(protocol, str) else None,
+        config_hash_value=cfg_hash if isinstance(cfg_hash, str) else None,
+    )
+    failure_breakdown = make_schema_payload(
+        schema_version=FAILURE_BREAKDOWN_SCHEMA_VERSION,
+        payload=_build_failure_breakdown(tier0, tier1),
+        experiment_id=experiment_id,
+        seed=seed if isinstance(seed, int) else None,
+        protocol=protocol if isinstance(protocol, str) else None,
+        config_hash_value=cfg_hash if isinstance(cfg_hash, str) else None,
+    )
+    atomic_write_json(out_dir / "metrics_summary.json", metrics_summary)
+    atomic_write_json(out_dir / "failure_breakdown.json", failure_breakdown)
 
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
@@ -907,6 +978,10 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--target-spacegroup", type=int, default=None)
     parser.add_argument("--spacegroup-symprec", type=float, default=1e-2)
+    parser.add_argument("--experiment-id", type=str, default=None)
+    parser.add_argument("--protocol", type=str, default=None, choices=["quick", "final"])
+    parser.add_argument("--seed", type=int, default=None)
+    parser.add_argument("--config-hash", type=str, default=None)
     parser.add_argument(
         "--cond-max",
         type=float,
@@ -1038,6 +1113,14 @@ def main() -> None:
         spacegroup_symprec=args.spacegroup_symprec,
         cond_max=cond_max,
     )
+    run_context = {
+        "source": "eval_samples",
+        "samples": str(samples_path),
+        "experiment_id": args.experiment_id,
+        "protocol": args.protocol,
+        "seed": args.seed,
+        "config_hash": args.config_hash,
+    }
     write_eval_outputs(
         out_dir=out_dir,
         per_sample=per_sample,
@@ -1045,7 +1128,7 @@ def main() -> None:
         tier1=tier1,
         eval_params=eval_params,
         success_manifest=success_manifest,
-        run_context={"source": "eval_samples", "samples": str(args.samples)},
+        run_context=run_context,
     )
 
     print(f"Saved eval outputs to {out_dir}")

@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_BiSCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51913428
+_cell_length_b   10.06318875
+_cell_length_c   15.32116148
+_cell_angle_alpha   90.28460262
+_cell_angle_beta   90.08415655
+_cell_angle_gamma   73.43833565
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BiSCl
+_chemical_formula_sum   'Bi1 S1 Cl1'
+_cell_volume   372.28154402
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Bi  Bi0  1  0.97230244  0.49982071  0.22730541  1
+  S  S1  1  0.94705963  0.19847488  0.69932270  1
+  Cl  Cl2  1  0.01372242  0.70914459  0.60646677  1

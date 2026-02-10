@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CuTe3P
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.92026377
+_cell_length_b   11.82091720
+_cell_length_c   33.73864854
+_cell_angle_alpha   90.03049929
+_cell_angle_beta   90.00350638
+_cell_angle_gamma   74.85303424
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuTe3P
+_chemical_formula_sum   'Cu2 Te6 P2'
+_cell_volume   1894.13502814
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.76797867  0.17811394  0.51658595  1
+  Cu  Cu1  1  0.74241924  0.68480682  0.04877734  1
+  Te  Te2  1  0.93637133  0.46343613  0.46893805  1
+  Te  Te3  1  0.86218071  0.95221376  0.12509462  1
+  Te  Te4  1  0.92533779  0.61682129  0.58262849  1
+  P  P5  1  0.89752197  0.17753458  0.04765058  1
+  Te  Te6  1  0.01528168  0.32558310  0.18983650  1
+  Te  Te7  1  0.57212543  0.34461212  0.62337232  1
+  Cu  Cu8  1  0.56030273  0.80817318  0.46842384  1
+  P  P9  1  0.52276134  0.82024097  0.09513617  1

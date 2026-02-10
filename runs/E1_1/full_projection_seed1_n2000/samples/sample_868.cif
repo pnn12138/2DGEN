@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Nb2BiTe6Pt
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.62070942
+_cell_length_b   14.95935220
+_cell_length_c   25.90534976
+_cell_angle_alpha   90.07609764
+_cell_angle_beta   89.94276560
+_cell_angle_gamma   135.66895389
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Nb2BiTe6Pt
+_chemical_formula_sum   'Nb2 Bi1 Te6 Pt1'
+_cell_volume   1522.11599221
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.06407738  0.08354855  0.08555686  1
+  Nb  Nb1  1  0.69274521  0.13427639  0.10443258  1
+  Te  Te2  1  0.62647152  0.92175174  0.89161342  1
+  Te  Te3  1  0.17369372  0.99523258  0.44464535  1
+  Te  Te4  1  0.49334359  0.73257923  0.70993817  1
+  Te  Te5  1  0.58493531  0.80447960  0.54017389  1
+  Nb  Nb6  1  0.20859432  0.31096506  0.49020624  1
+  Pt  Pt7  1  0.33259964  0.94822168  0.81615949  1
+  Bi  Bi8  1  0.49977374  0.85359120  0.62205040  1
+  Te  Te9  1  0.51626205  0.74232054  0.84508252  1

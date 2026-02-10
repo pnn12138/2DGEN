@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_SnSbClO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.30078006
+_cell_length_b   13.58872761
+_cell_length_c   13.26597509
+_cell_angle_alpha   89.96853583
+_cell_angle_beta   90.00231792
+_cell_angle_gamma   95.76779258
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SnSbClO3
+_chemical_formula_sum   'Sn2 Sb2 Cl2 O6'
+_cell_volume   412.65655457
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.19371319  0.36335087  0.55352449  1
+  O  O1  1  0.78857863  0.12350655  0.36166453  1
+  O  O2  1  0.87242794  0.12885964  0.49771440  1
+  Sn  Sn3  1  0.30681753  0.17004967  0.08059260  1
+  Sb  Sb4  1  0.97809982  0.58151627  0.65252995  1
+  Sb  Sb5  1  0.45686913  0.01324654  0.60027385  1
+  O  O6  1  0.65058899  0.70969224  0.50007844  1
+  O  O7  1  0.25688744  0.46857834  0.01840305  1
+  Sn  Sn8  1  0.54274559  0.58057594  0.91681778  1
+  O  O9  1  0.99477792  0.10302365  0.92388564  1
+  Cl  Cl10  1  0.78009415  0.44747162  0.40169573  1
+  Cl  Cl11  1  0.73975456  0.22629547  0.16702056  1

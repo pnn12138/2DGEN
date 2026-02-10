@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CoSbSe2Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.40483379
+_cell_length_b   12.90379062
+_cell_length_c   36.40352399
+_cell_angle_alpha   89.64819327
+_cell_angle_beta   90.31847998
+_cell_angle_gamma   123.92024700
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoSbSe2Cl
+_chemical_formula_sum   'Co2 Sb2 Se4 Cl2'
+_cell_volume   2106.75877336
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.73143005  0.54230118  0.77274179  1
+  Sb  Sb1  1  0.59015179  0.45442200  0.38899761  1
+  Se  Se2  1  0.64940929  0.02357769  0.19686961  1
+  Co  Co3  1  0.17938423  0.23577070  0.45174885  1
+  Co  Co4  1  0.64344215  0.02043724  0.53125739  1
+  Se  Se5  1  0.09837532  0.01795101  0.27637053  1
+  Se  Se6  1  0.24139690  0.33490372  0.68489599  1
+  Sb  Sb7  1  0.89206553  0.71564102  0.48033917  1
+  Se  Se8  1  0.60365009  0.97694683  0.39365673  1
+  Cl  Cl9  1  0.18689823  0.75124550  0.22935677  1

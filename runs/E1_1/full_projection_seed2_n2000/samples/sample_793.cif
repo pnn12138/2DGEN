@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NiBiTe2I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.54827857
+_cell_length_b   17.19734771
+_cell_length_c   12.76399183
+_cell_angle_alpha   91.08858386
+_cell_angle_beta   89.67636913
+_cell_angle_gamma   128.77098664
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiBiTe2I
+_chemical_formula_sum   'Ni2 Bi2 Te4 I2'
+_cell_volume   607.12192267
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.03717041  0.40677929  0.68372250  1
+  Ni  Ni1  1  0.26396435  0.18524551  0.09386492  1
+  I  I2  1  0.76766968  0.90513754  0.26798391  1
+  Te  Te3  1  0.65327454  0.04392815  0.42304939  1
+  Bi  Bi4  1  0.23350525  0.33153057  0.41835827  1
+  I  I5  1  0.05914307  0.78020382  0.17524147  1
+  Te  Te6  1  0.72382832  0.90496826  0.42231554  1
+  Te  Te7  1  0.63755465  0.56723213  0.56910038  1
+  Te  Te8  1  0.64336777  0.79624420  0.50460052  1
+  Bi  Bi9  1  0.02282715  0.09029579  0.78983307  1

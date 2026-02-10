@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Cu2AgSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.21595764
+_cell_length_b   7.04840369
+_cell_length_c   12.32739228
+_cell_angle_alpha   90.10571321
+_cell_angle_beta   90.08531669
+_cell_angle_gamma   79.03822111
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cu2AgSe2
+_chemical_formula_sum   'Cu2 Ag1 Se2'
+_cell_volume   189.02759107
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.97465515  0.89661789  0.60468864  1
+  Ag  Ag1  1  0.47995853  0.68562949  0.01472759  1
+  Se  Se2  1  0.23721695  0.70655060  0.41068792  1
+  Cu  Cu3  1  0.51260757  0.52166748  0.59779739  1
+  Cu  Cu4  1  0.81919956  0.10902023  0.27860785  1

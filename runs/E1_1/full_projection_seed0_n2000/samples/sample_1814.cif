@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_InGePbSI2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.23389888
+_cell_length_b   13.59391546
+_cell_length_c   12.42740743
+_cell_angle_alpha   90.50400196
+_cell_angle_beta   89.97081057
+_cell_angle_gamma   93.58408779
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InGePbSI2
+_chemical_formula_sum   'In1 Ge1 Pb1 S1 I2'
+_cell_volume   376.63576002
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.84256935  0.97913361  0.45156693  1
+  In  In1  1  0.95009923  0.61380482  0.60786211  1
+  I  I2  1  0.57337475  0.40595913  0.02819395  1
+  S  S3  1  0.53973770  0.70961952  0.40724993  1
+  Ge  Ge4  1  0.25747490  0.00159264  0.15906477  1
+  Pb  Pb5  1  0.96006107  0.05363083  0.73810959  1

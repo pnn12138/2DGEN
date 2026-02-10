@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_ScPdS3Br2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.85907888
+_cell_length_b   16.43285520
+_cell_length_c   13.84304594
+_cell_angle_alpha   90.38853054
+_cell_angle_beta   89.99102092
+_cell_angle_gamma   91.34331323
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ScPdS3Br2
+_chemical_formula_sum   'Sc1 Pd1 S3 Br2'
+_cell_volume   650.19177136
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.49456525  0.34903952  0.84633476  1
+  Pd  Pd1  1  0.64117044  0.42190316  0.81284374  1
+  S  S2  1  0.98270667  0.95841217  0.89561081  1
+  S  S3  1  0.79847527  0.71381950  0.52419120  1
+  Sc  Sc4  1  0.53952408  0.01866817  0.94978333  1
+  Br  Br5  1  0.21046066  0.17265320  0.36235118  1
+  S  S6  1  0.88847685  0.41095495  0.57122040  1

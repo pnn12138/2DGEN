@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_HfCdSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.38120365
+_cell_length_b   15.05595751
+_cell_length_c   12.67680900
+_cell_angle_alpha   90.13086886
+_cell_angle_beta   89.99740705
+_cell_angle_gamma   91.18030412
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfCdSe2
+_chemical_formula_sum   'Hf1 Cd1 Se2'
+_cell_volume   454.38247976
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.42487812  0.10991478  0.75996304  1
+  Cd  Cd1  1  0.49446583  0.87986755  0.10169911  1
+  Se  Se2  1  0.65491104  0.59846878  0.41542387  1
+  Hf  Hf3  1  0.07332325  0.69009495  0.07142162  1

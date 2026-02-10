@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_ZrFeH6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.41668582
+_cell_length_b   6.09801125
+_cell_length_c   11.43745235
+_cell_angle_alpha   89.95441522
+_cell_angle_beta   90.27902344
+_cell_angle_gamma   50.69288551
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZrFeH6
+_chemical_formula_sum   'Zr1 Fe1 H6'
+_cell_volume   130.41701318
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Fe  Fe0  1  0.00609970  0.93389702  0.53123713  1
+  H  H1  1  0.42485046  0.49859071  0.07050085  1
+  Zr  Zr2  1  0.45126438  0.63656139  0.69282818  1
+  H  H3  1  0.51794052  0.23850012  0.93884075  1
+  H  H4  1  0.09706688  0.86352634  0.97219133  1
+  H  H5  1  0.13931465  0.96553230  0.38485447  1
+  H  H6  1  0.71635151  0.12230206  0.03415596  1
+  H  H7  1  0.25506020  0.30182076  0.81551886  1

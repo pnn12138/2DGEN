@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_ZnSbTe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.93508244
+_cell_length_b   20.13147638
+_cell_length_c   37.06085176
+_cell_angle_alpha   89.90281504
+_cell_angle_beta   90.09579915
+_cell_angle_gamma   98.73367061
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnSbTe3
+_chemical_formula_sum   'Zn2 Sb2 Te6'
+_cell_volume   4376.74823563
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.51517677  0.65157747  0.27803087  1
+  Zn  Zn1  1  0.65291405  0.78984308  0.67458677  1
+  Zn  Zn2  1  0.01617432  0.08276558  0.65141773  1
+  Sb  Sb3  1  0.79246712  0.17123985  0.84177428  1
+  Te  Te4  1  0.77493763  0.00206375  0.73990917  1
+  Te  Te5  1  0.27694207  0.44209671  0.47053313  1
+  Te  Te6  1  0.95327568  0.75468326  0.62140107  1
+  Te  Te7  1  0.91988134  0.05256939  0.85911989  1
+  Te  Te8  1  0.75864816  0.71589708  0.87964392  1
+  Sb  Sb9  1  0.97253633  0.32129717  0.25066546  1

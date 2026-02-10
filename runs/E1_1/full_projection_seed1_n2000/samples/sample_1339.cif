@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_SrFeSn
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.14272118
+_cell_length_b   7.73107744
+_cell_length_c   47.18145160
+_cell_angle_alpha   91.09478503
+_cell_angle_beta   91.48655681
+_cell_angle_gamma   69.17511252
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SrFeSn
+_chemical_formula_sum   'Sr2 Fe2 Sn2'
+_cell_volume   2093.44020969
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sn  Sn0  1  0.66212749  0.57302856  0.67030764  1
+  Fe  Fe1  1  0.00704694  0.13158619  0.24609661  1
+  Fe  Fe2  1  0.52644634  0.34114552  0.93132591  1
+  Sr  Sr3  1  0.00045490  0.73462582  0.15921640  1
+  Sn  Sn4  1  0.81868029  0.63040590  0.76451731  1
+  Sr  Sr5  1  0.10441601  0.73139954  0.98059464  1

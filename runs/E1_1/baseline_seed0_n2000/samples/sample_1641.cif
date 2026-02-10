@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_TlCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   15.98422146
+_cell_length_b   2.60829982
+_cell_length_c   12.97723199
+_cell_angle_alpha   87.08439389
+_cell_angle_beta   90.45616966
+_cell_angle_gamma   76.63273080
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlCl
+_chemical_formula_sum   'Tl2 Cl2'
+_cell_volume   525.59457841
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Tl  Tl0  1  0.19087815  0.46890616  0.18264186  1
+  Cl  Cl1  1  0.42020130  0.22270060  0.56355566  1
+  Tl  Tl2  1  0.84628320  0.81458116  0.77143186  1
+  Cl  Cl3  1  0.89981365  0.34323144  0.97775030  1

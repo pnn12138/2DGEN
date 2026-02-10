@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ta2CO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.72608042
+_cell_length_b   10.84685990
+_cell_length_c   24.71442220
+_cell_angle_alpha   90.29977937
+_cell_angle_beta   90.24933821
+_cell_angle_gamma   41.29053217
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta2CO2
+_chemical_formula_sum   'Ta2 C1 O2'
+_cell_volume   1012.90621029
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ta  Ta0  1  0.51936913  0.96021461  0.63670242  1
+  Ta  Ta1  1  0.59372211  0.33838177  0.64967293  1
+  C  C2  1  0.97214079  0.42667103  0.16349745  1
+  O  O3  1  0.35636139  0.99597311  0.98103052  1
+  O  O4  1  0.55071259  0.44919872  0.80937314  1

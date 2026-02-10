@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Li2AgO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.65319681
+_cell_length_b   20.79212320
+_cell_length_c   35.03901873
+_cell_angle_alpha   89.92218739
+_cell_angle_beta   90.01202704
+_cell_angle_gamma   78.94371465
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Li2AgO2
+_chemical_formula_sum   'Li2 Ag1 O2'
+_cell_volume   4042.10750067
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.50075209  0.93330383  0.17333841  1
+  Li  Li1  1  0.62342191  0.62343502  0.47015631  1
+  O  O2  1  0.27291965  0.87857056  0.61454153  1
+  O  O3  1  0.06175816  0.35271263  0.66802168  1
+  Li  Li4  1  0.62497264  0.92324305  0.46490654  1

@@ -1,0 +1,92 @@
+{
+  "variants": {
+    "baseline": {
+      "runs": 1,
+      "success_geom_rate": {
+        "mean": 0.375,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "bad_volume_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "collision_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "inplane_degen_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "cross_vacuum_risk_rate": {
+        "mean": 0.09375,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "post_project_trigger_any_rate": {
+        "mean": null,
+        "std": null,
+        "n": 0.0
+      },
+      "valid_rate_eval": {
+        "mean": 0.375,
+        "std": 0.0,
+        "n": 1.0
+      }
+    },
+    "full_projection": {
+      "runs": 1,
+      "success_geom_rate": {
+        "mean": 0.53125,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "bad_volume_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "collision_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "inplane_degen_rate": {
+        "mean": 0.0,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "cross_vacuum_risk_rate": {
+        "mean": 0.09375,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "post_project_trigger_any_rate": {
+        "mean": 0.15625,
+        "std": 0.0,
+        "n": 1.0
+      },
+      "valid_rate_eval": {
+        "mean": 0.53125,
+        "std": 0.0,
+        "n": 1.0
+      }
+    }
+  },
+  "delta_success_geom_rate_full_minus_baseline": 0.15625,
+  "experiment_id": "E1_1_smoke",
+  "protocol": "quick",
+  "num_samples": 32,
+  "steps": 10,
+  "variants_requested": [
+    "baseline",
+    "full_projection"
+  ],
+  "seeds_requested": [
+    0
+  ]
+}

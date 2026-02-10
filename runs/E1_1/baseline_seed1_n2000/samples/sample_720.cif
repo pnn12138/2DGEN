@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ge2SbTeBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.25080538
+_cell_length_b   10.90579243
+_cell_length_c   12.10457207
+_cell_angle_alpha   89.78334916
+_cell_angle_beta   90.04199372
+_cell_angle_gamma   102.03438664
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ge2SbTeBr
+_chemical_formula_sum   'Ge2 Sb1 Te1 Br1'
+_cell_volume   290.59652499
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.17584896  0.50437927  0.10839009  1
+  Te  Te1  1  0.64870632  0.27714753  0.88267159  1
+  Sb  Sb2  1  0.40451401  0.73640579  0.42279169  1
+  Ge  Ge3  1  0.55017763  0.86879975  0.44488862  1
+  Br  Br4  1  0.83904743  0.69852638  0.32170355  1

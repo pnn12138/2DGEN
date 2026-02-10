@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Hf4N3Cl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.10087609
+_cell_length_b   19.37244462
+_cell_length_c   13.06608655
+_cell_angle_alpha   90.50680160
+_cell_angle_beta   90.23670022
+_cell_angle_gamma   98.70688329
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Hf4N3Cl2
+_chemical_formula_sum   'Hf4 N3 Cl2'
+_cell_volume   775.81242664
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  N  N0  1  0.85447288  0.83767378  0.17904615  1
+  Hf  Hf1  1  0.06355953  0.39977169  0.08110631  1
+  Hf  Hf2  1  0.71797562  0.33889771  0.45201945  1
+  N  N3  1  0.17060757  0.63813782  0.55779648  1
+  Cl  Cl4  1  0.58134842  0.60573578  0.20411015  1
+  N  N5  1  0.63487053  0.22769165  0.76616716  1
+  Hf  Hf6  1  0.63607788  0.96363640  0.02565670  1
+  Cl  Cl7  1  0.85874748  0.13933325  0.70027447  1
+  Hf  Hf8  1  0.95226860  0.16151828  0.96624422  1

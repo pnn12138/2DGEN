@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Sr2AgTe2F2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.38063240
+_cell_length_b   24.68376810
+_cell_length_c   29.47759634
+_cell_angle_alpha   90.65552886
+_cell_angle_beta   90.52020235
+_cell_angle_gamma   35.30831040
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2AgTe2F2
+_chemical_formula_sum   'Sr2 Ag1 Te2 F2'
+_cell_volume   3524.20894481
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.73516941  0.08837128  0.68407810  1
+  Te  Te1  1  0.19074345  0.12001419  0.86832142  1
+  F  F2  1  0.71944404  0.02687693  0.39576817  1
+  Sr  Sr3  1  0.36172295  0.99048042  0.90186262  1
+  Te  Te4  1  0.17333221  0.20085776  0.50651759  1
+  Ag  Ag5  1  0.68994141  0.39597797  0.62612915  1
+  F  F6  1  0.34613466  0.11954021  0.05606556  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_VTeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.69585752
+_cell_length_b   8.45491257
+_cell_length_c   15.59758411
+_cell_angle_alpha   89.38831188
+_cell_angle_beta   89.71737801
+_cell_angle_gamma   67.28273748
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   VTeCl
+_chemical_formula_sum   'V2 Te2 Cl2'
+_cell_volume   327.92008979
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  V  V0  1  0.96852398  0.51121998  0.19025731  1
+  Cl  Cl1  1  0.51156163  0.54353797  0.58300352  1
+  Cl  Cl2  1  0.44737890  0.82240105  0.37555075  1
+  Te  Te3  1  0.06170273  0.03584051  0.59945226  1
+  V  V4  1  0.26903534  0.59035730  0.73447895  1
+  Te  Te5  1  0.39789760  0.13666058  0.97278404  1

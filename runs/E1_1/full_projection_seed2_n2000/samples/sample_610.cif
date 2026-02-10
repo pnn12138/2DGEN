@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfMn3SeS4Cl3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.76523805
+_cell_length_b   10.65429154
+_cell_length_c   15.05018724
+_cell_angle_alpha   89.99356164
+_cell_angle_beta   90.00148465
+_cell_angle_gamma   71.79754622
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfMn3SeS4Cl3
+_chemical_formula_sum   'Hf1 Mn3 Se1 S4 Cl3'
+_cell_volume   421.21488708
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.55243492  0.51235914  0.87903500  1
+  Hf  Hf1  1  0.67225647  0.84239006  0.94223642  1
+  S  S2  1  0.84183544  0.80484831  0.73005968  1
+  Mn  Mn3  1  0.75730348  0.45814419  0.78053236  1
+  S  S4  1  0.22741699  0.57561493  0.78292036  1
+  Mn  Mn5  1  0.24535465  0.03317070  0.12939596  1
+  Mn  Mn6  1  0.69285870  0.10346723  0.87210035  1
+  S  S7  1  0.37812328  0.89874649  0.85572267  1
+  S  S8  1  0.07655144  0.31356311  0.83975482  1
+  Cl  Cl9  1  0.95008516  0.22754145  0.25006509  1
+  Cl  Cl10  1  0.93424463  0.77773952  0.32471406  1
+  Cl  Cl11  1  0.95773369  0.86733305  0.66212958  1

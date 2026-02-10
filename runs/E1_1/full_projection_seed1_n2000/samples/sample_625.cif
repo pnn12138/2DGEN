@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_OsO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.63257098
+_cell_length_b   6.13530278
+_cell_length_c   19.18836217
+_cell_angle_alpha   89.99595904
+_cell_angle_beta   89.99832911
+_cell_angle_gamma   61.44833967
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   OsO
+_chemical_formula_sum   'Os2 O2'
+_cell_volume   375.64160013
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Os  Os0  1  0.10107803  0.49319458  0.11645213  1
+  Os  Os1  1  0.24824142  0.03621006  0.23943877  1
+  O  O2  1  0.49171352  0.47451019  0.16658163  1
+  O  O3  1  0.34957409  0.93875611  0.02396920  1

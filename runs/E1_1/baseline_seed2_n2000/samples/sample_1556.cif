@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Ba2CoS3Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49275732
+_cell_length_b   12.92108759
+_cell_length_c   14.06853457
+_cell_angle_alpha   90.04529338
+_cell_angle_beta   89.99787153
+_cell_angle_gamma   100.79834942
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ba2CoS3Br
+_chemical_formula_sum   'Ba4 Co2 S6 Br2'
+_cell_volume   445.11137013
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Co  Co0  1  0.55907124  0.34024402  0.86021632  1
+  Br  Br1  1  0.94501114  0.98036003  0.08581638  1
+  Ba  Ba2  1  0.94686890  0.85625458  0.79086304  1
+  Ba  Ba3  1  0.95977259  0.70673704  0.49539983  1
+  Ba  Ba4  1  0.08507895  0.04950714  0.74784106  1
+  S  S5  1  0.71167576  0.27476284  0.42902392  1
+  Ba  Ba6  1  0.57335919  0.51065326  0.27534184  1
+  Br  Br7  1  0.11164599  0.28875378  0.88359797  1
+  S  S8  1  0.41125584  0.58281243  0.44539726  1
+  S  S9  1  0.65473163  0.48087859  0.18703355  1
+  S  S10  1  0.21703832  0.56555474  0.22956805  1
+  S  S11  1  0.35232544  0.63840413  0.57638216  1
+  Co  Co12  1  0.55017269  0.16910104  0.40663177  1
+  S  S13  1  0.43021944  0.58314395  0.33841825  1

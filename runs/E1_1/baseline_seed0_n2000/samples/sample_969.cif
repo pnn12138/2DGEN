@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Bi2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.30460358
+_cell_length_b   14.31730632
+_cell_length_c   12.82055310
+_cell_angle_alpha   90.16131765
+_cell_angle_beta   89.99374618
+_cell_angle_gamma   92.58558841
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Bi2O3
+_chemical_formula_sum   'Bi2 O3'
+_cell_volume   422.59098600
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.39013004  0.30753136  0.18539071  1
+  O  O1  1  0.11816597  0.20788002  0.06249452  1
+  Bi  Bi2  1  0.79280090  0.77507019  0.09917951  1
+  Bi  Bi3  1  0.13546753  0.42061615  0.96678638  1
+  O  O4  1  0.20578003  0.52124023  0.13279200  1

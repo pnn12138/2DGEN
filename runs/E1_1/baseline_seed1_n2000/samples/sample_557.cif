@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_CaPbSCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.32360840
+_cell_length_b   21.05030992
+_cell_length_c   22.30375316
+_cell_angle_alpha   90.31389052
+_cell_angle_beta   89.96130961
+_cell_angle_gamma   100.56565927
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CaPbSCl
+_chemical_formula_sum   'Ca1 Pb1 S1 Cl1'
+_cell_volume   2457.02508672
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.61671829  0.77891731  0.53404284  1
+  Ca  Ca1  1  0.98897552  0.91960764  0.43082857  1
+  Pb  Pb2  1  0.93075752  0.65848541  0.69531775  1
+  Cl  Cl3  1  0.61428118  0.39859581  0.81318903  1

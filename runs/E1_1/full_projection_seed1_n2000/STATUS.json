@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "note": "full_projection finished",
+  "schema_version": "run_layout_v1",
+  "git_commit": "f5d5b9d9a7d9d52ef3d4d7eb7ae0c552f11b48aa",
+  "timestamp": "2026-02-10T06:08:42+00:00",
+  "experiment_id": "E1_1",
+  "config_hash": "fa88a60337d412588543a27a3ddfb6f7107f5aa3fe9c14c69fe5ce287fd13981",
+  "seed": 1,
+  "protocol": "quick"
+}

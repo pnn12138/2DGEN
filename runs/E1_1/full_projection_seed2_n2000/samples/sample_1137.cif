@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_LiCuSe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.30535746
+_cell_length_b   13.96098636
+_cell_length_c   12.82449642
+_cell_angle_alpha   90.08603549
+_cell_angle_beta   89.99361634
+_cell_angle_gamma   94.04729964
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiCuSe
+_chemical_formula_sum   'Li2 Cu2 Se2'
+_cell_volume   411.72740871
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.54333496  0.70563507  0.14820480  1
+  Se  Se1  1  0.81597233  0.80780900  0.02007771  1
+  Li  Li2  1  0.39112520  0.73061371  0.32336140  1
+  Cu  Cu3  1  0.34549618  0.97601891  0.00450897  1
+  Cu  Cu4  1  0.75628853  0.02928162  0.79306364  1
+  Li  Li5  1  0.63093567  0.79696655  0.51601100  1

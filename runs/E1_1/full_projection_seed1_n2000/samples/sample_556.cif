@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ni4TeSe5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.56583309
+_cell_length_b   7.76898091
+_cell_length_c   12.56186816
+_cell_angle_alpha   89.89459914
+_cell_angle_beta   90.02082759
+_cell_angle_gamma   114.05179754
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ni4TeSe5
+_chemical_formula_sum   'Ni4 Te1 Se5'
+_cell_volume   228.66571755
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ni  Ni0  1  0.65834427  0.59859085  0.43791699  1
+  Ni  Ni1  1  0.07319701  0.76651287  0.61776447  1
+  Ni  Ni2  1  0.56619835  0.41591835  0.34009957  1
+  Se  Se3  1  0.83020467  0.16176565  0.53384280  1
+  Se  Se4  1  0.23489997  0.79482019  0.27310386  1
+  Te  Te5  1  0.83555448  0.81983608  0.33481479  1
+  Se  Se6  1  0.89456272  0.07458115  0.09426320  1
+  Se  Se7  1  0.37951076  0.88269544  0.50409973  1
+  Ni  Ni8  1  0.59227914  0.06075059  0.44882244  1
+  Se  Se9  1  0.12834488  0.00194015  0.27750796  1

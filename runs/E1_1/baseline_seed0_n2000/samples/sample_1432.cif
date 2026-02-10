@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_GeSCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42729163
+_cell_length_b   12.94889227
+_cell_length_c   14.15914980
+_cell_angle_alpha   90.49704191
+_cell_angle_beta   89.94537548
+_cell_angle_gamma   96.23743794
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GeSCl
+_chemical_formula_sum   'Ge2 S2 Cl2'
+_cell_volume   442.38136812
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.78457856  0.35587877  0.22219723  1
+  S  S1  1  0.44776464  0.40966034  0.51270092  1
+  Ge  Ge2  1  0.67476159  0.35904709  0.13631058  1
+  S  S3  1  0.47801524  0.74856186  0.31735170  1
+  Ge  Ge4  1  0.21009302  0.62036610  0.36180782  1
+  Cl  Cl5  1  0.08355279  0.44029829  0.21069166  1

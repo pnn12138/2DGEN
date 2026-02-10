@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Ta(TeCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.50302029
+_cell_length_b   6.31585829
+_cell_length_c   12.64129175
+_cell_angle_alpha   89.56866983
+_cell_angle_beta   91.24858479
+_cell_angle_gamma   139.62953170
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta(TeCl)2
+_chemical_formula_sum   'Ta2 Te4 Cl4'
+_cell_volume   232.79528181
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.73194987  0.40440196  0.64113891  1
+  Ta  Ta1  1  0.68824005  0.92144585  0.31517589  1
+  Te  Te2  1  0.44885635  0.56449127  0.17216593  1
+  Cl  Cl3  1  0.27557564  0.97205424  0.99195939  1
+  Cl  Cl4  1  0.49112952  0.11328709  0.76139450  1
+  Cl  Cl5  1  0.51454681  0.92688411  0.72752535  1
+  Te  Te6  1  0.33196414  0.06727886  0.53234017  1
+  Ta  Ta7  1  0.71211648  0.72730684  0.88745522  1
+  Cl  Cl8  1  0.85627645  0.45590359  0.54223615  1
+  Te  Te9  1  0.60613352  0.91454571  0.83037090  1

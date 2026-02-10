@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfGe3O8
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.63258576
+_cell_length_b   7.78674188
+_cell_length_c   12.42125467
+_cell_angle_alpha   90.52919131
+_cell_angle_beta   90.22964547
+_cell_angle_gamma   60.14887168
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfGe3O8
+_chemical_formula_sum   'Hf1 Ge3 O8'
+_cell_volume   220.83368836
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.64618683  0.83360767  0.05198359  1
+  O  O1  1  0.76502329  0.46027264  0.95294082  1
+  Ge  Ge2  1  0.84792519  0.46372271  0.79989600  1
+  Ge  Ge3  1  0.15830708  0.54791975  0.64433742  1
+  Ge  Ge4  1  0.06237030  0.93421078  0.14148647  1
+  O  O5  1  0.43196589  0.36679837  0.08237791  1
+  O  O6  1  0.89134902  0.42307061  0.06488223  1
+  O  O7  1  0.80475998  0.38211095  0.58975172  1
+  O  O8  1  0.61781621  0.76586342  0.45982993  1
+  O  O9  1  0.14825770  0.60647905  0.94575763  1
+  O  O10  1  0.95944071  0.74718416  0.80045033  1
+  Hf  Hf11  1  0.58384472  0.62375820  0.10600539  1

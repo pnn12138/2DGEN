@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_AgBi(Te3P)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   19.06458282
+_cell_length_b   227.69666499
+_cell_length_c   103.49125918
+_cell_angle_alpha   90.69788457
+_cell_angle_beta   90.59276531
+_cell_angle_gamma   5.69861687
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AgBi(Te3P)2
+_chemical_formula_sum   'Ag1 Bi1 Te6 P2'
+_cell_volume   44598.12883606
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.18032455  0.48685169  0.21060181  1
+  P  P1  1  0.12577343  0.14745712  0.82085419  1
+  Te  Te2  1  0.37289977  0.61750793  0.69127083  1
+  Te  Te3  1  0.29299831  0.47458410  0.01221561  1
+  Bi  Bi4  1  0.14741898  0.68558884  0.22923279  1
+  Te  Te5  1  0.68834686  0.18746185  0.90987492  1
+  Te  Te6  1  0.86953926  0.02140045  0.13979292  1
+  Te  Te7  1  0.37040138  0.20693970  0.85116398  1
+  Te  Te8  1  0.06694874  0.47992706  0.54872370  1
+  P  P9  1  0.52412796  0.58164978  0.11946487  1

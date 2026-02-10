@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_NaSrMn2SbSBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51619792
+_cell_length_b   8.14765173
+_cell_length_c   12.72495697
+_cell_angle_alpha   90.05616027
+_cell_angle_beta   89.97010018
+_cell_angle_gamma   97.25148177
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaSrMn2SbSBr
+_chemical_formula_sum   'Na1 Sr1 Mn2 Sb1 S1 Br1'
+_cell_volume   258.78895965
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.82526904  0.85489452  0.22575906  1
+  Na  Na1  1  0.37468126  0.66696012  0.09644128  1
+  S  S2  1  0.48104843  0.96667242  0.38992107  1
+  Br  Br3  1  0.76690674  0.91430187  0.74301815  1
+  Mn  Mn4  1  0.83645630  0.92277527  0.53980136  1
+  Sr  Sr5  1  0.28020015  0.81379187  0.03860351  1
+  Sb  Sb6  1  0.54162866  0.88644028  0.30167872  1

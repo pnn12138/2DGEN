@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_GaRh2IClO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.38162971
+_cell_length_b   13.83915209
+_cell_length_c   22.04693596
+_cell_angle_alpha   90.66903295
+_cell_angle_beta   89.87329624
+_cell_angle_gamma   98.92463203
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaRh2IClO2
+_chemical_formula_sum   'Ga1 Rh2 I1 Cl1 O2'
+_cell_volume   1019.21111738
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Rh  Rh0  1  0.94853926  0.27563095  0.25422001  1
+  O  O1  1  0.93884277  0.48827076  0.48522496  1
+  Rh  Rh2  1  0.06959391  0.06803703  0.25488472  1
+  O  O3  1  0.63168621  0.22792435  0.93010330  1
+  Ga  Ga4  1  0.61065674  0.43628049  0.79432964  1
+  Cl  Cl5  1  0.96343899  0.72021484  0.92798424  1
+  I  I6  1  0.45446587  0.78933716  0.23955786  1

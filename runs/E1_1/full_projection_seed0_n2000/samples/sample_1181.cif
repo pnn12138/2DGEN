@@ -1,0 +1,35 @@
+# generated using pymatgen
+data_Li4S4N
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.77368331
+_cell_length_b   12.37207708
+_cell_length_c   25.18574499
+_cell_angle_alpha   89.12220068
+_cell_angle_beta   90.04260224
+_cell_angle_gamma   94.94986992
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Li4S4N
+_chemical_formula_sum   'Li4 S4 N1'
+_cell_volume   1171.35659990
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Li  Li0  1  0.74250412  0.78428268  0.57335520  1
+  Li  Li1  1  0.30021572  0.74847317  0.01373005  1
+  Li  Li2  1  0.71111590  0.86663759  0.52578533  1
+  N  N3  1  0.73789024  0.59740317  0.16034698  1
+  S  S4  1  0.98862267  0.07269096  0.24100779  1
+  S  S5  1  0.84600258  0.81568432  0.88409281  1
+  Li  Li6  1  0.00445557  0.33068824  0.46875763  1
+  S  S7  1  0.15664768  0.80418015  0.20455790  1
+  S  S8  1  0.98789406  0.15428114  0.86286306  1

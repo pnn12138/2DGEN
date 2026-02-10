@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GaAg(SbS3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.24114203
+_cell_length_b   13.73643480
+_cell_length_c   12.46725091
+_cell_angle_alpha   89.85460149
+_cell_angle_beta   90.00808937
+_cell_angle_gamma   93.19037263
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaAg(SbS3)2
+_chemical_formula_sum   'Ga1 Ag1 Sb2 S6'
+_cell_volume   383.21199087
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.60025787  0.79879618  0.46294785  1
+  Ga  Ga1  1  0.95527458  0.45974350  0.13017535  1
+  S  S2  1  0.81487179  0.93994987  0.99097586  1
+  Sb  Sb3  1  0.90279579  0.03941536  0.00497317  1
+  S  S4  1  0.40020132  0.02701378  0.65334630  1
+  Sb  Sb5  1  0.59555960  0.39646435  0.67721701  1
+  S  S6  1  0.15002030  0.32596874  0.39210302  1
+  S  S7  1  0.76875210  0.79568028  0.73325264  1
+  S  S8  1  0.46210861  0.16539764  0.04905701  1
+  Ag  Ag9  1  0.56638432  0.42685890  0.98527241  1

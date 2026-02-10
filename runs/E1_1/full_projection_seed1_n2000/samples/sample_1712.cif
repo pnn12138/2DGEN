@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TiGeTeSeSBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.23465681
+_cell_length_b   10.44200851
+_cell_length_c   30.43224244
+_cell_angle_alpha   90.28461634
+_cell_angle_beta   89.76715516
+_cell_angle_gamma   91.66440485
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiGeTeSeSBr
+_chemical_formula_sum   'Ti1 Ge1 Te1 Se1 S1 Br1'
+_cell_volume   1345.06803306
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.82596207  0.15295124  0.69206691  1
+  Te  Te1  1  0.08944321  0.78342819  0.45812130  1
+  Br  Br2  1  0.91846943  0.61819184  0.45240450  1
+  Ge  Ge3  1  0.72176480  0.70069885  0.74272871  1
+  Ti  Ti4  1  0.67424852  0.71685410  0.25951195  1
+  S  S5  1  0.02216911  0.01241112  0.15882099  1

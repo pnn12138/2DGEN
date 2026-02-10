@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Ca2NiBrO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.44966054
+_cell_length_b   13.44487136
+_cell_length_c   14.23413255
+_cell_angle_alpha   90.06548345
+_cell_angle_beta   89.99643039
+_cell_angle_gamma   96.07562515
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca2NiBrO3
+_chemical_formula_sum   'Ca4 Ni2 Br2 O6'
+_cell_volume   466.17287172
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.39928257  0.95625210  0.34339666  1
+  Ca  Ca1  1  0.65546751  0.07583046  0.09917188  1
+  O  O2  1  0.62820435  0.96838379  0.54245567  1
+  O  O3  1  0.33616352  0.54581952  0.96821213  1
+  Ni  Ni4  1  0.35963726  0.33445358  0.53319621  1
+  Ni  Ni5  1  0.38252449  0.53225708  0.25955832  1
+  Ca  Ca6  1  0.28446138  0.11388521  0.44811159  1
+  O  O7  1  0.65062761  0.93642044  0.90450096  1
+  Ca  Ca8  1  0.53534031  0.81863785  0.07001072  1
+  O  O9  1  0.14094210  0.21370602  0.29271472  1
+  Br  Br10  1  0.69788241  0.18531418  0.58811641  1
+  Br  Br11  1  0.42450142  0.18666840  0.07476830  1
+  Ca  Ca12  1  0.57202625  0.37385654  0.93618155  1
+  O  O13  1  0.80410624  0.03511974  0.44864494  1

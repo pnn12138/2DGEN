@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_ZnSnS2Br
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.61277962
+_cell_length_b   20.97176166
+_cell_length_c   15.82006246
+_cell_angle_alpha   90.02677000
+_cell_angle_beta   89.99981809
+_cell_angle_gamma   90.69888875
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ZnSnS2Br
+_chemical_formula_sum   'Zn1 Sn1 S2 Br1'
+_cell_volume   1198.53913633
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zn  Zn0  1  0.05512714  0.05294418  0.52594948  1
+  Sn  Sn1  1  0.88817739  0.74423409  0.77591133  1
+  S  S2  1  0.45868874  0.86196327  0.57494640  1
+  S  S3  1  0.22380590  0.28152657  0.76869607  1
+  Br  Br4  1  0.82925558  0.30433083  0.34167242  1

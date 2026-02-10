@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_SiSbSe3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.15082717
+_cell_length_b   18.58313274
+_cell_length_c   20.74113227
+_cell_angle_alpha   90.13868948
+_cell_angle_beta   90.41622539
+_cell_angle_gamma   75.15249711
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   SiSbSe3
+_chemical_formula_sum   'Si2 Sb2 Se6'
+_cell_volume   1173.85997397
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.91048479  0.26216507  0.43185759  1
+  Se  Se1  1  0.68744946  0.02889442  0.69274688  1
+  Se  Se2  1  0.72663671  0.21630730  0.77945936  1
+  Se  Se3  1  0.36090726  0.26397431  0.68561751  1
+  Sb  Sb4  1  0.32805538  0.35075498  0.56932652  1
+  Sb  Sb5  1  0.06912041  0.19280052  0.52068043  1
+  Si  Si6  1  0.47171593  0.39229202  0.82358050  1
+  Se  Se7  1  0.07768250  0.45997238  0.41169500  1
+  Se  Se8  1  0.23801161  0.31833446  0.73109049  1
+  Si  Si9  1  0.12034721  0.18302427  0.81231773  1

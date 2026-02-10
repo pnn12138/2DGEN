@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Na2PtF2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.33455896
+_cell_length_b   7.28071890
+_cell_length_c   12.56341754
+_cell_angle_alpha   90.95284661
+_cell_angle_beta   89.76196590
+_cell_angle_gamma   106.07425621
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Na2PtF2
+_chemical_formula_sum   'Na2 Pt1 F2'
+_cell_volume   205.16659253
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Na  Na0  1  0.37331760  0.17514610  0.81169462  1
+  F  F1  1  0.75673103  0.92380524  0.28350639  1
+  F  F2  1  0.30112457  0.33128357  0.19286394  1
+  Na  Na3  1  0.07614833  0.72395706  0.27003118  1
+  Pt  Pt4  1  0.55227429  0.56563759  0.23488599  1

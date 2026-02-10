@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_CuSiMoAsIBr(ClO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46357775
+_cell_length_b   7.15621317
+_cell_length_c   12.46220676
+_cell_angle_alpha   91.27217676
+_cell_angle_beta   90.52005128
+_cell_angle_gamma   56.50104084
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuSiMoAsIBr(ClO)2
+_chemical_formula_sum   'Si1 Cu1 Mo1 As1 I1 Br1 Cl2 O2'
+_cell_volume   183.16651753
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.50694275  0.33917975  0.13830709  1
+  Si  Si1  1  0.07449082  0.74154919  0.95075142  1
+  Mo  Mo2  1  0.90021801  0.87696815  0.65277487  1
+  As  As3  1  0.33932692  0.72836852  0.57514805  1
+  Br  Br4  1  0.76547557  0.91838568  0.86939478  1
+  Cu  Cu5  1  0.32658005  0.86764145  0.32672262  1
+  I  I6  1  0.46315765  0.94133377  0.16137981  1
+  O  O7  1  0.50614357  0.43066788  0.88222396  1
+  O  O8  1  0.92415905  0.16240501  0.01566076  1
+  Cl  Cl9  1  0.54942703  0.16768789  0.44220734  1

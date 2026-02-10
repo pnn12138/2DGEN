@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Bi2TeS2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45389152
+_cell_length_b   10.46263605
+_cell_length_c   12.41440246
+_cell_angle_alpha   88.44541148
+_cell_angle_beta   90.77160260
+_cell_angle_gamma   119.42854827
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Bi2TeS2
+_chemical_formula_sum   'Bi2 Te1 S2'
+_cell_volume   277.50138996
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.96965688  0.11544644  0.49675414  1
+  Bi  Bi1  1  0.02740669  0.06220627  0.81612110  1
+  Te  Te2  1  0.92686081  0.25192833  0.28903794  1
+  S  S3  1  0.58183444  0.11810573  0.57640469  1
+  Bi  Bi4  1  0.03034637  0.12003543  0.38742578  1

@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_In(HO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.54350996
+_cell_length_b   7.49045658
+_cell_length_c   12.86310050
+_cell_angle_alpha   89.85793474
+_cell_angle_beta   89.92824513
+_cell_angle_gamma   59.04960469
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   In(HO)2
+_chemical_formula_sum   'In1 H2 O2'
+_cell_volume   210.17320957
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.67200494  0.47361606  0.48844644  1
+  H  H1  1  0.10552788  0.77326584  0.82251287  1
+  In  In2  1  0.23701096  0.12350559  0.80915070  1
+  O  O3  1  0.47379565  0.41249424  0.56363356  1
+  H  H4  1  0.39842224  0.92399597  0.21730757  1

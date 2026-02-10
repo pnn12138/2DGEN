@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiGa(AsO3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49659967
+_cell_length_b   7.33753926
+_cell_length_c   12.62734819
+_cell_angle_alpha   90.81303821
+_cell_angle_beta   90.52073429
+_cell_angle_gamma   58.77804307
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiGa(AsO3)2
+_chemical_formula_sum   'Li1 Ga1 As2 O6'
+_cell_volume   197.79583744
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.43762970  0.13114929  0.08871126  1
+  O  O1  1  0.52891636  0.11885452  0.25261897  1
+  Ga  Ga2  1  0.95987082  0.29133296  0.51464170  1
+  O  O3  1  0.96804094  0.10990322  0.01062191  1
+  Li  Li4  1  0.37572798  0.11778988  0.90467906  1
+  As  As5  1  0.89523500  0.74432027  0.90712065  1
+  O  O6  1  0.05404949  0.53204936  0.78889418  1
+  O  O7  1  0.85704291  0.92479849  0.89003181  1
+  O  O8  1  0.19116497  0.44895935  0.29665709  1
+  As  As9  1  0.90990931  0.09675977  0.92654508  1

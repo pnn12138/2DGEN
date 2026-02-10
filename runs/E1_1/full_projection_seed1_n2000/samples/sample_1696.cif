@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Au3(SeCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.21208954
+_cell_length_b   13.98015682
+_cell_length_c   12.26971949
+_cell_angle_alpha   90.46481707
+_cell_angle_beta   89.98651985
+_cell_angle_gamma   91.94571960
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Au3(SeCl)2
+_chemical_formula_sum   'Au3 Se2 Cl2'
+_cell_volume   379.21422373
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.84656382  0.91051006  0.28936696  1
+  Au  Au1  1  0.72958755  0.24654198  0.34403515  1
+  Au  Au2  1  0.43748760  0.62962914  0.48808384  1
+  Cl  Cl3  1  0.09522414  0.87167168  0.51130748  1
+  Se  Se4  1  0.52032471  0.88778687  0.70096338  1
+  Cl  Cl5  1  0.51760292  0.27132368  0.91882825  1
+  Se  Se6  1  0.70830345  0.08588505  0.83791775  1

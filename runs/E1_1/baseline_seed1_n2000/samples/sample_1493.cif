@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_GaSeO4F
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.57814479
+_cell_length_b   12.28141370
+_cell_length_c   14.43158810
+_cell_angle_alpha   90.10598653
+_cell_angle_beta   89.97253874
+_cell_angle_gamma   102.90911272
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaSeO4F
+_chemical_formula_sum   'Ga2 Se2 O8 F2'
+_cell_volume   445.40127017
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.89418030  0.69254112  0.89106321  1
+  O  O1  1  0.40515947  0.82196522  0.84511769  1
+  F  F2  1  0.41597462  0.33464432  0.16243649  1
+  O  O3  1  0.47029877  0.83503151  0.01118004  1
+  Se  Se4  1  0.33698118  0.92869520  0.65822846  1
+  Se  Se5  1  0.85929108  0.06161785  0.95120943  1
+  O  O6  1  0.92836738  0.48774338  0.33288431  1
+  F  F7  1  0.43259954  0.68042183  0.46468908  1
+  O  O8  1  0.25257444  0.52642822  0.12733722  1
+  O  O9  1  0.41172934  0.01610184  0.36720037  1
+  O  O10  1  0.41716900  0.78371823  0.55123085  1
+  Ga  Ga11  1  0.73704755  0.78923595  0.62034184  1
+  O  O12  1  0.48110986  0.42921829  0.41985095  1
+  O  O13  1  0.64670849  0.98990345  0.03236121  1

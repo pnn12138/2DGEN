@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_ScZnSn3Se5SBrCl4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.41868973
+_cell_length_b   13.16622008
+_cell_length_c   13.56635835
+_cell_angle_alpha   89.97142516
+_cell_angle_beta   90.00261159
+_cell_angle_gamma   94.72651002
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   ScZnSn3Se5SBrCl4
+_chemical_formula_sum   'Sc1 Zn1 Sn3 Se5 S1 Br1 Cl4'
+_cell_volume   430.55150165
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.68471909  0.89915180  0.20836663  1
+  Cl  Cl1  1  0.22921276  0.42236137  0.87879086  1
+  Br  Br2  1  0.63132191  0.28494644  0.76129389  1
+  Se  Se3  1  0.27497482  0.16197205  0.69738936  1
+  Sc  Sc4  1  0.03529781  0.65452671  0.90785789  1
+  Cl  Cl5  1  0.13563441  0.74683535  0.14992020  1
+  Se  Se6  1  0.24984694  0.45389080  0.51536661  1
+  Se  Se7  1  0.52513933  0.51662350  0.33781505  1
+  Cl  Cl8  1  0.69548273  0.82368183  0.13146687  1
+  Se  Se9  1  0.65521812  0.55423641  0.68892002  1
+  S  S10  1  0.63074964  0.71240646  0.02904891  1
+  Zn  Zn11  1  0.97150230  0.08070254  0.12320614  1
+  Sn  Sn12  1  0.60202718  0.69135672  0.63914347  1
+  Sn  Sn13  1  0.37462234  0.69243622  0.50443447  1
+  Sn  Sn14  1  0.26054990  0.79429150  0.23688674  1
+  Cl  Cl15  1  0.28898686  0.75455153  0.06655277  1

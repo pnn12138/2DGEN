@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CdRuIBrO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29231977
+_cell_length_b   12.60452562
+_cell_length_c   13.86904556
+_cell_angle_alpha   89.82566926
+_cell_angle_beta   90.02719290
+_cell_angle_gamma   98.61501430
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CdRuIBrO2
+_chemical_formula_sum   'Cd1 Ru1 I1 Br1 O2'
+_cell_volume   396.20353224
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.66298676  0.84332275  0.60995865  1
+  Cd  Cd1  1  0.18351555  0.69864559  0.08929658  1
+  O  O2  1  0.32241726  0.25306922  0.22645283  1
+  Ru  Ru3  1  0.40437341  0.94508362  0.57385707  1
+  Br  Br4  1  0.98824406  0.37458563  0.17916846  1
+  O  O5  1  0.57838035  0.32302380  0.04218388  1

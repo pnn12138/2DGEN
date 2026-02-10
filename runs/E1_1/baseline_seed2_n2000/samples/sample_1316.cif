@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_AlGaHgTe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.33885646
+_cell_length_b   7.42054322
+_cell_length_c   13.01172545
+_cell_angle_alpha   90.58047855
+_cell_angle_beta   89.90037934
+_cell_angle_gamma   101.83315749
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlGaHgTe4
+_chemical_formula_sum   'Al1 Ga1 Hg1 Te4'
+_cell_volume   221.01569877
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.16062284  0.05874300  0.10690570  1
+  Hg  Hg1  1  0.87283230  0.35331976  0.69927502  1
+  Al  Al2  1  0.72791576  0.36860371  0.92058945  1
+  Te  Te3  1  0.18062401  0.85180569  0.50248241  1
+  Te  Te4  1  0.35513258  0.78605080  0.20159763  1
+  Te  Te5  1  0.80485344  0.21207428  0.37250042  1
+  Ga  Ga6  1  0.53317261  0.69053650  0.68327522  1

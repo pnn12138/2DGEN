@@ -1,0 +1,39 @@
+# generated using pymatgen
+data_Ti4PS5ICl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46883464
+_cell_length_b   15.07557810
+_cell_length_c   12.96062959
+_cell_angle_alpha   89.87541318
+_cell_angle_beta   90.00425764
+_cell_angle_gamma   91.67844606
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti4PS5ICl2
+_chemical_formula_sum   'Ti4 P1 S5 I1 Cl2'
+_cell_volume   482.17498399
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.80095601  0.36253983  0.12460098  1
+  S  S1  1  0.84681988  0.18679047  0.95325136  1
+  Ti  Ti2  1  0.34591675  0.09461594  0.61682415  1
+  Ti  Ti3  1  0.10484552  0.90612996  0.85881901  1
+  Cl  Cl4  1  0.72146559  0.67095220  0.03408936  1
+  S  S5  1  0.78824806  0.86043501  0.70181167  1
+  S  S6  1  0.47720242  0.79096794  0.57111311  1
+  S  S7  1  0.68324280  0.04877472  0.33816302  1
+  P  P8  1  0.20072906  0.38372892  0.20749080  1
+  Ti  Ti9  1  0.87443924  0.22558212  0.49732366  1
+  Ti  Ti10  1  0.71727377  0.13882446  0.19326186  1
+  Cl  Cl11  1  0.76310015  0.56392670  0.13105273  1
+  I  I12  1  0.83861160  0.05622768  0.46900463  1

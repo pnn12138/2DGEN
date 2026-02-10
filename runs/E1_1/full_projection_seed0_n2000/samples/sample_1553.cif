@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_AgBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.71964741
+_cell_length_b   7.05671900
+_cell_length_c   12.76768306
+_cell_angle_alpha   89.76097361
+_cell_angle_beta   89.50075350
+_cell_angle_gamma   46.75264457
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AgBr
+_chemical_formula_sum   'Ag3 Br3'
+_cell_volume   178.47656292
+_cell_formula_units_Z   3
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.77371711  0.10020982  0.20612721  1
+  Br  Br1  1  0.01471901  0.18336201  0.98934555  1
+  Ag  Ag2  1  0.79835677  0.60570312  0.41452807  1
+  Br  Br3  1  0.50245172  0.09811766  0.27728555  1
+  Ag  Ag4  1  0.28170872  0.36777782  0.54034185  1
+  Br  Br5  1  0.37266827  0.97298431  0.47122729  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Hf3ZnI3BrO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46631265
+_cell_length_b   13.45319138
+_cell_length_c   13.79043946
+_cell_angle_alpha   90.03595660
+_cell_angle_beta   89.99742071
+_cell_angle_gamma   94.60360603
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Hf3ZnI3BrO4
+_chemical_formula_sum   'Hf3 Zn1 I3 Br1 O4'
+_cell_volume   456.08742432
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zn  Zn0  1  0.14997835  0.03180434  0.28240803  1
+  I  I1  1  0.65229940  0.00795174  0.68799973  1
+  Hf  Hf2  1  0.84466839  0.39597392  0.52804333  1
+  I  I3  1  0.16165018  0.09399796  0.70395613  1
+  O  O4  1  0.01084518  0.70767212  0.62280506  1
+  Br  Br5  1  0.04049659  0.09695104  0.04843268  1
+  O  O6  1  0.97495747  0.12455750  0.20749886  1
+  Hf  Hf7  1  0.45853084  0.03539713  0.36703533  1
+  O  O8  1  0.57514477  0.31269169  0.23833364  1
+  Hf  Hf9  1  0.73663408  0.94718534  0.39070553  1
+  I  I10  1  0.68760103  0.92381692  0.57781625  1
+  O  O11  1  0.18629456  0.83256912  0.74954236  1

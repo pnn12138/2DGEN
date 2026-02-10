@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Pt5BrClO5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53773427
+_cell_length_b   8.42283308
+_cell_length_c   12.83436701
+_cell_angle_alpha   90.38455528
+_cell_angle_beta   89.97120690
+_cell_angle_gamma   93.24231110
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Pt5BrClO5
+_chemical_formula_sum   'Pt5 Br1 Cl1 O5'
+_cell_volume   273.88816234
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.83778644  0.70139313  0.43148345  1
+  Pt  Pt1  1  0.00470734  0.34320068  0.91494095  1
+  O  O2  1  0.93175411  0.41613579  0.72703290  1
+  Pt  Pt3  1  0.32802010  0.33820343  0.23840284  1
+  O  O4  1  0.65100336  0.61053658  0.04905510  1
+  Pt  Pt5  1  0.00854301  0.26531410  0.05286312  1
+  Pt  Pt6  1  0.10770798  0.91552973  0.06375396  1
+  O  O7  1  0.30062419  0.75743628  0.32050794  1
+  Cl  Cl8  1  0.65269524  0.83509070  0.38324371  1
+  O  O9  1  0.29644775  0.99122322  0.38501877  1
+  Pt  Pt10  1  0.47942722  0.85715681  0.22950642  1
+  O  O11  1  0.23516650  0.08556390  0.21467566  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Ti4Br4N3O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.55172348
+_cell_length_b   30.50764275
+_cell_length_c   28.57029723
+_cell_angle_alpha   89.78737879
+_cell_angle_beta   90.17227729
+_cell_angle_gamma   138.59458471
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ti4Br4N3O
+_chemical_formula_sum   'Ti4 Br4 N3 O1'
+_cell_volume   4353.30748947
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ti  Ti0  1  0.97871208  0.32910347  0.84564900  1
+  Ti  Ti1  1  0.50353146  0.74029160  0.94799113  1
+  Br  Br2  1  0.65316010  0.27176583  0.21205091  1
+  Br  Br3  1  0.03929940  0.81195807  0.17925532  1
+  Ti  Ti4  1  0.49598694  0.28544044  0.63906908  1
+  Ti  Ti5  1  0.39403725  0.05078745  0.33278561  1
+  N  N6  1  0.18604851  0.41200256  0.78278768  1
+  N  N7  1  0.07207642  0.77822536  0.20238321  1
+  Br  Br8  1  0.93721253  0.82145691  0.01208889  1
+  O  O9  1  0.91362619  0.38906574  0.18303524  1
+  Br  Br10  1  0.57560253  0.36058521  0.71069956  1
+  N  N11  1  0.75639343  0.57568741  0.49217987  1

@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_NaMnP
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.45620990
+_cell_length_b   14.35693349
+_cell_length_c   13.83208860
+_cell_angle_alpha   89.76010615
+_cell_angle_beta   90.02652360
+_cell_angle_gamma   96.48503681
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaMnP
+_chemical_formula_sum   'Na2 Mn2 P2'
+_cell_volume   484.64452322
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Mn  Mn0  1  0.05823884  0.77010220  0.53672856  1
+  P  P1  1  0.45687199  0.47226524  0.94556570  1
+  Mn  Mn2  1  0.92379808  0.70310593  0.77650285  1
+  Na  Na3  1  0.48669672  0.89486504  0.81847572  1
+  P  P4  1  0.54805094  0.81137258  0.47287419  1
+  Na  Na5  1  0.05907869  0.03793891  0.29105926  1

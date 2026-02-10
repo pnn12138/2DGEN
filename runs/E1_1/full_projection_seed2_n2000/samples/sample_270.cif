@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Al2S3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.09674072
+_cell_length_b   12.53099066
+_cell_length_c   26.61846117
+_cell_angle_alpha   90.59162637
+_cell_angle_beta   90.54983216
+_cell_angle_gamma   37.41238724
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Al2S3
+_chemical_formula_sum   'Al4 S6'
+_cell_volume   1438.08079043
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.59686661  0.51345634  0.23425031  1
+  Al  Al1  1  0.97860909  0.86118507  0.09491253  1
+  S  S2  1  0.19453526  0.00539589  0.05449784  1
+  Al  Al3  1  0.20886230  0.28663445  0.01455852  1
+  Al  Al4  1  0.03535080  0.24611664  0.65960670  1
+  S  S5  1  0.73079681  0.62977791  0.18432045  1
+  Al  Al6  1  0.19770050  0.74451625  0.44019389  1
+  S  S7  1  0.54975510  0.85462093  0.11693311  1
+  S  S8  1  0.89674664  0.92304325  0.40770960  1
+  S  S9  1  0.31175184  0.05805206  0.09877729  1

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "twodgen failure breakdown",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "git_commit",
+    "timestamp",
+    "experiment_id",
+    "config_hash",
+    "seed",
+    "protocol"
+  ],
+  "properties": {
+    "schema_version": {"type": "string"},
+    "git_commit": {"type": ["string", "null"]},
+    "timestamp": {"type": "string"},
+    "experiment_id": {"type": ["string", "null"]},
+    "config_hash": {"type": ["string", "null"]},
+    "seed": {"type": ["integer", "null"]},
+    "protocol": {"type": ["string", "null"]}
+  },
+  "additionalProperties": true
+}

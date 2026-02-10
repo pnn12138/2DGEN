@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Nb2SiSe4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.91021919
+_cell_length_b   9.65809118
+_cell_length_c   16.02593210
+_cell_angle_alpha   90.05482831
+_cell_angle_beta   89.97462183
+_cell_angle_gamma   111.59583551
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Nb2SiSe4
+_chemical_formula_sum   'Nb4 Si2 Se8'
+_cell_volume   418.82360855
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Si  Si0  1  0.14453313  0.44938493  0.27598250  1
+  Se  Se1  1  0.27058983  0.13351655  0.35184336  1
+  Nb  Nb2  1  0.16110706  0.84083939  0.16321886  1
+  Si  Si3  1  0.16493177  0.00359440  0.05403209  1
+  Se  Se4  1  0.78586102  0.42624855  0.11918020  1
+  Se  Se5  1  0.07702255  0.69921350  0.88701212  1
+  Se  Se6  1  0.57868385  0.15307069  0.65967882  1
+  Se  Se7  1  0.25071716  0.91810274  0.84914672  1
+  Se  Se8  1  0.70313150  0.69530112  0.48347047  1
+  Nb  Nb9  1  0.38668728  0.25418949  0.89020658  1
+  Nb  Nb10  1  0.73910904  0.65755463  0.62090594  1
+  Se  Se11  1  0.29651284  0.41415435  0.19286416  1
+  Nb  Nb12  1  0.68910712  0.54058546  0.49885219  1
+  Se  Se13  1  0.63147259  0.92705715  0.98953533  1

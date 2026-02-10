@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_NbSeO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.80110836
+_cell_length_b   17.71127030
+_cell_length_c   13.33478275
+_cell_angle_alpha   89.96152125
+_cell_angle_beta   90.00096555
+_cell_angle_gamma   91.19437453
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbSeO
+_chemical_formula_sum   'Nb1 Se1 O1'
+_cell_volume   661.41052262
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.21173096  0.40699577  0.43931615  1
+  O  O1  1  0.48072815  0.85465240  0.29203498  1
+  Se  Se2  1  0.07595062  0.87145233  0.43680704  1

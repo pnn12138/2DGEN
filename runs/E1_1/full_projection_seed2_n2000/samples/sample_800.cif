@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_TePtBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.25428891
+_cell_length_b   13.48343474
+_cell_length_c   12.69965586
+_cell_angle_alpha   90.78233193
+_cell_angle_beta   89.93270532
+_cell_angle_gamma   94.84577509
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TePtBr
+_chemical_formula_sum   'Te2 Pt2 Br2'
+_cell_volume   384.59753314
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Pt  Pt0  1  0.89247608  0.96959591  0.66685283  1
+  Pt  Pt1  1  0.99560595  0.97709942  0.25667077  1
+  Br  Br2  1  0.77485347  0.80653191  0.38370013  1
+  Br  Br3  1  0.13670874  0.08877850  0.47196102  1
+  Te  Te4  1  0.05563283  0.77254343  0.83465528  1
+  Te  Te5  1  0.11293602  0.52124786  0.05720377  1

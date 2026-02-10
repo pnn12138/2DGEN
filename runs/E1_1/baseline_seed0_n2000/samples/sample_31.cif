@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_CoF2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.42937016
+_cell_length_b   4.03949080
+_cell_length_c   10.96332942
+_cell_angle_alpha   93.41390530
+_cell_angle_beta   92.89026679
+_cell_angle_gamma   48.31145676
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoF2
+_chemical_formula_sum   'Co1 F2'
+_cell_volume   80.19239987
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.28413391  0.39511490  0.74791908  1
+  Co  Co1  1  0.85788918  0.27986193  0.35829797  1
+  F  F2  1  0.78333950  0.86578369  0.98444563  1

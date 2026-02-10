@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Ta3Cl7O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.51868558
+_cell_length_b   8.41398864
+_cell_length_c   10.82581291
+_cell_angle_alpha   90.27689339
+_cell_angle_beta   89.76357415
+_cell_angle_gamma   135.90727377
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta3Cl7O
+_chemical_formula_sum   'Ta3 Cl7 O1'
+_cell_volume   159.63534353
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.75666618  0.45144963  0.09070444  1
+  O  O1  1  0.94352525  0.15543464  0.73596597  1
+  Cl  Cl2  1  0.12078415  0.49148041  0.58591717  1
+  Cl  Cl3  1  0.65056032  0.18138170  0.29928595  1
+  Cl  Cl4  1  0.70155102  0.97901475  0.66610837  1
+  Ta  Ta5  1  0.62803936  0.26585960  0.51982880  1
+  Cl  Cl6  1  0.83013964  0.95785904  0.93847442  1
+  Ta  Ta7  1  0.91625774  0.70141929  0.55678827  1
+  Ta  Ta8  1  0.24553499  0.17068720  0.23699731  1
+  Cl  Cl9  1  0.97449112  0.60040855  0.85572767  1
+  Cl  Cl10  1  0.72189605  0.53349149  0.63154256  1

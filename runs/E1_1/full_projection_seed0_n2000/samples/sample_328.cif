@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_AgSnH6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.87565780
+_cell_length_b   3.96354619
+_cell_length_c   12.51323907
+_cell_angle_alpha   84.74890959
+_cell_angle_beta   84.77914706
+_cell_angle_gamma   63.11327754
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AgSnH6
+_chemical_formula_sum   'Ag1 Sn1 H6'
+_cell_volume   170.45566293
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.52447510  0.89702702  0.10629752  1
+  H  H1  1  0.28928375  0.78666687  0.45598412  1
+  H  H2  1  0.91487694  0.56697512  0.02475137  1
+  H  H3  1  0.94870758  0.54644728  0.43697786  1
+  Ag  Ag4  1  0.34951973  0.29978752  0.23905015  1
+  Sn  Sn5  1  0.72162628  0.96634483  0.75285816  1
+  H  H6  1  0.74304920  0.82534611  0.29035619  1
+  H  H7  1  0.09024399  0.62495863  0.31344864  1

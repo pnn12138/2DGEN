@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ag2WO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.15237999
+_cell_length_b   16.33229376
+_cell_length_c   12.59914718
+_cell_angle_alpha   89.92907103
+_cell_angle_beta   90.09203909
+_cell_angle_gamma   147.47547639
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ag2WO4
+_chemical_formula_sum   'Ag2 W1 O4'
+_cell_volume   570.03800936
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  W  W0  1  0.77250671  0.43610191  0.13162851  1
+  O  O1  1  0.65341973  0.49314690  0.05142450  1
+  O  O2  1  0.11974001  0.46655178  0.83187312  1
+  Ag  Ag3  1  0.52708912  0.88257217  0.54270124  1
+  Ag  Ag4  1  0.34193039  0.12942886  0.34332681  1
+  O  O5  1  0.95555997  0.65232205  0.14810658  1
+  O  O6  1  0.87446404  0.17788601  0.69305599  1

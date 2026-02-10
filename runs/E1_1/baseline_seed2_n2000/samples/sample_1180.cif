@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_Ta3BrClO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.17449188
+_cell_length_b   19.44116336
+_cell_length_c   25.88060679
+_cell_angle_alpha   90.24448225
+_cell_angle_beta   89.98657440
+_cell_angle_gamma   94.23590089
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta3BrClO3
+_chemical_formula_sum   'Ta3 Br1 Cl1 O3'
+_cell_volume   2596.40545563
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.31592321  0.15184078  0.05469114  1
+  Ta  Ta1  1  0.40502644  0.65619397  0.53956127  1
+  Ta  Ta2  1  0.98384809  0.82943869  0.91994202  1
+  Ta  Ta3  1  0.42126167  0.10598183  0.59336090  1
+  O  O4  1  0.11371469  0.73840308  0.44613504  1
+  Br  Br5  1  0.72629428  0.95525932  0.07721233  1
+  O  O6  1  0.76659942  0.94147491  0.77303219  1
+  Cl  Cl7  1  0.26076317  0.92242527  0.73060846  1

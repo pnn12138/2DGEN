@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnSbTe2I
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.13242579
+_cell_length_b   28.01571441
+_cell_length_c   27.35577898
+_cell_angle_alpha   90.09580258
+_cell_angle_beta   89.97382261
+_cell_angle_gamma   139.81922552
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnSbTe2I
+_chemical_formula_sum   'Mn2 Sb2 Te4 I2'
+_cell_volume   3526.81245092
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.34341431  0.08139229  0.61602879  1
+  I  I1  1  0.73292160  0.74224472  0.03609467  1
+  Te  Te2  1  0.25132728  0.25885487  0.86541432  1
+  Mn  Mn3  1  0.58554697  0.63693619  0.69886470  1
+  Sb  Sb4  1  0.32599449  0.49970436  0.80124855  1
+  Sb  Sb5  1  0.80012894  0.85528946  0.38090843  1
+  I  I6  1  0.96849442  0.02124977  0.06046295  1
+  Te  Te7  1  0.98509979  0.58362293  0.72330141  1
+  Mn  Mn8  1  0.80375195  0.46969604  0.87880468  1
+  Te  Te9  1  0.64497566  0.96231890  0.77932334  1

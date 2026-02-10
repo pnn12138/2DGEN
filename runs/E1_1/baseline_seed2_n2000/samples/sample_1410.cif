@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_CuGe2WSeS3(IBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.79065871
+_cell_length_b   12.58446375
+_cell_length_c   15.52335653
+_cell_angle_alpha   90.02104628
+_cell_angle_beta   89.99495507
+_cell_angle_gamma   104.29707253
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuGe2WSeS3(IBr)2
+_chemical_formula_sum   'Cu1 Ge2 W1 Se1 S3 I2 Br2'
+_cell_volume   528.27921919
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.98173046  0.94702005  0.18597984  1
+  S  S1  1  0.52913857  0.08364105  0.79489088  1
+  Ge  Ge2  1  0.52596283  0.49124622  0.32145691  1
+  S  S3  1  0.53093976  0.12769914  0.11803184  1
+  Br  Br4  1  0.67734528  0.80856133  0.28175163  1
+  I  I5  1  0.23053114  0.16887343  0.05277918  1
+  Br  Br6  1  0.16022408  0.49747753  0.92683166  1
+  Se  Se7  1  0.92853856  0.49782848  0.59504497  1
+  S  S8  1  0.07398649  0.06268510  0.07746876  1
+  W  W9  1  0.53287888  0.19496775  0.30088043  1
+  Ge  Ge10  1  0.07064152  0.58088493  0.77452850  1
+  I  I11  1  0.23021698  0.09533501  0.93586302  1

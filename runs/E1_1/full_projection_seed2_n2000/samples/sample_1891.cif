@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_MoSeO
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.92678213
+_cell_length_b   8.94495750
+_cell_length_c   19.34411999
+_cell_angle_alpha   90.12185299
+_cell_angle_beta   90.06238225
+_cell_angle_gamma   61.83022109
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MoSeO
+_chemical_formula_sum   'Mo1 Se1 O1'
+_cell_volume   446.44184114
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.16912079  0.35260010  0.19643307  1
+  Se  Se1  1  0.62187481  0.96674919  0.07722473  1
+  Mo  Mo2  1  0.79027176  0.52900171  0.90320635  1

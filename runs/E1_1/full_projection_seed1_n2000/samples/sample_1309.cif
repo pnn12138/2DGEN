@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_AgSeCl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.07629299
+_cell_length_b   11.57678044
+_cell_length_c   13.79705748
+_cell_angle_alpha   90.33300136
+_cell_angle_beta   89.99391688
+_cell_angle_gamma   90.99872081
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AgSeCl
+_chemical_formula_sum   'Ag1 Se1 Cl1'
+_cell_volume   331.58096574
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ag  Ag0  1  0.93784142  0.24624634  0.56874037  1
+  Cl  Cl1  1  0.36083698  0.51908875  0.56200457  1
+  Se  Se2  1  0.56064796  0.68396854  0.33917379  1

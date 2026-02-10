@@ -1,0 +1,37 @@
+# generated using pymatgen
+data_Sr3Cu2(S2Br)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.43669057
+_cell_length_b   12.83609067
+_cell_length_c   13.68779205
+_cell_angle_alpha   90.36373039
+_cell_angle_beta   90.06829016
+_cell_angle_gamma   79.75831601
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr3Cu2(S2Br)2
+_chemical_formula_sum   'Sr3 Cu2 S4 Br2'
+_cell_volume   421.29107526
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.68049645  0.23588896  0.55511934  1
+  Cu  Cu1  1  0.16006470  0.04181671  0.27996302  1
+  Br  Br2  1  0.82041860  0.65507674  0.86317754  1
+  Cu  Cu3  1  0.66562653  0.18083954  0.73234367  1
+  Sr  Sr4  1  0.76955795  0.35814285  0.54106808  1
+  S  S5  1  0.51195174  0.70000631  0.93926752  1
+  S  S6  1  0.02098650  0.82072449  0.27153635  1
+  S  S7  1  0.38001585  0.66231155  0.18564129  1
+  Sr  Sr8  1  0.27911657  0.65222865  0.88272762  1
+  S  S9  1  0.97745538  0.75260353  0.81839877  1
+  Br  Br10  1  0.93310452  0.94786263  0.94441330  1

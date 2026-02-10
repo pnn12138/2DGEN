@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_AlInHgO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.51833010
+_cell_length_b   14.22527042
+_cell_length_c   22.82249665
+_cell_angle_alpha   89.89545964
+_cell_angle_beta   90.01817756
+_cell_angle_gamma   105.80568814
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlInHgO4
+_chemical_formula_sum   'Al1 In1 Hg1 O4'
+_cell_volume   1099.05849463
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Al  Al0  1  0.27978134  0.72213554  0.85497129  1
+  In  In1  1  0.38882446  0.69987917  0.62466812  1
+  O  O2  1  0.67337060  0.82736158  0.83636260  1
+  Hg  Hg3  1  0.12927392  0.22399943  0.88060230  1
+  O  O4  1  0.55256844  0.68806267  0.70937014  1
+  O  O5  1  0.76709509  0.16285761  0.88569933  1
+  O  O6  1  0.10183716  0.24456787  0.20204592  1

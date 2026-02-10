@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_In2Br3Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.61464334
+_cell_length_b   11.67009182
+_cell_length_c   24.33693387
+_cell_angle_alpha   90.76115834
+_cell_angle_beta   89.94688431
+_cell_angle_gamma   95.17756570
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   In2Br3Cl
+_chemical_formula_sum   'In2 Br3 Cl1'
+_cell_volume   1022.33120417
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  In  In0  1  0.96846390  0.11414528  0.48473644  1
+  Cl  Cl1  1  0.77374345  0.30718231  0.76854920  1
+  Br  Br2  1  0.31121826  0.96476364  0.51559055  1
+  In  In3  1  0.59207630  0.74542332  0.94329524  1
+  Br  Br4  1  0.12911797  0.16549683  0.71048701  1
+  Br  Br5  1  0.05482578  0.21430206  0.52732849  1

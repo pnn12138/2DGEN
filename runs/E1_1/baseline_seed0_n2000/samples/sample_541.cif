@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Cd3SI2O
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.02870703
+_cell_length_b   19.76679213
+_cell_length_c   28.50420081
+_cell_angle_alpha   90.78580238
+_cell_angle_beta   89.93157794
+_cell_angle_gamma   97.13021838
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Cd3SI2O
+_chemical_formula_sum   'Cd3 S1 I2 O1'
+_cell_volume   2811.18141888
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.54628706  0.04347467  0.43505263  1
+  I  I1  1  0.74863720  0.75983429  0.57270479  1
+  Cd  Cd2  1  0.98836136  0.47827530  0.30237961  1
+  Cd  Cd3  1  0.54664457  0.05651569  0.20475721  1
+  I  I4  1  0.68082047  0.26974201  0.40477228  1
+  S  S5  1  0.76948595  0.94005013  0.77540779  1
+  Cd  Cd6  1  0.10375150  0.20546913  0.87471104  1

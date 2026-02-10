@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_GeO2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.57346630
+_cell_length_b   27.17601901
+_cell_length_c   31.26341375
+_cell_angle_alpha   90.56547375
+_cell_angle_beta   90.46173621
+_cell_angle_gamma   36.55073638
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GeO2
+_chemical_formula_sum   'Ge1 O2'
+_cell_volume   4337.74840711
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ge  Ge0  1  0.64905024  0.30202484  0.14644933  1
+  O  O1  1  0.84232998  0.46752548  0.65504074  1
+  O  O2  1  0.71345711  0.53992844  0.20220423  1

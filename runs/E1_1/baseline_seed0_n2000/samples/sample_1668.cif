@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiIn(AsS3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59369564
+_cell_length_b   5.47008779
+_cell_length_c   11.10171379
+_cell_angle_alpha   90.61015700
+_cell_angle_beta   90.38178953
+_cell_angle_gamma   45.79448598
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiIn(AsS3)2
+_chemical_formula_sum   'Li1 In1 As2 S6'
+_cell_volume   112.90230859
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.93210030  0.59735489  0.74896026  1
+  In  In1  1  0.59946442  0.85538483  0.51767254  1
+  As  As2  1  0.58691853  0.35049379  0.66244924  1
+  S  S3  1  0.86582839  0.21191421  0.46153024  1
+  S  S4  1  0.30723149  0.12099037  0.70954013  1
+  S  S5  1  0.65783548  0.97031546  0.30557775  1
+  S  S6  1  0.01597486  0.93669629  0.18400531  1
+  Li  Li7  1  0.66721714  0.24576016  0.24153996  1
+  As  As8  1  0.14096993  0.39931101  0.48571709  1
+  S  S9  1  0.30528080  0.54159856  0.30871835  1

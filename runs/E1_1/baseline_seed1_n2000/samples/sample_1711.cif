@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_IrSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.33975530
+_cell_length_b   14.47801131
+_cell_length_c   13.01606549
+_cell_angle_alpha   89.93105179
+_cell_angle_beta   90.00358828
+_cell_angle_gamma   92.83385230
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   IrSe2
+_chemical_formula_sum   'Ir1 Se2'
+_cell_volume   440.37974730
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ir  Ir0  1  0.56343079  0.51590157  0.47214556  1
+  Se  Se1  1  0.97192383  0.78167009  0.75390744  1
+  Se  Se2  1  0.54338646  0.37798786  0.69838339  1

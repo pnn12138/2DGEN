@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_CoP2Cl2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.45954466
+_cell_length_b   17.01580411
+_cell_length_c   13.95822148
+_cell_angle_alpha   91.24628589
+_cell_angle_beta   90.11238594
+_cell_angle_gamma   120.28855113
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CoP2Cl2O3
+_chemical_formula_sum   'Co2 P4 Cl4 O6'
+_cell_volume   709.26827183
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.44567204  0.99813557  0.11283094  1
+  O  O1  1  0.74220085  0.89328146  0.63169360  1
+  Cl  Cl2  1  0.79962802  0.25573170  0.62444121  1
+  O  O3  1  0.57380533  0.42943573  0.49448514  1
+  O  O4  1  0.14897633  0.51648903  0.44244224  1
+  Cl  Cl5  1  0.76254755  0.29778767  0.91451871  1
+  Co  Co6  1  0.67507172  0.64703751  0.51823831  1
+  O  O7  1  0.50401449  0.96781826  0.61070776  1
+  P  P8  1  0.63930178  0.45549107  0.62030458  1
+  O  O9  1  0.44525433  0.63458824  0.75811201  1
+  P  P10  1  0.64638007  0.14867115  0.41372281  1
+  O  O11  1  0.29648113  0.39819527  0.01900339  1
+  Cl  Cl12  1  0.37220669  0.79943180  0.40993953  1
+  Co  Co13  1  0.39996642  0.21074493  0.94895113  1
+  P  P14  1  0.24185967  0.17993188  0.47989297  1
+  P  P15  1  0.61845493  0.31133032  0.02442193  1

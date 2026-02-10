@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_RbTiSe2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.56590271
+_cell_length_b   8.21255122
+_cell_length_c   12.97682281
+_cell_angle_alpha   89.61715750
+_cell_angle_beta   90.04130394
+_cell_angle_gamma   99.77414599
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   RbTiSe2
+_chemical_formula_sum   'Rb1 Ti1 Se2'
+_cell_volume   269.48013828
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.24487901  0.15799457  0.31761822  1
+  Rb  Rb1  1  0.90306759  0.08201957  0.53223419  1
+  Se  Se2  1  0.00384331  0.68850279  0.08946347  1
+  Ti  Ti3  1  0.50533605  0.29770511  0.35311857  1

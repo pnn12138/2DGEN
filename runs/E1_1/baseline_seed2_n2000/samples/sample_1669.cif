@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_MnCoTe3RhBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49466991
+_cell_length_b   13.60667524
+_cell_length_c   13.94582686
+_cell_angle_alpha   90.48613204
+_cell_angle_beta   89.96062021
+_cell_angle_gamma   94.59570756
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnCoTe3RhBr
+_chemical_formula_sum   'Mn1 Co1 Te3 Rh1 Br1'
+_cell_volume   471.84047134
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.46641445  0.51872724  0.65539187  1
+  Co  Co1  1  0.79931021  0.27772853  0.42586276  1
+  Te  Te2  1  0.17474461  0.77819824  0.95721722  1
+  Te  Te3  1  0.79204488  0.16127396  0.20031548  1
+  Br  Br4  1  0.28190467  0.23236944  0.38874510  1
+  Rh  Rh5  1  0.95699245  0.49511111  0.69471055  1
+  Mn  Mn6  1  0.73623466  0.95058632  0.81824732  1

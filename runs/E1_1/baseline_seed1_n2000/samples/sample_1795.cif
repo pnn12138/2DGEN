@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_InGeS(IBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.56904268
+_cell_length_b   20.45863553
+_cell_length_c   26.12250090
+_cell_angle_alpha   90.56143039
+_cell_angle_beta   90.00395034
+_cell_angle_gamma   92.94303800
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InGeS(IBr)2
+_chemical_formula_sum   'In1 Ge1 S1 I2 Br2'
+_cell_volume   2972.19885297
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.14114952  0.09534645  0.25230199  1
+  In  In1  1  0.08754730  0.86224842  0.52878296  1
+  Br  Br2  1  0.85435176  0.64378119  0.38463196  1
+  S  S3  1  0.50664425  0.28098106  0.86586213  1
+  Br  Br4  1  0.94317627  0.63655853  0.87168527  1
+  Ge  Ge5  1  0.46672058  0.87740564  0.68809938  1
+  I  I6  1  0.31123734  0.34027386  0.72693467  1

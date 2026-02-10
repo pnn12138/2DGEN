@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Sn3As2O9
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   6.05826044
+_cell_length_b   20.22415725
+_cell_length_c   37.94196421
+_cell_angle_alpha   90.98062768
+_cell_angle_beta   90.28812489
+_cell_angle_gamma   82.37716072
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sn3As2O9
+_chemical_formula_sum   'Sn3 As2 O9'
+_cell_volume   4606.99622746
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sn  Sn0  1  0.09165192  0.51545715  0.11500740  1
+  As  As1  1  0.77367210  0.48310280  0.61098772  1
+  O  O2  1  0.10361862  0.59711313  0.13563669  1
+  O  O3  1  0.40288925  0.38763750  0.61665535  1
+  O  O4  1  0.27021027  0.89622116  0.16589856  1
+  O  O5  1  0.71523285  0.01838875  0.45989862  1
+  Sn  Sn6  1  0.51693153  0.41710377  0.14505076  1
+  O  O7  1  0.45448184  0.00643468  0.34610844  1
+  O  O8  1  0.64972305  0.84197378  0.51426172  1
+  O  O9  1  0.55894566  0.06522369  0.22395563  1
+  O  O10  1  0.45725870  0.06972849  0.74896538  1
+  Sn  Sn11  1  0.89646339  0.64472079  0.90159768  1
+  As  As12  1  0.89192581  0.35506821  0.21733522  1
+  O  O13  1  0.41164970  0.19054890  0.10277700  1

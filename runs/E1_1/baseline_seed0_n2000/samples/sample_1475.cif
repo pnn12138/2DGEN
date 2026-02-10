@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_BaMnGe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59950113
+_cell_length_b   12.02643568
+_cell_length_c   14.50473928
+_cell_angle_alpha   89.04513597
+_cell_angle_beta   90.24854929
+_cell_angle_gamma   103.59308713
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   BaMnGe
+_chemical_formula_sum   'Ba2 Mn2 Ge2'
+_cell_volume   440.69490491
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ba  Ba0  1  0.33826160  0.80493546  0.27085924  1
+  Mn  Mn1  1  0.43173981  0.02883911  0.05846143  1
+  Ge  Ge2  1  0.43918085  0.99002075  0.29753399  1
+  Mn  Mn3  1  0.50414878  0.99276459  0.50067800  1
+  Ge  Ge4  1  0.95355171  0.05674155  0.46364591  1
+  Ba  Ba5  1  0.75710273  0.22259426  0.57536864  1

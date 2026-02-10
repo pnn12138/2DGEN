@@ -1,0 +1,42 @@
+# generated using pymatgen
+data_HfZr3Ge2(N3Cl2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.56826496
+_cell_length_b   25.01344254
+_cell_length_c   25.57465450
+_cell_angle_alpha   90.95326996
+_cell_angle_beta   90.46857108
+_cell_angle_gamma   53.94980361
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfZr3Ge2(N3Cl2)2
+_chemical_formula_sum   'Hf1 Zr3 Ge2 N6 Cl4'
+_cell_volume   2879.53997443
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Zr  Zr0  1  0.50241566  0.84207916  0.25363231  1
+  Ge  Ge1  1  0.81178904  0.87240982  0.09497070  1
+  Ge  Ge2  1  0.30167389  0.03096104  0.45874918  1
+  Cl  Cl3  1  0.48457432  0.49442768  0.61553591  1
+  Cl  Cl4  1  0.78985739  0.75067186  0.39772832  1
+  Cl  Cl5  1  0.78524780  0.57977295  0.16320509  1
+  N  N6  1  0.76844597  0.49326324  0.81642103  1
+  Hf  Hf7  1  0.37762737  0.36843681  0.24615288  1
+  N  N8  1  0.52370048  0.29680824  0.90072656  1
+  N  N9  1  0.80736065  0.65743160  0.25599766  1
+  N  N10  1  0.97268975  0.66811442  0.37014490  1
+  N  N11  1  0.52954292  0.97502899  0.13248968  1
+  Zr  Zr12  1  0.68842316  0.60724449  0.29276216  1
+  Cl  Cl13  1  0.70786667  0.12416005  0.76728988  1
+  Zr  Zr14  1  0.84784698  0.25142682  0.47330666  1
+  N  N15  1  0.67683935  0.07288742  0.66395378  1

@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Hf3(CCl)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53899026
+_cell_length_b   8.13718444
+_cell_length_c   12.84108828
+_cell_angle_alpha   90.57936480
+_cell_angle_beta   89.92182547
+_cell_angle_gamma   99.45071753
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Hf3(CCl)2
+_chemical_formula_sum   'Hf3 C2 Cl2'
+_cell_volume   261.68561087
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  C  C0  1  0.00781516  0.77546269  0.85254419  1
+  Hf  Hf1  1  0.95450592  0.68438435  0.32955694  1
+  Hf  Hf2  1  0.71049500  0.90181208  0.90617919  1
+  Hf  Hf3  1  0.76583672  0.63305664  0.21852082  1
+  C  C4  1  0.10261536  0.79836655  0.71013165  1
+  Cl  Cl5  1  0.05863496  0.63437313  0.82491457  1
+  Cl  Cl6  1  0.85500336  0.14742279  0.65615082  1

@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NbNi2SeS
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.25429440
+_cell_length_b   21.06855229
+_cell_length_c   31.40621905
+_cell_angle_alpha   90.49665930
+_cell_angle_beta   89.91942024
+_cell_angle_gamma   98.43403465
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NbNi2SeS
+_chemical_formula_sum   'Nb2 Ni4 Se2 S2'
+_cell_volume   3438.95206112
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Nb  Nb0  1  0.96737099  0.03418255  0.25561869  1
+  S  S1  1  0.08859050  0.94408226  0.19504237  1
+  Se  Se2  1  0.91054189  0.81201220  0.95886660  1
+  Ni  Ni3  1  0.17371750  0.46742439  0.53529787  1
+  Nb  Nb4  1  0.82132816  0.86033630  0.33292103  1
+  Ni  Ni5  1  0.45533943  0.36931229  0.89732862  1
+  Ni  Ni6  1  0.67377627  0.00837898  0.52456570  1
+  S  S7  1  0.55535907  0.39572334  0.14301687  1
+  Se  Se8  1  0.01747322  0.78409863  0.31697750  1
+  Ni  Ni9  1  0.98857880  0.39087009  0.83337879  1

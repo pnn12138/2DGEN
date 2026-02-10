@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_InCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.28339863
+_cell_length_b   10.85771851
+_cell_length_c   14.77786981
+_cell_angle_alpha   90.25176998
+_cell_angle_beta   90.05025169
+_cell_angle_gamma   78.82986716
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InCl2
+_chemical_formula_sum   'In1 Cl2'
+_cell_volume   359.43625114
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  In  In0  1  0.19066429  0.05258656  0.33883619  1
+  Cl  Cl1  1  0.18529701  0.25470352  0.71124792  1
+  Cl  Cl2  1  0.98780060  0.25145102  0.53845930  1

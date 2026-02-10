@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Mo2OsBr2Cl2O3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.65840554
+_cell_length_b   4.41720907
+_cell_length_c   11.09760514
+_cell_angle_alpha   89.16241600
+_cell_angle_beta   88.95545093
+_cell_angle_gamma   46.42138012
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo2OsBr2Cl2O3
+_chemical_formula_sum   'Mo2 Os1 Br2 Cl2 O3'
+_cell_volume   94.38879761
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.87335265  0.64605546  0.47049758  1
+  Br  Br1  1  0.74544305  0.03147664  0.54721045  1
+  Br  Br2  1  0.46769828  0.43640676  0.71491003  1
+  Cl  Cl3  1  0.29968026  0.29849756  0.63501149  1
+  Mo  Mo4  1  0.75920337  0.48947603  0.56175643  1
+  O  O5  1  0.89402533  0.16158701  0.62537199  1
+  Os  Os6  1  0.13951322  0.62175578  0.55419302  1
+  Mo  Mo7  1  0.61474788  0.45503631  0.46528903  1
+  Cl  Cl8  1  0.23901439  0.04159252  0.52702665  1
+  O  O9  1  0.62451494  0.62536585  0.66306704  1

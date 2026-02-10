@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_AlTeHO4
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.56111264
+_cell_length_b   14.97552944
+_cell_length_c   13.64059900
+_cell_angle_alpha   90.37827186
+_cell_angle_beta   89.95498510
+_cell_angle_gamma   96.44421811
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   AlTeHO4
+_chemical_formula_sum   'Al2 Te2 H2 O8'
+_cell_volume   519.85483602
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  H  H0  1  0.54784346  0.63275909  0.95391297  1
+  O  O1  1  0.95857143  0.43634701  0.12657285  1
+  Te  Te2  1  0.94624710  0.14588928  0.85965347  1
+  O  O3  1  0.65762949  0.84300375  0.69634086  1
+  O  O4  1  0.57227957  0.08386193  0.55703580  1
+  Te  Te5  1  0.11025715  0.48547840  0.43248868  1
+  O  O6  1  0.93690395  0.10312843  0.29786384  1
+  H  H7  1  0.82323951  0.89675295  0.17834063  1
+  Al  Al8  1  0.49952060  0.98282409  0.81706464  1
+  O  O9  1  0.28308934  0.04062599  0.74002206  1
+  O  O10  1  0.13695239  0.95746171  0.10720337  1
+  Al  Al11  1  0.02274573  0.19660521  0.05953574  1
+  O  O12  1  0.34404242  0.99631417  0.55629194  1
+  O  O13  1  0.89245033  0.82947922  0.97910237  1

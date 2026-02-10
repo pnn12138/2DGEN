@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_NiF2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.11582780
+_cell_length_b   10.49441743
+_cell_length_c   12.25499452
+_cell_angle_alpha   90.03999323
+_cell_angle_beta   89.99302896
+_cell_angle_gamma   97.19874900
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiF2
+_chemical_formula_sum   'Ni1 F2'
+_cell_volume   269.96953093
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.38793468  0.37672138  0.54952574  1
+  Ni  Ni1  1  0.02796555  0.45800638  0.34248978  1
+  F  F2  1  0.85427099  0.29875571  0.01170850  1

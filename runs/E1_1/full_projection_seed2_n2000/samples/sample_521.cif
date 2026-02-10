@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_NiSeO3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.80688190
+_cell_length_b   16.10045443
+_cell_length_c   15.62147452
+_cell_angle_alpha   90.76923854
+_cell_angle_beta   89.95082546
+_cell_angle_gamma   93.53577101
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NiSeO3
+_chemical_formula_sum   'Ni2 Se2 O6'
+_cell_volume   704.55951678
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.42686230  0.90297985  0.23754959  1
+  Se  Se1  1  0.88717461  0.21677160  0.70504522  1
+  Ni  Ni2  1  0.90682793  0.08014035  0.58152395  1
+  O  O3  1  0.77656221  0.33602428  0.47486794  1
+  O  O4  1  0.07850099  0.85761166  0.78787708  1
+  O  O5  1  0.55609536  0.67606664  0.87392306  1
+  O  O6  1  0.20402235  0.85709763  0.54155636  1
+  Ni  Ni7  1  0.29151550  0.87413001  0.15256806  1
+  O  O8  1  0.84379387  0.89771271  0.70399737  1
+  O  O9  1  0.68351889  0.35089588  0.94916630  1

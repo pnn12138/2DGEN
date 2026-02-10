@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TaCo2TeS
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   17.20985603
+_cell_length_b   26.26389531
+_cell_length_c   53.73349737
+_cell_angle_alpha   91.49773939
+_cell_angle_beta   91.25205132
+_cell_angle_gamma   34.63078851
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TaCo2TeS
+_chemical_formula_sum   'Ta2 Co4 Te2 S2'
+_cell_volume   13797.48564483
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.46356392  0.04454327  0.19679821  1
+  Te  Te1  1  0.39678383  0.06956100  0.24058026  1
+  Ta  Ta2  1  0.88123870  0.14175224  0.02648169  1
+  Ta  Ta3  1  0.06746495  0.26248074  0.54910684  1
+  Te  Te4  1  0.36353016  0.32707119  0.41050166  1
+  Co  Co5  1  0.77549458  0.60719776  0.92926550  1
+  S  S6  1  0.44696617  0.77460003  0.02193284  1
+  Co  Co7  1  0.74668211  0.01980925  0.62709993  1
+  Co  Co8  1  0.83373833  0.14938736  0.54794669  1
+  Co  Co9  1  0.82042658  0.83599329  0.01155281  1

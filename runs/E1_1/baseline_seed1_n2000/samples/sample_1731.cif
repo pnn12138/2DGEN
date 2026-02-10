@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_CuGeCl6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.32053137
+_cell_length_b   20.63919200
+_cell_length_c   29.08376266
+_cell_angle_alpha   89.81351096
+_cell_angle_beta   90.04936408
+_cell_angle_gamma   96.24469827
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuGeCl6
+_chemical_formula_sum   'Cu1 Ge1 Cl6'
+_cell_volume   3174.76315911
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.71403885  0.34797990  0.10711932  1
+  Cl  Cl1  1  0.00748241  0.31155193  0.89764738  1
+  Cu  Cu2  1  0.63112259  0.30403137  0.88983059  1
+  Ge  Ge3  1  0.01628113  0.37153053  0.74897766  1
+  Cl  Cl4  1  0.36768532  0.81451702  0.26025212  1
+  Cl  Cl5  1  0.80478287  0.47894096  0.31752717  1
+  Cl  Cl6  1  0.47033310  0.03173256  0.27493906  1
+  Cl  Cl7  1  0.95371819  0.60778499  0.88482642  1

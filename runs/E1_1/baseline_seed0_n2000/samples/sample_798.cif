@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_HfV2AgS8
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.56398082
+_cell_length_b   7.40434044
+_cell_length_c   12.51113403
+_cell_angle_alpha   89.95648064
+_cell_angle_beta   90.01669522
+_cell_angle_gamma   121.20150736
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfV2AgS8
+_chemical_formula_sum   'Hf1 V2 Ag1 S8'
+_cell_volume   203.16171897
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.44616890  0.45114672  0.58469319  1
+  S  S1  1  0.83284611  0.85662937  0.63715839  1
+  S  S2  1  0.96539509  0.36647952  0.68244702  1
+  V  V3  1  0.98394251  0.96142834  0.39140546  1
+  V  V4  1  0.70878822  0.25339204  0.18603109  1
+  S  S5  1  0.11368912  0.50117558  0.77161884  1
+  Ag  Ag6  1  0.21357730  0.35119197  0.45117652  1
+  S  S7  1  0.51059294  0.99271780  0.33807692  1
+  S  S8  1  0.82471269  0.50406080  0.47980344  1
+  Hf  Hf9  1  0.12153984  0.22195871  0.73162329  1
+  S  S10  1  0.56026405  0.12297616  0.08399069  1
+  S  S11  1  0.11695313  0.29305410  0.09547751  1

@@ -1,0 +1,38 @@
+# generated using pymatgen
+data_Mn3AuBr3O5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.50565386
+_cell_length_b   13.62603070
+_cell_length_c   14.09615865
+_cell_angle_alpha   89.59643420
+_cell_angle_beta   90.03509572
+_cell_angle_gamma   94.81884430
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mn3AuBr3O5
+_chemical_formula_sum   'Mn3 Au1 Br3 O5'
+_cell_volume   479.55963101
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  O  O0  1  0.28747559  0.51220226  0.16997194  1
+  Au  Au1  1  0.54391289  0.78291702  0.66793060  1
+  O  O2  1  0.86188316  0.03290802  0.89660311  1
+  Mn  Mn3  1  0.36927032  0.72782898  0.13703060  1
+  Mn  Mn4  1  0.27339792  0.95978928  0.63331652  1
+  Br  Br5  1  0.06224692  0.42974880  0.69101900  1
+  Mn  Mn6  1  0.47961903  0.26311111  0.55282211  1
+  Br  Br7  1  0.89001161  0.38951609  0.78547484  1
+  O  O8  1  0.90464735  0.85239601  0.82891804  1
+  Br  Br9  1  0.31017017  0.19695878  0.87320995  1
+  O  O10  1  0.23935986  0.93500280  0.94588649  1
+  O  O11  1  0.50805950  0.09554143  0.62182081  1

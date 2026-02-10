@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_MnCl3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.38028502
+_cell_length_b   11.37391443
+_cell_length_c   14.20608393
+_cell_angle_alpha   90.20533842
+_cell_angle_beta   90.04447349
+_cell_angle_gamma   77.17094056
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnCl3
+_chemical_formula_sum   'Mn2 Cl6'
+_cell_volume   375.00023798
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.30124107  0.24090031  0.83303457  1
+  Cl  Cl1  1  0.40132040  0.22059479  0.71069318  1
+  Cl  Cl2  1  0.76123524  0.10115767  0.19171518  1
+  Cl  Cl3  1  0.36886644  0.40661603  0.58898497  1
+  Cl  Cl4  1  0.37476063  0.33263913  0.76413125  1
+  Cl  Cl5  1  0.48695993  0.63867950  0.92173052  1
+  Mn  Mn6  1  0.24400711  0.89533424  0.69142461  1
+  Mn  Mn7  1  0.08482742  0.35640144  0.97988176  1

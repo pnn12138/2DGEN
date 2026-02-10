@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_LiGa(Te3As)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.46216726
+_cell_length_b   14.05736562
+_cell_length_c   13.69714077
+_cell_angle_alpha   90.14194736
+_cell_angle_beta   89.99468871
+_cell_angle_gamma   92.05589660
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   LiGa(Te3As)2
+_chemical_formula_sum   'Li1 Ga1 Te6 As2'
+_cell_volume   473.77314084
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ga  Ga0  1  0.82742977  0.64616108  0.33344126  1
+  Te  Te1  1  0.52620637  0.61202371  0.09169002  1
+  Te  Te2  1  0.07135201  0.41977310  0.80549312  1
+  Li  Li3  1  0.25075340  0.97318268  0.93618178  1
+  Te  Te4  1  0.01369929  0.46522141  0.58886492  1
+  Te  Te5  1  0.01889038  0.01148701  0.50310421  1
+  As  As6  1  0.11582375  0.22041082  0.69120598  1
+  As  As7  1  0.68728888  0.59751117  0.99982649  1
+  Te  Te8  1  0.08616257  0.47930908  0.04739594  1
+  Te  Te9  1  0.62333918  0.42572573  0.44487691  1

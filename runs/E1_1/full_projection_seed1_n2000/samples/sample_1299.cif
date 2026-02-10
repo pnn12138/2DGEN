@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ca2Au(ClO)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   10.07529736
+_cell_length_b   4.67525622
+_cell_length_c   29.13586603
+_cell_angle_alpha   89.34589037
+_cell_angle_beta   91.38751385
+_cell_angle_gamma   114.04734065
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ca2Au(ClO)2
+_chemical_formula_sum   'Ca2 Au1 Cl2 O2'
+_cell_volume   1252.94918560
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.54604518  0.44314194  0.09781837  1
+  O  O1  1  0.13715082  0.49937224  0.24121237  1
+  Ca  Ca2  1  0.98920393  0.42271805  0.27707815  1
+  Cl  Cl3  1  0.56886959  0.84100723  0.55819726  1
+  Ca  Ca4  1  0.85733223  0.11903000  0.84559441  1
+  Au  Au5  1  0.07893562  0.86450672  0.71605396  1
+  O  O6  1  0.14295530  0.15587711  0.39272118  1

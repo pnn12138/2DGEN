@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_TlCu(AsSe3)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.08790636
+_cell_length_b   19.98486475
+_cell_length_c   28.79565413
+_cell_angle_alpha   88.88374526
+_cell_angle_beta   90.07984026
+_cell_angle_gamma   97.09168472
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TlCu(AsSe3)2
+_chemical_formula_sum   'Tl1 Cu1 As2 Se6'
+_cell_volume   2905.02206463
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.68225861  0.11544293  0.16049558  1
+  Se  Se1  1  0.31071281  0.79896545  0.87389243  1
+  Se  Se2  1  0.27676392  0.53688145  0.71683598  1
+  Cu  Cu3  1  0.81637287  0.73828363  0.65737128  1
+  Se  Se4  1  0.01995099  0.00120735  0.77530408  1
+  Se  Se5  1  0.89874840  0.74205017  0.52816486  1
+  Se  Se6  1  0.81208420  0.32079411  0.65916157  1
+  As  As7  1  0.61403084  0.42244005  0.13132381  1
+  As  As8  1  0.30898476  0.65598679  0.99573755  1
+  Tl  Tl9  1  0.52274561  0.98955774  0.82187104  1

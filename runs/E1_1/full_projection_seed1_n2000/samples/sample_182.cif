@@ -1,0 +1,40 @@
+# generated using pymatgen
+data_Ba2MnS3Cl
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.66859293
+_cell_length_b   12.05919717
+_cell_length_c   14.84839408
+_cell_angle_alpha   89.87336407
+_cell_angle_beta   90.04702118
+_cell_angle_gamma   104.23578331
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ba2MnS3Cl
+_chemical_formula_sum   'Ba4 Mn2 S6 Cl2'
+_cell_volume   463.16287694
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  S  S0  1  0.72333145  0.13584709  0.72729111  1
+  Cl  Cl1  1  0.71193969  0.29412413  0.05632804  1
+  Mn  Mn2  1  0.48044014  0.44928741  0.79687452  1
+  S  S3  1  0.34203005  0.69815445  0.80915737  1
+  S  S4  1  0.83991122  0.59955329  0.34637371  1
+  Cl  Cl5  1  0.75456834  0.88835806  0.95727932  1
+  S  S6  1  0.86869222  0.74128127  0.65289557  1
+  Ba  Ba7  1  0.77123761  0.47865885  0.34834370  1
+  S  S8  1  0.54364395  0.86031914  0.77396989  1
+  Mn  Mn9  1  0.12721634  0.54957867  0.74135780  1
+  S  S10  1  0.26870057  0.89255244  0.00002027  1
+  Ba  Ba11  1  0.92312640  0.86190248  0.67048681  1
+  Ba  Ba12  1  0.56133759  0.18749616  0.05778953  1
+  Ba  Ba13  1  0.06523705  0.44243336  0.96973586  1

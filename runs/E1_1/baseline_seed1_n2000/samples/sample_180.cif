@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_InAs2AuO6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.49371552
+_cell_length_b   14.32971789
+_cell_length_c   13.53083649
+_cell_angle_alpha   89.94148823
+_cell_angle_beta   90.00237937
+_cell_angle_gamma   91.82925466
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InAs2AuO6
+_chemical_formula_sum   'In1 As2 Au1 O6'
+_cell_volume   483.26750325
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  In  In0  1  0.31507683  0.42564684  0.19275570  1
+  O  O1  1  0.99110317  0.08452988  0.28958821  1
+  As  As2  1  0.88263154  0.80549729  0.95582414  1
+  As  As3  1  0.73243743  0.25224686  0.91595268  1
+  O  O4  1  0.31326294  0.38670444  0.05786920  1
+  O  O5  1  0.74438286  0.53858948  0.23046267  1
+  O  O6  1  0.50327873  0.03125668  0.04032874  1
+  O  O7  1  0.87532604  0.73298681  0.90743536  1
+  Au  Au8  1  0.80588531  0.48112106  0.49828434  1
+  O  O9  1  0.59536457  0.78112221  0.74042702  1

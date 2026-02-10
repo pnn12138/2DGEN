@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_HfNiCl6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.58156514
+_cell_length_b   11.90858495
+_cell_length_c   14.39871903
+_cell_angle_alpha   90.05584610
+_cell_angle_beta   90.00963300
+_cell_angle_gamma   76.27820941
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfNiCl6
+_chemical_formula_sum   'Hf1 Ni1 Cl6'
+_cell_volume   430.02268121
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.09336281  0.17962265  0.63693905  1
+  Hf  Hf1  1  0.53885263  0.94697571  0.39497834  1
+  Cl  Cl2  1  0.79135132  0.38278389  0.74410820  1
+  Cl  Cl3  1  0.30688477  0.06671464  0.74986589  1
+  Cl  Cl4  1  0.36050797  0.19257450  0.85186863  1
+  Cl  Cl5  1  0.99387169  0.76128769  0.31421137  1
+  Cl  Cl6  1  0.78520942  0.66647220  0.11125374  1
+  Ni  Ni7  1  0.03905301  0.97905064  0.35368007  1

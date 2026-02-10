@@ -1,0 +1,30 @@
+# generated using pymatgen
+data_InSbTeSe
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.89778614
+_cell_length_b   18.32380338
+_cell_length_c   13.46186513
+_cell_angle_alpha   90.09809069
+_cell_angle_beta   89.99819936
+_cell_angle_gamma   91.00274445
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   InSbTeSe
+_chemical_formula_sum   'In1 Sb1 Te1 Se1'
+_cell_volume   714.69383984
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  In  In0  1  0.86954498  0.08992386  0.92491865  1
+  Te  Te1  1  0.88676071  0.32003784  0.88392973  1
+  Se  Se2  1  0.90593338  0.44244385  0.00571632  1
+  Sb  Sb3  1  0.84214592  0.42220306  0.44058537  1

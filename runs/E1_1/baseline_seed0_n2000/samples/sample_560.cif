@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_NaCoAs
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.59738421
+_cell_length_b   8.21678808
+_cell_length_c   13.13639214
+_cell_angle_alpha   89.43456664
+_cell_angle_beta   90.07007218
+_cell_angle_gamma   102.38732243
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   NaCoAs
+_chemical_formula_sum   'Na2 Co2 As2'
+_cell_volume   273.81865575
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Na  Na0  1  0.51085758  0.69844151  0.28537327  1
+  Na  Na1  1  0.27127171  0.54116821  0.55933762  1
+  As  As2  1  0.43188462  0.58428091  0.36801773  1
+  Co  Co3  1  0.73427486  0.21383238  0.35872841  1
+  As  As4  1  0.44436884  0.85760498  0.13123989  1
+  Co  Co5  1  0.62685490  0.35298538  0.91522944  1

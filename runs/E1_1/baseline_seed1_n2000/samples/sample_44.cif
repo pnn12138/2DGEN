@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Mo(AuO2)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   3.23777151
+_cell_length_b   7.33494513
+_cell_length_c   17.70833112
+_cell_angle_alpha   90.05594838
+_cell_angle_beta   90.03270513
+_cell_angle_gamma   62.34779590
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Mo(AuO2)2
+_chemical_formula_sum   'Mo1 Au2 O4'
+_cell_volume   372.51768288
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Au  Au0  1  0.51914883  0.48334789  0.91445255  1
+  O  O1  1  0.18806219  0.38728714  0.66477537  1
+  O  O2  1  0.87532663  0.10765076  0.69032443  1
+  O  O3  1  0.42626572  0.54632378  0.67481971  1
+  O  O4  1  0.94902229  0.40292311  0.81657279  1
+  Au  Au5  1  0.96611762  0.84892750  0.79184508  1
+  Mo  Mo6  1  0.26550364  0.18649864  0.76976252  1

@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_TiBr3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   7.68790340
+_cell_length_b   10.05281871
+_cell_length_c   54.44350213
+_cell_angle_alpha   90.09430006
+_cell_angle_beta   89.85412345
+_cell_angle_gamma   114.05265966
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   TiBr3
+_chemical_formula_sum   'Ti2 Br6'
+_cell_volume   3842.31128820
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.59312820  0.36435127  0.37534118  1
+  Br  Br1  1  0.54003453  0.79571152  0.91410494  1
+  Ti  Ti2  1  0.73805428  0.82268858  0.55897593  1
+  Br  Br3  1  0.24350166  0.90787029  0.15705287  1
+  Br  Br4  1  0.32813358  0.63384247  0.01689899  1
+  Br  Br5  1  0.32425308  0.53966331  0.93887758  1
+  Ti  Ti6  1  0.22756243  0.18832588  0.21172148  1
+  Br  Br7  1  0.76878548  0.05880547  0.84742761  1

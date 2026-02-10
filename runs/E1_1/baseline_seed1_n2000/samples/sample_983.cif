@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_Ba2Ag(SeBr)2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   5.32086086
+_cell_length_b   20.13959315
+_cell_length_c   27.17259722
+_cell_angle_alpha   89.87047480
+_cell_angle_beta   90.02127846
+_cell_angle_gamma   94.68423608
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ba2Ag(SeBr)2
+_chemical_formula_sum   'Ba2 Ag1 Se2 Br2'
+_cell_volume   2902.08154469
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Br  Br0  1  0.09529781  0.73914433  0.12264347  1
+  Br  Br1  1  0.30564404  0.29711533  0.71227449  1
+  Ag  Ag2  1  0.34494019  0.56652832  0.91151047  1
+  Ba  Ba3  1  0.65630412  0.86105025  0.41751099  1
+  Ba  Ba4  1  0.73985839  0.78338200  0.45739657  1
+  Se  Se5  1  0.73387957  0.09367752  0.18911314  1
+  Se  Se6  1  0.41925430  0.86178207  0.00717402  1

@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_IrCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   15.43851089
+_cell_length_b   19.12102907
+_cell_length_c   12.81045314
+_cell_angle_alpha   90.37905711
+_cell_angle_beta   90.53589161
+_cell_angle_gamma   30.00108204
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   IrCl2
+_chemical_formula_sum   'Ir1 Cl2'
+_cell_volume   1890.79507688
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cl  Cl0  1  0.76445770  0.32749939  0.98003101  1
+  Ir  Ir1  1  0.40386581  0.38733900  0.70876431  1
+  Cl  Cl2  1  0.03549957  0.06695795  0.68782640  1

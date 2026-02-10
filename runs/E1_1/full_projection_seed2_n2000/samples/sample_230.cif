@@ -1,0 +1,33 @@
+# generated using pymatgen
+data_CrCuSe3IBr
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.29854989
+_cell_length_b   14.52760916
+_cell_length_c   12.71682749
+_cell_angle_alpha   89.77578800
+_cell_angle_beta   90.00878604
+_cell_angle_gamma   91.92538669
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CrCuSe3IBr
+_chemical_formula_sum   'Cr1 Cu1 Se3 I1 Br1'
+_cell_volume   424.40283531
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.29782963  0.02294636  0.15368652  1
+  Se  Se1  1  0.43029451  0.45923471  0.47565022  1
+  Se  Se2  1  0.78340340  0.27500105  0.44375324  1
+  Cr  Cr3  1  0.52752113  0.79355812  0.34063244  1
+  Br  Br4  1  0.62206268  0.19782853  0.03910118  1
+  Cu  Cu5  1  0.36576414  0.84786034  0.46959877  1
+  Se  Se6  1  0.62754440  0.23708582  0.88258266  1

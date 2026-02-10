@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_Sr2TlCdAgS5
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.52048326
+_cell_length_b   12.43684417
+_cell_length_c   14.15991216
+_cell_angle_alpha   90.23419590
+_cell_angle_beta   90.05116704
+_cell_angle_gamma   77.97866117
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Sr2TlCdAgS5
+_chemical_formula_sum   'Sr2 Tl1 Cd1 Ag1 S5'
+_cell_volume   434.13112374
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Sr  Sr0  1  0.76491225  0.99485111  0.77519709  1
+  S  S1  1  0.52759552  0.02953339  0.67653847  1
+  Cd  Cd2  1  0.72294426  0.54099369  0.23208666  1
+  Ag  Ag3  1  0.41803741  0.97013092  0.05391693  1
+  S  S4  1  0.98165894  0.45733643  0.94232368  1
+  S  S5  1  0.53949690  0.76975060  0.41844189  1
+  Tl  Tl6  1  0.39345551  0.68289262  0.65679932  1
+  Sr  Sr7  1  0.04890924  0.04650774  0.84000939  1
+  S  S8  1  0.37331390  0.14530754  0.92204618  1
+  S  S9  1  0.84577441  0.27582359  0.57852221  1

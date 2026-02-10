@@ -1,0 +1,32 @@
+# generated using pymatgen
+data_CuBr2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.66996336
+_cell_length_b   11.78485462
+_cell_length_c   14.81309259
+_cell_angle_alpha   89.34624454
+_cell_angle_beta   89.82248036
+_cell_angle_gamma   75.18574257
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   CuBr2
+_chemical_formula_sum   'Cu2 Br4'
+_cell_volume   450.57342140
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Cu  Cu0  1  0.21961355  0.14925909  0.30141938  1
+  Br  Br1  1  0.50699514  0.42020276  0.00796325  1
+  Cu  Cu2  1  0.54957390  0.87369156  0.83638954  1
+  Br  Br3  1  0.43742481  0.36899635  0.08884899  1
+  Br  Br4  1  0.18253016  0.30490685  0.65879202  1
+  Br  Br5  1  0.59242630  0.48580170  0.95547342  1

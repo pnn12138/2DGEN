@@ -1,0 +1,29 @@
+# generated using pymatgen
+data_HfBiP
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.32819510
+_cell_length_b   20.71439635
+_cell_length_c   24.26986419
+_cell_angle_alpha   90.69771215
+_cell_angle_beta   90.05773772
+_cell_angle_gamma   84.59266134
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfBiP
+_chemical_formula_sum   'Hf1 Bi1 P1'
+_cell_volume   2166.09392885
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  P  P0  1  0.85102844  0.20610142  0.85441637  1
+  Hf  Hf1  1  0.47711563  0.20030594  0.78294945  1
+  Bi  Bi2  1  0.12579727  0.90381432  0.22567460  1

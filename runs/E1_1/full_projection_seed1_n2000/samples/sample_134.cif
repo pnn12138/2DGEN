@@ -1,0 +1,34 @@
+# generated using pymatgen
+data_HfFeF6
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.53490305
+_cell_length_b   13.35139043
+_cell_length_c   14.24143183
+_cell_angle_alpha   90.19960786
+_cell_angle_beta   90.03525281
+_cell_angle_gamma   79.74725948
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   HfFeF6
+_chemical_formula_sum   'Hf1 Fe1 F6'
+_cell_volume   474.29459222
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  F  F0  1  0.48058987  0.65984821  0.17117798  1
+  F  F1  1  0.40948486  0.37992382  0.79328889  1
+  Fe  Fe2  1  0.40731812  0.94421434  0.51761758  1
+  F  F3  1  0.55762386  0.11711001  0.20024061  1
+  F  F4  1  0.78609467  0.59514594  0.35170615  1
+  Hf  Hf5  1  0.55234128  0.08499712  0.67215335  1
+  F  F6  1  0.75192088  0.03011543  0.75965893  1
+  F  F7  1  0.17996216  0.97995377  0.18673372  1

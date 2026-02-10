@@ -1,0 +1,31 @@
+# generated using pymatgen
+data_Ta2CCl2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.72641754
+_cell_length_b   3.98927409
+_cell_length_c   12.22465478
+_cell_angle_alpha   87.36062811
+_cell_angle_beta   92.41710855
+_cell_angle_gamma   132.14794924
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   Ta2CCl2
+_chemical_formula_sum   'Ta2 C1 Cl2'
+_cell_volume   98.46290925
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Ta  Ta0  1  0.32507214  0.56892103  0.72316873  1
+  Cl  Cl1  1  0.57990551  0.50849915  0.04125237  1
+  Cl  Cl2  1  0.60545349  0.67512321  0.95641994  1
+  C  C3  1  0.45743275  0.09763718  0.87638903  1
+  Ta  Ta4  1  0.28758159  0.87060267  0.66229498  1

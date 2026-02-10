@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_MnCuI3
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   8.29439545
+_cell_length_b   12.40742129
+_cell_length_c   29.19815373
+_cell_angle_alpha   90.10065211
+_cell_angle_beta   90.08072161
+_cell_angle_gamma   36.54568329
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   MnCuI3
+_chemical_formula_sum   'Mn2 Cu2 I6'
+_cell_volume   1789.27113440
+_cell_formula_units_Z   2
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  I  I0  1  0.00142860  0.12103271  0.24855089  1
+  I  I1  1  0.10939598  0.08493733  0.10856986  1
+  Mn  Mn2  1  0.46229744  0.74703598  0.14317298  1
+  I  I3  1  0.02823353  0.97746038  0.79970670  1
+  I  I4  1  0.70661736  0.29805565  0.01481152  1
+  Cu  Cu5  1  0.23441219  0.71156788  0.59061837  1
+  Mn  Mn6  1  0.36840725  0.96360302  0.18930078  1
+  I  I7  1  0.08758789  0.12927413  0.43695545  1
+  Cu  Cu8  1  0.63255501  0.96548390  0.02258968  1
+  I  I9  1  0.76044846  0.53581476  0.62905014  1

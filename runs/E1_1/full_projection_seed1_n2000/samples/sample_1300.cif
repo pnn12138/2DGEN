@@ -1,0 +1,36 @@
+# generated using pymatgen
+data_GaTe6P2Au
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   4.38096619
+_cell_length_b   13.91814830
+_cell_length_c   29.39617017
+_cell_angle_alpha   90.19837165
+_cell_angle_beta   90.03726792
+_cell_angle_gamma   98.71605997
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   GaTe6P2Au
+_chemical_formula_sum   'Ga1 Te6 P2 Au1'
+_cell_volume   1771.71779163
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Te  Te0  1  0.43423748  0.10470819  0.80217743  1
+  Au  Au1  1  0.31330919  0.73410702  0.72141647  1
+  Te  Te2  1  0.80840302  0.79036140  0.08997351  1
+  Te  Te3  1  0.72882843  0.65336609  0.09877253  1
+  P  P4  1  0.24522591  0.48598385  0.30490184  1
+  P  P5  1  0.50400543  0.45315933  0.41340238  1
+  Te  Te6  1  0.17447901  0.21631587  0.55734348  1
+  Te  Te7  1  0.22458744  0.05880833  0.14700830  1
+  Ga  Ga8  1  0.50142860  0.10056210  0.27139235  1
+  Te  Te9  1  0.54482460  0.53677702  0.32980549  1

@@ -1,0 +1,39 @@
+# generated using pymatgen
+data_V2Se2O7F2
+_symmetry_space_group_name_H-M   'P 1'
+_cell_length_a   2.72414780
+_cell_length_b   11.68313376
+_cell_length_c   15.05735472
+_cell_angle_alpha   90.38670694
+_cell_angle_beta   89.88820068
+_cell_angle_gamma   105.55442171
+_symmetry_Int_Tables_number   1
+_chemical_formula_structural   V2Se2O7F2
+_chemical_formula_sum   'V2 Se2 O7 F2'
+_cell_volume   461.66261451
+_cell_formula_units_Z   1
+loop_
+ _symmetry_equiv_pos_site_id
+ _symmetry_equiv_pos_as_xyz
+  1  'x, y, z'
+loop_
+ _atom_site_type_symbol
+ _atom_site_label
+ _atom_site_symmetry_multiplicity
+ _atom_site_fract_x
+ _atom_site_fract_y
+ _atom_site_fract_z
+ _atom_site_occupancy
+  Se  Se0  1  0.54265976  0.06755638  0.18889427  1
+  O  O1  1  0.02650171  0.05028090  0.85905731  1
+  V  V2  1  0.12797928  0.94773865  0.20838988  1
+  Se  Se3  1  0.43697023  0.87083131  0.96600437  1
+  O  O4  1  0.99571562  0.57454348  0.41797256  1
+  O  O5  1  0.73537445  0.08643627  0.61475110  1
+  O  O6  1  0.49930468  0.05848161  0.82034206  1
+  O  O7  1  0.26121044  0.46099758  0.70261657  1
+  O  O8  1  0.55961967  0.61756563  0.53554344  1
+  F  F9  1  0.22285080  0.27394867  0.83739400  1
+  V  V10  1  0.54076767  0.26822472  0.63958549  1
+  O  O11  1  0.87220573  0.78329563  0.46504498  1
+  F  F12  1  0.50868034  0.23251390  0.22053885  1
