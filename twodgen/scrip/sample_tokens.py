@@ -357,6 +357,26 @@ def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--symmetry-mode",
+        type=str,
+        default="off",
+        choices=["off", "soft", "hard"],
+        help="Symmetry control mode shared by train/sample: off | soft | hard.",
+    )
+    parser.add_argument(
+        "--symmetry-symprec",
+        type=float,
+        default=1e-2,
+        help="Symmetry tolerance recorded in run metadata.",
+    )
+    parser.add_argument(
+        "--wyckoff-constraint",
+        type=str,
+        default="off",
+        choices=["off", "soft", "hard"],
+        help="Wyckoff-level constraint placeholder (metadata only in current implementation).",
+    )
+    parser.add_argument(
         "--project-each-step",
         action=argparse.BooleanOptionalAction,
         default=False,
@@ -781,6 +801,9 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "method": str(args.method),
         "cfg_scale": float(args.cfg_scale),
         "seed": int(args.seed),
+        "symmetry_mode": str(args.symmetry_mode),
+        "symmetry_symprec": float(args.symmetry_symprec),
+        "wyckoff_constraint": str(args.wyckoff_constraint),
     }
 
     min_dist_cut = float(args.eval_min_dist)
@@ -2040,6 +2063,11 @@ def run_sampling(args: argparse.Namespace) -> Path:
         "mlip": mlip_meta,
         "relax": relax_meta,
         "projection": proj_meta,
+        "symmetry": {
+            "symmetry_mode": str(args.symmetry_mode),
+            "symmetry_symprec": float(args.symmetry_symprec),
+            "wyckoff_constraint": str(args.wyckoff_constraint),
+        },
     }
     run_meta_wrapped = make_schema_payload(
         schema_version=RUN_METADATA_SCHEMA_VERSION,

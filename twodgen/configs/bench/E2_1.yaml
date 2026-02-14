@@ -1,0 +1,11 @@
+experiment_id: E2_1
+protocol: quick
+schedules: [linear, sigmoid, cosine]
+repulsion: [on, off]
+seeds: [0, 1, 2]
+num_samples: 2000
+steps: 50
+cond_max: 40.0
+runner: twodgen/scripts/exp_e2_curriculum_repulsion.sh
+note: "E2 curriculum/schedule and repulsion co-ablation."
+

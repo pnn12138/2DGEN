@@ -75,8 +75,45 @@ def collect_run_metadata(argv: Optional[list[str]] = None) -> Dict[str, Any]:
 
         metadata["torch"] = torch.__version__
         metadata["cuda_available"] = bool(torch.cuda.is_available())
+        cuda_device_count = int(torch.cuda.device_count()) if torch.cuda.is_available() else 0
+        metadata["runtime"] = {
+            "device": "cuda" if torch.cuda.is_available() else "cpu",
+            "cuda_device_count": cuda_device_count,
+            "cuda_version": getattr(torch.version, "cuda", None),
+            "dtype": str(torch.get_default_dtype()).replace("torch.", ""),
+        }
+        if cuda_device_count > 0:
+            metadata["runtime"]["cuda_devices"] = [
+                torch.cuda.get_device_name(i) for i in range(cuda_device_count)
+            ]
     except Exception:
         metadata["torch"] = None
         metadata["cuda_available"] = None
-    return metadata
+        metadata["runtime"] = {
+            "device": "cpu",
+            "cuda_device_count": 0,
+            "cuda_version": None,
+            "dtype": None,
+        }
 
+    dependencies = {
+        "python": metadata.get("python"),
+        "torch": metadata.get("torch"),
+        "spglib": None,
+        "ase": None,
+        "pymatgen": None,
+        "chgnet": None,
+    }
+    for key, module_name in (
+        ("spglib", "spglib"),
+        ("ase", "ase"),
+        ("pymatgen", "pymatgen"),
+        ("chgnet", "chgnet"),
+    ):
+        try:
+            mod = __import__(module_name)
+            dependencies[key] = getattr(mod, "__version__", None)
+        except Exception:
+            dependencies[key] = None
+    metadata["dependencies"] = dependencies
+    return metadata

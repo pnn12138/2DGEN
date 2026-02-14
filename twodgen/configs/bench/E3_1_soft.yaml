@@ -1,0 +1,8 @@
+experiment_id: E3_1
+protocol: final
+symmetry_mode: soft
+symmetry_loss_weight: 0.05
+symmetry_symprec: 0.01
+wyckoff_constraint: off
+note: "Soft symmetry regularization benchmark."
+

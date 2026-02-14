@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from pathlib import Path
 from typing import List
 
@@ -66,7 +67,7 @@ def main() -> None:
     if "tier0" in steps:
         _run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "twodgen.evaluate.eval_tier0_cif",
                 *base_inputs,
@@ -92,7 +93,7 @@ def main() -> None:
     if "conditions" in steps:
         _run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "twodgen.evaluate.check_conditions",
                 *base_inputs,
@@ -112,7 +113,7 @@ def main() -> None:
     if need_energy:
         _run(
             [
-                "python",
+                sys.executable,
                 "-m",
                 "twodgen.evaluate.mattersim_energy",
                 *base_inputs,
@@ -132,22 +133,47 @@ def main() -> None:
         )
 
     if "merge" in steps:
+        tier0_path = tier0_dir / "per_sample_tier0.jsonl"
+        cond_path = cond_dir / "per_sample_conditions.jsonl"
+        energy_path = energy_dir / "per_sample_energy.jsonl"
+        formation_path = energy_dir / "per_sample_formation.jsonl"
+
+        if not tier0_path.exists():
+            raise FileNotFoundError(
+                f"Missing tier0 report for merge: {tier0_path}. Run with pipeline step 'tier0' first."
+            )
+
         merge_cmd = [
-            "python",
+            sys.executable,
             "-m",
             "twodgen.evaluate.merge_reports",
             "--tier0",
-            str(tier0_dir / "per_sample_tier0.jsonl"),
-            "--conditions",
-            str(cond_dir / "per_sample_conditions.jsonl"),
-            "--energy",
-            str(energy_dir / "per_sample_energy.jsonl"),
+            str(tier0_path),
         ]
+        if cond_path.exists():
+            merge_cmd += ["--conditions", str(cond_path)]
+        elif "conditions" in steps:
+            raise FileNotFoundError(
+                f"Missing conditions report for merge: {cond_path}. "
+                "Run with pipeline step 'conditions' first."
+            )
+
+        if energy_path.exists():
+            merge_cmd += ["--energy", str(energy_path)]
+        elif need_energy:
+            raise FileNotFoundError(
+                f"Missing energy report for merge: {energy_path}. "
+                "Run with pipeline step 'energy' first."
+            )
+
         if need_formation:
-            merge_cmd += [
-                "--formation",
-                str(energy_dir / "per_sample_formation.jsonl"),
-            ]
+            if not formation_path.exists():
+                raise FileNotFoundError(
+                    f"Missing formation report for merge: {formation_path}. "
+                    "Run with pipeline step 'formation' first."
+                )
+            merge_cmd += ["--formation", str(formation_path)]
+
         _run(
             merge_cmd
             + [

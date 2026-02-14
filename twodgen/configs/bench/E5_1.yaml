@@ -1,0 +1,10 @@
+experiment_id: E5_1
+protocol: final
+novelty:
+  fingerprint: comp_inplane_rdf_adf_v0
+  dedup_threshold: 0.12
+diversity:
+  bins_n_atoms: [2, 4, 6, 8, 10, 12, 16, 24]
+  bins_lattice: [2.0, 4.0, 6.0, 8.0, 12.0, 20.0]
+note: "Novelty/diversity benchmark configuration."
+

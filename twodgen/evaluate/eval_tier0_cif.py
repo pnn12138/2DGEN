@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from twodgen.evaluate.eval_samples import _thickness_vacuum, _min_dist_and_shifts
+from twodgen.common.geometry_np import min_dist_and_shifts, thickness_vacuum
 
 
 def _parse_pbc_mask(value: str) -> Tuple[int, int, int]:
@@ -115,7 +115,7 @@ def main() -> None:
             reasons.append("low_atoms")
 
         if n_atoms > 0:
-            min_dist, dist, _ = _min_dist_and_shifts(frac, lattice, pbc_mask=pbc_mask)
+            min_dist, dist, _ = min_dist_and_shifts(frac, lattice, pbc_mask=pbc_mask)
             min_dists.append(min_dist)
             if min_dist < args.min_dist_cut:
                 reasons.append("collision")
@@ -136,7 +136,7 @@ def main() -> None:
         vacuum_ratios.append(vacuum_ratio)
 
         if n_atoms > 0:
-            thickness, vacuum = _thickness_vacuum(frac[:, c_idx], c_len)
+            thickness, vacuum = thickness_vacuum(frac[:, c_idx], c_len)
         else:
             thickness, vacuum = float("nan"), float("nan")
         vacuums.append(vacuum)

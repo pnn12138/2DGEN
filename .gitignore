@@ -6,12 +6,13 @@ dist/
 wheels/
 *.egg-info
 .pytest_cache/
+.mypy_cache/
 
 # Virtual environments
 .venv
 .uv_cache/
 
-# Dataset cache (ignore general data dirs, but keep code under 2DGEN/data)
+# Dataset cache / generated data
 # Ignore top-level `data/*` by default, then selectively unignore curated subsets.
 data/*
 P_TASK/data/
@@ -25,12 +26,17 @@ P_TASK/data/
 !data/C2DB/**
 !data/ref_energies.json
 
-# Generated C2DB cleaning outputs
+# Generated C2DB outputs/caches
 data/C2DB/clean/
+data/C2DB/cache/
 
-# Training outputs / checkpoints
+# Training / experiment outputs
 outputs/
+runs/
+P_TASK/outputs/
 lightning_logs/
+logs/
+*.log
 
 # Model checkpoints / tensors (do not commit)
 *.pt
@@ -39,9 +45,6 @@ lightning_logs/
 *.safetensors
 *.npz
 *.bin
-
-# ...but allow committing curated preprocessed C2DB caches
-!data/C2DB/ache/*.npz
 
 # Vendored/third-party large repos
 model/mattergen/

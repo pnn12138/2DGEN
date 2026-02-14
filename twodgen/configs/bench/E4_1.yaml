@@ -1,0 +1,10 @@
+experiment_id: E4_1
+protocol: final
+top_m: 500
+top_k: 100
+screening:
+  energy_metric: formation_energy_per_atom
+  diversity_algorithm: farthest_point_sampling
+  fingerprint: comp_inplane_rdf_adf_v0
+note: "MLIP->DFT screening funnel configuration."
+

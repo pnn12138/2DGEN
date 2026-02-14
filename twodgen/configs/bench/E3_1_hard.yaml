@@ -1,0 +1,8 @@
+experiment_id: E3_1
+protocol: final
+symmetry_mode: hard
+symmetry_loss_weight: 0.1
+symmetry_symprec: 0.01
+wyckoff_constraint: off
+note: "Hard symmetry mode placeholder (uses same backend with stronger penalty)."
+

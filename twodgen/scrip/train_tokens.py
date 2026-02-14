@@ -9,6 +9,10 @@ from pathlib import Path
 import sys
 from typing import Any, Iterable
 
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 import math
 import numpy as np
 import torch
@@ -23,10 +27,6 @@ from twodgen.loss.schedule import LossWeightScheduleConfig, LossWeightScheduler
 from twodgen.model.atom_denoiser import AtomDenoiser, AtomDenoiserConfig
 from twodgen.model.atom_transformer import AtomTransformerConfig
 from twodgen.model.model_sizes import resolve_model_hparams
-
-_ROOT = Path(__file__).resolve().parents[2]
-if str(_ROOT) not in sys.path:
-    sys.path.insert(0, str(_ROOT))
 
 
 class IndexedDataset(Dataset):
@@ -247,7 +247,7 @@ def parse_args() -> argparse.Namespace:
         "--curriculum-epochs",
         type=int,
         default=20,
-        help="Number of epochs to linearly ramp collision-risk samples from 0% to 100%.",
+        help="Number of epochs to linearly ramp collision-risk samples from 0%% to 100%%.",
     )
     parser.add_argument(
         "--curriculum-min-dist-cut",
@@ -335,7 +335,21 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Weight for spacegroup mismatch penalty (requires spacegroup_number in dataset).",
     )
+    parser.add_argument(
+        "--symmetry-mode",
+        type=str,
+        default="off",
+        choices=["off", "soft", "hard"],
+        help="Symmetry control mode shared by train/sample: off | soft | hard.",
+    )
     parser.add_argument("--symmetry-symprec", type=float, default=1e-2)
+    parser.add_argument(
+        "--wyckoff-constraint",
+        type=str,
+        default="off",
+        choices=["off", "soft", "hard"],
+        help="Wyckoff-level constraint placeholder (metadata only in current implementation).",
+    )
     parser.add_argument(
         "--angle-loss-weight",
         type=float,
@@ -1582,6 +1596,16 @@ def train_one_epoch(
                 msg += f" angle_out={metrics['pred_angle_out_rate'].item():.3f}"
             if "pred_cond_mean" in metrics:
                 msg += f" cond_mean={metrics['pred_cond_mean'].item():.1f}"
+            proxy_metrics = _compute_train_proxy_metrics(metrics, collision_rate)
+            post_proj_proxy = _finite_metric(proxy_metrics.get("post_project_trigger_rate_train_proxy"))
+            cond_proxy = _finite_metric(proxy_metrics.get("cond_violation_rate_train_proxy"))
+            vac_proxy = _finite_metric(proxy_metrics.get("vacuum_violation_rate_train_proxy"))
+            if post_proj_proxy is not None:
+                msg += f" trigger_proxy={post_proj_proxy:.3f}"
+            if cond_proxy is not None:
+                msg += f" cond_proxy={cond_proxy:.3f}"
+            if vac_proxy is not None:
+                msg += f" vac_proxy={vac_proxy:.3f}"
             msg += (
                 f" min_dist_mean={min_dist_mean:.3f} min_dist_p10={min_dist_p10:.3f}"
                 f" collision_rate={collision_rate:.3f} min_dist_inf={min_dist_inf}"
@@ -1783,6 +1807,7 @@ def train_one_epoch(
                     payload["s_cond"] = float(metrics["s_cond"].item())
                 if grad_norm is not None:
                     payload["grad_norm"] = float(grad_norm)
+                payload.update(proxy_metrics)
                 if alerts:
                     payload["alerts"] = alerts
                 if loss_weight_state is not None:
@@ -1915,6 +1940,141 @@ def _serialize_cond_stats(cond_stats: dict | None) -> dict:
         else:
             payload[key] = float(value)
     return payload
+
+
+def _finite_metric(value: Any) -> float | None:
+    if value is None:
+        return None
+    try:
+        v = float(value)
+    except Exception:
+        return None
+    if not math.isfinite(v):
+        return None
+    return v
+
+
+def _compute_train_proxy_metrics(metrics: dict[str, torch.Tensor], collision_rate: float) -> dict[str, float]:
+    cond_violation = _finite_metric(
+        metrics.get("cond_lattice_violation_rate", torch.tensor(float("nan"))).item()
+        if "cond_lattice_violation_rate" in metrics
+        else None
+    )
+    if cond_violation is None:
+        cond_violation = _finite_metric(
+            metrics.get("cond_gram_violation_rate", torch.tensor(float("nan"))).item()
+            if "cond_gram_violation_rate" in metrics
+            else None
+        )
+
+    vacuum_violation = None
+    vac_gap = metrics.get("vacuum_gap")
+    if isinstance(vac_gap, torch.Tensor):
+        with torch.no_grad():
+            gap = vac_gap.detach().reshape(-1)
+            finite = torch.isfinite(gap)
+            if bool(finite.any()):
+                vacuum_violation = float((gap[finite] > 0.0).float().mean().item())
+    if vacuum_violation is None:
+        vac_gap_mean = _finite_metric(
+            metrics.get("vacuum_gap_mean", torch.tensor(float("nan"))).item()
+            if "vacuum_gap_mean" in metrics
+            else None
+        )
+        if vac_gap_mean is not None:
+            vacuum_violation = 1.0 if vac_gap_mean > 0.0 else 0.0
+
+    angle_violation = _finite_metric(
+        metrics.get("pred_angle_out_rate", torch.tensor(float("nan"))).item()
+        if "pred_angle_out_rate" in metrics
+        else None
+    )
+    collision_proxy = _finite_metric(collision_rate)
+    parts = [v for v in [cond_violation, vacuum_violation, angle_violation, collision_proxy] if v is not None]
+    trigger_proxy = max(parts) if parts else float("nan")
+    return {
+        "post_project_trigger_rate_train_proxy": float(trigger_proxy),
+        "cond_violation_rate_train_proxy": float(cond_violation) if cond_violation is not None else float("nan"),
+        "vacuum_violation_rate_train_proxy": float(vacuum_violation) if vacuum_violation is not None else float("nan"),
+    }
+
+
+def _aggregate_train_metrics_jsonl(path: Path) -> dict[str, Any]:
+    rows: list[dict[str, Any]] = []
+    if not path.exists():
+        return {"available": False, "reason": "train_metrics.jsonl not found"}
+    with path.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                continue
+    if not rows:
+        return {"available": False, "reason": "train_metrics.jsonl has no valid rows"}
+
+    metrics: dict[str, list[float]] = {}
+    for row in rows:
+        for key, value in row.items():
+            fv = _finite_metric(value)
+            if fv is None:
+                continue
+            metrics.setdefault(key, []).append(fv)
+
+    summary: dict[str, Any] = {
+        "available": True,
+        "rows": len(rows),
+        "first_step": int(rows[0].get("step", 0)),
+        "last_step": int(rows[-1].get("step", 0)),
+        "metrics": {},
+    }
+    for key, values in sorted(metrics.items()):
+        arr = np.asarray(values, dtype=float)
+        if arr.size == 0:
+            continue
+        summary["metrics"][key] = {
+            "count": int(arr.size),
+            "mean": float(np.mean(arr)),
+            "std": float(np.std(arr)),
+            "min": float(np.min(arr)),
+            "max": float(np.max(arr)),
+            "p50": float(np.percentile(arr, 50.0)),
+            "p95": float(np.percentile(arr, 95.0)),
+        }
+
+    proxy_keys = (
+        "post_project_trigger_rate_train_proxy",
+        "cond_violation_rate_train_proxy",
+        "vacuum_violation_rate_train_proxy",
+    )
+    trend: dict[str, Any] = {}
+    for key in proxy_keys:
+        seq = [v for v in metrics.get(key, []) if math.isfinite(v)]
+        if len(seq) < 2:
+            trend[key] = {
+                "available": False,
+                "reason": "insufficient_points",
+                "first_half_mean": None,
+                "second_half_mean": None,
+                "delta_second_minus_first": None,
+                "improved": None,
+            }
+            continue
+        split = max(1, len(seq) // 2)
+        first = float(np.mean(np.asarray(seq[:split], dtype=float)))
+        second = float(np.mean(np.asarray(seq[split:], dtype=float)))
+        delta = second - first
+        trend[key] = {
+            "available": True,
+            "first_half_mean": first,
+            "second_half_mean": second,
+            "delta_second_minus_first": delta,
+            "improved": bool(second < first),
+        }
+    summary["proxy_trend"] = trend
+    return summary
 
 
 def _resolve_model_hparams(args: argparse.Namespace) -> dict:
@@ -2276,7 +2436,11 @@ def main() -> None:
     denoiser_cfg.diffusion.lambda_cross_vacuum = float(args.cross_vacuum_loss_weight)
     denoiser_cfg.diffusion.cross_vacuum_bond_cut = float(args.cross_vacuum_bond_cut)
     denoiser_cfg.diffusion.cross_vacuum_power = int(args.cross_vacuum_power)
-    denoiser_cfg.symmetry_loss_weight = float(args.symmetry_loss_weight)
+    symmetry_mode = str(args.symmetry_mode).lower()
+    symmetry_loss_weight = float(args.symmetry_loss_weight)
+    if symmetry_mode == "off":
+        symmetry_loss_weight = 0.0
+    denoiser_cfg.symmetry_loss_weight = symmetry_loss_weight
     denoiser_cfg.symmetry_symprec = float(args.symmetry_symprec)
     denoiser_cfg.diffusion.lambda_angle = float(args.angle_loss_weight)
     denoiser_cfg.diffusion.angle_min = float(args.angle_min)
@@ -2400,6 +2564,12 @@ def main() -> None:
             "t_std": t_stats[1] if t_stats is not None else None,
             "z_norm_mean": z_norm_stats[0] if z_norm_stats is not None else None,
             "z_norm_std": z_norm_stats[1] if z_norm_stats is not None else None,
+        },
+        "symmetry_config": {
+            "symmetry_mode": symmetry_mode,
+            "symmetry_loss_weight": float(symmetry_loss_weight),
+            "symmetry_symprec": float(args.symmetry_symprec),
+            "wyckoff_constraint": str(args.wyckoff_constraint),
         },
         "lattice_stats": lattice_stats,
         "dataset": {
@@ -2548,6 +2718,12 @@ def main() -> None:
                 "t_mean": t_stats[0] if t_stats is not None else None,
                 "t_std": t_stats[1] if t_stats is not None else None,
             },
+            "symmetry_config": {
+                "symmetry_mode": symmetry_mode,
+                "symmetry_loss_weight": float(symmetry_loss_weight),
+                "symmetry_symprec": float(args.symmetry_symprec),
+                "wyckoff_constraint": str(args.wyckoff_constraint),
+            },
         }
 
         last_path = run_dir / "atomdenoiser_last.pt"
@@ -2563,6 +2739,12 @@ def main() -> None:
         if args.max_steps is not None and global_step >= args.max_steps:
             print(f"Reached max_steps={args.max_steps}, stopping.")
             break
+
+    metrics_aggregate = _aggregate_train_metrics_jsonl(metrics_log_path)
+    metrics_aggregate_path = run_dir / "train_metrics_aggregate.json"
+    with metrics_aggregate_path.open("w", encoding="utf-8") as f:
+        json.dump(metrics_aggregate, f, indent=2, ensure_ascii=True)
+    print(f"[info] wrote train metrics aggregate to {metrics_aggregate_path}")
 
     if tb_writer is not None:
         tb_writer.close()

@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import shlex
 import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -50,6 +49,14 @@ _FAIL_REASON_GEOM_PRIORITY = [
     "low_atoms",
     "empty_atoms",
 ]
+
+_SYMMETRY_BREAKDOWN_KEYS = (
+    "spglib_fail",
+    "sg_mismatch",
+    "wyckoff_multiplicity_mismatch",
+    "equiv_site_deviation",
+    "cell_reduction_fail",
+)
 
 
 def _main_fail_reason(reasons: List[str], priority: List[str]) -> str:
@@ -200,7 +207,7 @@ def _build_metrics_summary(tier0: Dict[str, Any], tier1: Dict[str, Any]) -> Dict
         except Exception:
             return None
 
-    return {
+    payload = {
         "success_geom_rate": float(tier0.get("success_geom_rate", 0.0)),
         "success_rate": float(tier0.get("success_rate", 0.0)),
         "valid_rate_eval": float(tier0.get("valid_rate_eval", 0.0)),
@@ -217,6 +224,13 @@ def _build_metrics_summary(tier0: Dict[str, Any], tier1: Dict[str, Any]) -> Dict
         "success_energy_rate": _opt_float(tier0.get("success_energy_rate")),
         "total_samples": int(tier0.get("total_samples", 0)),
     }
+    if "novelty_fingerprint" in tier0:
+        payload["novelty_fingerprint"] = tier0.get("novelty_fingerprint")
+    if "novelty_mean" in tier0:
+        payload["novelty_mean"] = _opt_float(tier0.get("novelty_mean"))
+    if "dedup_keep_rate" in tier0:
+        payload["dedup_keep_rate"] = _opt_float(tier0.get("dedup_keep_rate"))
+    return payload
 
 
 def _build_failure_breakdown(tier0: Dict[str, Any], tier1: Dict[str, Any]) -> Dict[str, Any]:
@@ -320,6 +334,8 @@ def _summary_stats(values: List[float]) -> Dict[str, Any]:
         "count": int(arr.size),
         "mean": float(np.mean(arr)),
         "median": float(np.median(arr)),
+        "q1": float(np.percentile(arr, 25.0)),
+        "q3": float(np.percentile(arr, 75.0)),
         "p10": float(np.percentile(arr, 10.0)),
         "p90": float(np.percentile(arr, 90.0)),
     }
@@ -477,7 +493,9 @@ def _eval_samples(
     relaxed_flag_values = samples.get("relaxed_flag")
     min_dist_relax_values = samples.get("min_dist_relax")
     energy_stats: List[float] = []
+    energy_stats_available: List[float] = []
     formation_stats: List[float] = []
+    formation_stats_available: List[float] = []
     success_flags: List[int] = []
     success_geom_flags: List[int] = []
     success_energy_flags: List[int] = []
@@ -490,6 +508,9 @@ def _eval_samples(
     sg_numbers: List[Optional[int]] = []
     sg_match_flags: List[int] = []
     sg_violation_flags: List[int] = []
+    sg_eval_flags: List[int] = []
+    spglib_fail_flags: List[int] = []
+    symmetry_violation_counts: Dict[str, int] = {k: 0 for k in _SYMMETRY_BREAKDOWN_KEYS}
     cond_spacegroup = samples.get("cond_spacegroup")
     if cond_spacegroup is not None:
         cond_spacegroup = cond_spacegroup.reshape(-1)
@@ -704,12 +725,27 @@ def _eval_samples(
         elif n_atoms > 0:
             sg_number = _spacegroup_number(lattice_i, frac_i, z_i, symprec=spacegroup_symprec)
         symmetry_violation = None
+        symmetry_violation_type = None
         if target_sg is not None:
+            sg_eval_flags.append(1)
+            spglib_fail = sg_number is None
+            spglib_fail_flags.append(int(spglib_fail))
+            if spglib_fail:
+                symmetry_violation_type = "spglib_fail"
+            elif sg_match is False:
+                symmetry_violation_type = "sg_mismatch"
             symmetry_violation = not bool(sg_match) if sg_match is not None else True
+        else:
+            sg_eval_flags.append(0)
+            spglib_fail_flags.append(0)
         if sg_match is not None:
             sg_match_flags.append(int(sg_match))
         if symmetry_violation is not None:
             sg_violation_flags.append(int(symmetry_violation))
+        if symmetry_violation_type is not None:
+            symmetry_violation_counts[symmetry_violation_type] = (
+                symmetry_violation_counts.get(symmetry_violation_type, 0) + 1
+            )
         sg_numbers.append(sg_number)
 
         # Energy taxonomy:
@@ -764,8 +800,10 @@ def _eval_samples(
 
         if energy_val is not None:
             energy_stats.append(energy_val)
+            energy_stats_available.append(energy_val)
         if formation_energy is not None:
             formation_stats.append(formation_energy)
+            formation_stats_available.append(formation_energy)
         success_flags.append(int(success_flag))
         success_geom_flags.append(int(success_geom))
         if success_energy is not None:
@@ -802,6 +840,7 @@ def _eval_samples(
             "spacegroup_number": sg_number,
             "spacegroup_match": sg_match if sg_match is not None else None,
             "symmetry_violation": symmetry_violation,
+            "symmetry_violation_type": symmetry_violation_type,
         }
         row["cond_gram"] = cond
         row["cond_gram_full"] = cond_full
@@ -834,7 +873,19 @@ def _eval_samples(
         "cond_lattice": _summary_stats([float(math.sqrt(c)) for c in conds if c is not None and np.isfinite(c) and c >= 0]),
         "spd_rate": float(np.mean([c < float("inf") for c in conds_full])) if conds_full else 0.0,
         "energy_mlip": _summary_stats(energy_stats),
+        "energy_mlip_by_availability": {
+            "available": _summary_stats(energy_stats_available),
+            "unavailable_count": int(np.sum([1 - int(v) for v in energy_available_flags]))
+            if energy_available_flags
+            else 0,
+        },
         "formation_energy_per_atom": _summary_stats(formation_stats),
+        "formation_energy_per_atom_by_availability": {
+            "available": _summary_stats(formation_stats_available),
+            "unavailable_count": int(np.sum([1 - int(v) for v in energy_available_flags]))
+            if energy_available_flags
+            else 0,
+        },
         "relaxed_rate": float(np.mean(relaxed_flags)) if relaxed_flags else None,
         "min_dist_relax": _summary_stats(min_dist_relax_stats),
         "success_rate": float(np.mean(success_flags)) if success_flags else 0.0,
@@ -846,6 +897,37 @@ def _eval_samples(
         "fail_reason_energy_counts": energy_fail_reason_counts,
         "spacegroup_match_rate": float(np.mean(sg_match_flags)) if sg_match_flags else None,
         "symmetry_violation_rate": float(np.mean(sg_violation_flags)) if sg_violation_flags else None,
+        "spglib_fail_rate": (
+            float(np.sum(spglib_fail_flags) / max(int(np.sum(sg_eval_flags)), 1))
+            if np.sum(sg_eval_flags) > 0
+            else None
+        ),
+        "symmetry_violation_breakdown": {
+            "spglib_fail": {
+                "count": int(symmetry_violation_counts["spglib_fail"]),
+                "rate": float(symmetry_violation_counts["spglib_fail"] / max(int(np.sum(sg_eval_flags)), 1))
+                if np.sum(sg_eval_flags) > 0
+                else None,
+            },
+            "sg_mismatch": {
+                "count": int(symmetry_violation_counts["sg_mismatch"]),
+                "rate": float(symmetry_violation_counts["sg_mismatch"] / max(int(np.sum(sg_eval_flags)), 1))
+                if np.sum(sg_eval_flags) > 0
+                else None,
+            },
+            "wyckoff_multiplicity_mismatch": {
+                "count": int(symmetry_violation_counts["wyckoff_multiplicity_mismatch"]),
+                "detail": "not_enabled",
+            },
+            "equiv_site_deviation": {
+                "count": int(symmetry_violation_counts["equiv_site_deviation"]),
+                "rms": None,
+            },
+            "cell_reduction_fail": {
+                "count": int(symmetry_violation_counts["cell_reduction_fail"]),
+                "detail": "not_enabled",
+            },
+        },
         "angle_alpha": _summary_stats(angles_alpha),
         "angle_beta": _summary_stats(angles_beta),
         "angle_gamma": _summary_stats(angles_gamma),
@@ -940,6 +1022,23 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--samples", type=Path, default=None, help="Path to samples.npz")
     parser.add_argument("--out-dir", type=Path, default=None, help="Output directory for eval artifacts.")
     parser.add_argument(
+        "--min-dist",
+        type=float,
+        default=1.5,
+        help="Min-distance cutoff (Angstrom) used for collision validity checks.",
+    )
+    parser.add_argument(
+        "--eval-min-dist",
+        type=float,
+        default=None,
+        help="Deprecated alias for --min-dist.",
+    )
+    parser.add_argument("--bond-cut", type=float, default=3.0, help="Bond cutoff used for graph checks.")
+    parser.add_argument("--dup-eps", type=float, default=1e-3, help="Coordinate dedup epsilon.")
+    parser.add_argument("--v-min", type=float, default=None, help="Optional minimum volume cutoff.")
+    parser.add_argument("--v-max", type=float, default=None, help="Optional maximum volume cutoff.")
+    parser.add_argument("--pbc-mask", type=str, default="1,1,0", help="PBC mask, e.g. 1,1,0 for slabs.")
+    parser.add_argument(
         "--self-check",
         action=argparse.BooleanOptionalAction,
         default=False,
@@ -988,20 +1087,6 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="If set, mark samples invalid when Gram condition exceeds this value.",
     )
-    parser.set_defaults(
-        min_dist=1.5,
-        eval_min_dist=None,
-        bond_cut=3.0,
-        dup_eps=1e-3,
-        v_min=None,
-        v_max=None,
-        sample=False,
-        checkpoint=None,
-        sample_out_dir=None,
-        sample_args="",
-        pbc_mask="1,1,0",
-        self_check=False,
-    )
     return parser.parse_args()
 
 
@@ -1022,30 +1107,13 @@ def main() -> None:
         print("self-check passed")
         return
 
-    if args.sample and args.samples is not None:
-        raise ValueError("Use either --samples or --sample, not both.")
-    if args.sample:
-        if args.checkpoint is None:
-            raise ValueError("--checkpoint is required when using --sample.")
-        from twodgen.scrip import sample_tokens as sample_tokens_mod
-
-        sample_argv = ["--checkpoint", str(args.checkpoint)]
-        if args.sample_out_dir is not None:
-            sample_argv += ["--out-dir", str(args.sample_out_dir)]
-        if args.sample_args:
-            sample_argv += shlex.split(args.sample_args)
-        sample_args = sample_tokens_mod.parse_args(sample_argv)
-        samples_path = sample_tokens_mod.run_sampling(sample_args)
-        samples = dict(np.load(samples_path))
-        out_dir = args.out_dir or (samples_path.parent / "eval")
-    else:
-        if args.samples is None:
-            raise ValueError("--samples is required unless --self-check is set.")
-        samples_path = args.samples
-        samples = dict(np.load(args.samples))
-        out_dir = args.out_dir
-        if out_dir is None:
-            out_dir = args.samples.parent / "eval"
+    if args.samples is None:
+        raise ValueError("--samples is required unless --self-check is set.")
+    samples_path = args.samples
+    samples = dict(np.load(args.samples))
+    out_dir = args.out_dir
+    if out_dir is None:
+        out_dir = args.samples.parent / "eval"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     try:

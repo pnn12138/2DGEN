@@ -123,3 +123,20 @@
 - 2026-02-10: `sample_tokens.py` 增加 `--g-scale`/`--override-g-scale`，支持在采样阶段显式覆盖 checkpoint g_scale（用于 E1.3 sweep 对照）。
 - 2026-02-10: 完成 E1.2/E1.3 smoke（`runs/E1_2_smoke`、`runs/E1_3_smoke`），并通过 artifact validator；新增测试 `tests/test_phase1_scripts.py`。
 - 2026-02-10: 完成 E1.1 正式 quick 对照（`runs/E1_1`, N=2000, seeds=0/1/2）：`success_geom_rate` 从 0.3127 提升到 0.4260（delta=+0.1133），`valid_rate_eval` 从 0.3508 提升到 0.4787；提升显著但未达 `+0.15` 阈值。
+- 2026-02-10: phase2 补齐训练-采样协同闭环：`train_tokens.py` 新增 `post_project_trigger_rate_train_proxy/cond_violation_rate_train_proxy/vacuum_violation_rate_train_proxy` 三项导出与 `train_metrics_aggregate.json` 聚合；新增 `evaluate/check_trigger_trend.py` 与 `scripts/exp_e2_curriculum_repulsion.sh`（含 `scrip/` shim）及 `evaluate/collect_e2_curriculum_repulsion.py`。
+- 2026-02-10: phase3 补齐对称性控制入口：新增 `configs/bench/E3_1_soft.yaml`、`E3_1_hard.yaml`；`train_tokens.py` 与 `sample_tokens.py` 统一支持 `symmetry_mode`、`wyckoff_constraint` 并落盘 metadata；`eval_samples.py` 新增 `spglib_fail_rate` 与固定枚举 `symmetry_violation_breakdown`（5 类）。
+- 2026-02-10: phase4 补齐 MLIP→DFT 筛选链路：新增 `evaluate/screening_pipeline.py`（生成→几何 gate→能量 gate→top-M→FPS top-K）、`evaluate/export_dft_spotcheck.py`、`evaluate/import_dft_results.py`；`eval_samples.py` 能量统计补齐 `median/q1/q3` 与 `energy_available` 分层摘要。
+- 2026-02-10: phase5 补齐 novelty/diversity 工具：新增 `evaluate/novelty.py`、`evaluate/diversity.py`、`evaluate/plot_qd.py`、`evaluate/check_mode_collapse.py`，并支持将 novelty fingerprint 名称/参数写回 `metrics_summary.json`。
+- 2026-02-10: phase6 补齐论文产物脚本：新增 `evaluate/export_paper_assets.py` 与 `evaluate/repro_manifest.py`；`common/run_metadata.py` 增加环境锁定字段（`python/torch/spglib/ase/pymatgen/chgnet` + `device/dtype/cuda_version/cuda_devices`）；`configs/bench/experiments.yaml` 补齐 E2/E4/E5 runner 与 E3 hard_config。
+- 2026-02-10: 修复评估兼容字段：`evaluate/compare_scenarios.py` 改用当前 `per_sample.jsonl` 字段（`cond_exact_match/success_geom/success_energy/success`），移除旧 `cond_match/formation_pass` 依赖。
+- 2026-02-10: 新增回归测试并全量通过：`tests/test_train_metrics_proxy.py`、`tests/test_check_trigger_trend.py`、`tests/test_dft_spotcheck_io.py`、`tests/test_diversity_and_collapse.py`、`tests/test_repro_and_paper_assets.py`；`uv run pytest` 结果 `37 passed`。
+- 2026-02-10: 修复 `train_tokens --help` 崩溃（`--curriculum-epochs` help 中 `0%/100%` 改为 `0%%/100%%`，避免 argparse 百分号格式化异常）。
+- 2026-02-10: 修复 `eval_tier0_cif` 入口导入错误：改为使用 `twodgen.common.geometry_np` 的 `min_dist_and_shifts/thickness_vacuum`，不再依赖 `eval_samples` 私有符号。
+- 2026-02-10: 清理 `eval_samples.py` 不可达内置采样分支，并补回显式 CLI 参数 `--min-dist/--eval-min-dist/--bond-cut/--dup-eps/--v-min/--v-max/--pbc-mask`。
+- 2026-02-10: 修复 `twodgen/scrip/eval_with_energy.sh` 的 post-project 配置冲突：`--post-project-interval` 从 `0` 调整为 `1`，确保后投影真实执行。
+- 2026-02-10: 修复脚本直运行兼容顺序：`twodgen/scrip/train_tokens.py` 与 `twodgen/scrip/test_tokens.py` 在导入 `twodgen` 前先注入仓库根路径到 `sys.path`。
+- 2026-02-10: 修复 `self_train_loop.py` 的参数拆分：`args.sample_args/args.eval_args` 由 `.split()` 改为 `shlex.split()`；子进程解释器统一为 `sys.executable`。
+- 2026-02-10: 修复 `run_pipeline.py` 的 merge 能量依赖硬绑定：仅在相应文件存在时传入 `--conditions/--energy`，并对缺失且被请求的步骤给出清晰报错；子进程解释器统一为 `sys.executable`。
+- 2026-02-10: 验证完成：`uv run pytest -q`（37 passed）；`python -m ... --help` 全量体检（`twodgen/scrip/*.py` + `twodgen/evaluate/*.py`）`40/40` 通过。
+- 2026-02-14: 重建 C2DB token cache（`data/C2DB/cache/c2db_tokens_2d_based.npz`，limit=5000）并完成端到端 smoke 复现：小跑训练生成 checkpoint（`outputs_pnn/checkpoints/...`），跑通 `runs/E0_smoke`、`runs/E1_1_smoke`、`runs/E1_2_smoke`、`runs/E1_3_smoke`、`runs/E2_1_smoke`。
+- 2026-02-14: 修复 `twodgen/scripts/exp_e2_curriculum_repulsion.sh` 的采样 repulsion 参数透传：移除不存在的 `--min-dist-iter`，并将 `--sample-args` 改为 `--sample-args=...` 形式以避免空/短参数触发 argparse 解析失败。

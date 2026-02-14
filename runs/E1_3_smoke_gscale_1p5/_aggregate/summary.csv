@@ -1,8 +1,0 @@
-variant,metric,mean,std,n
-full_projection,success_geom_rate,0.0,0.0,1.0
-full_projection,bad_volume_rate,0.0,0.0,1.0
-full_projection,collision_rate,0.0,0.0,1.0
-full_projection,inplane_degen_rate,0.0,0.0,1.0
-full_projection,cross_vacuum_risk_rate,0.5,0.0,1.0
-full_projection,post_project_trigger_any_rate,1.0,0.0,1.0
-full_projection,valid_rate_eval,0.0,0.0,1.0

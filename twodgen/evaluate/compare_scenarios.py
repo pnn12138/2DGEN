@@ -24,6 +24,14 @@ def _rate(rows: List[Dict[str, Any]], key: str) -> float:
     return float(np.mean(vals)) if vals else 0.0
 
 
+def _rate_any(rows: List[Dict[str, Any]], keys: tuple[str, ...]) -> float:
+    for key in keys:
+        vals = [int(bool(r.get(key))) for r in rows if key in r]
+        if vals:
+            return float(np.mean(vals))
+    return 0.0
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Compare multiple evaluation scenarios.")
     parser.add_argument(
@@ -52,8 +60,10 @@ def main() -> None:
                 "path": str(path),
                 "total": len(per_sample),
                 "valid_rate": _rate(per_sample, "valid"),
-                "cond_match_rate": _rate(per_sample, "cond_match"),
-                "formation_pass_rate": _rate(per_sample, "formation_pass"),
+                "cond_match_rate": _rate_any(per_sample, ("cond_exact_match", "cond_match")),
+                "success_geom_rate": _rate_any(per_sample, ("success_geom",)),
+                "success_energy_rate": _rate_any(per_sample, ("success_energy", "formation_pass")),
+                "success_rate": _rate_any(per_sample, ("success",)),
             }
         )
 

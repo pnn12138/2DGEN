@@ -48,15 +48,16 @@ uv run python -m twodgen.scrip.train_tokens \
   --npz data/C2DB/cache/c2db_tokens_2d_based.npz \
   --split-json data/C2DB/cache/c2db_tokens_split.json \
   --split train \
-  --epochs 100 \
-  --batch-size 128 \
+  --model-size base \
+  --max-steps 20000 \
+  --batch-size 64 \
   --lr 1e-4 \
-  --cross-vacuum-loss-weight 0.1 \
-  --cross-vacuum-bond-cut 3.0 \
+  --num-workers 4 \
   --tb-logdir outputs/tb_runs/train_tokens \
   --tb-interval 200 \
   --alert-steps 10000 \
-  --save-dir outputs/checkpoints
+  --save-dir outputs/checkpoints \
+  --seed 0
 ```
 说明：
 - 默认开启 collision curriculum、`--filter-min-dist-below 1.35` 与 `--min-dist-train-weight 0.08`，显式减少重叠样本。  
@@ -70,7 +71,7 @@ uv run python -m twodgen.scrip.train_tokens \
 4) 采样（默认对 heldout 条件生成）：
 ```bash
 uv run python -m twodgen.scrip.sample_tokens \
-  --checkpoint /home/pnn/2dgen/outputs/checkpoints/20260207_003347/atomdenoiser_best.pt \
+  --checkpoint outputs/checkpoints/<RUN_STAMP>/atomdenoiser_best.pt \
   --num-samples 200 \
   --steps 50 \
   --method heun \

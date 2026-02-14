@@ -1,12 +1,41 @@
-## 冗余清理完成
-- 本轮已完成冗余代码清理与合并，无待处理项。
-- 发现（2026-01-31）：`twodgen/scrip/sample_tokens.py` 在头部和 `parse_args` 之后分别重定义 `_parse_pbc_mask`，造成维护冗余；建议保留一处并移除另一处。
-- 发现（2026-02-05）：`_parse_pbc_mask` 在 `prepare_c2db_tokens.py`、`train_tokens.py`、`sample_tokens.py`、`evaluate/eval_samples.py`、`evaluate/plot_compare.py` 和 `evaluate/eval_tier0_cif.py` 等模块中反复实现，考虑集中到 `twodgen/common` 或 `twodgen/data` 的通用工具防止未来改动不同步。
+# twodgen 冗余项清单（2026-02-10）
 
-## 冗余调试文件待清理（2026-02-09）
-- `twodgen/scrip/debug_cond_trigger.sh`：Phase1b 专用短跑对照脚本，验收完成后可移至归档或删除。
-- `twodgen/scrip/sampling_projection_ab.sh`：采样投影 A/B 对照脚本，当前仅用于一次性验证。
-- `twodgen/scrip/eval_with_energy.sh`：采样+relax+eval 的一键脚本，属于临时实验入口。
-- `twodgen/evaluate/test_relax.py`：CHGNet relax 的手工 smoke test，非正式测试用例。
-- `twodgen/scrip/test_tokens.py`：旧的 token diffusion smoke test，功能与 pytest 覆盖重复。
-- `twodgen/evaluate/eval_run_001.py`：基线复现实验 runner（可保留，但若不再维护建议归档到 `baselines/` 或文档化后移除）。
+> 目标：只保留主线必需代码。下面条目按“可直接清理价值”排序。
+
+## A. 代码冗余
+
+### 1) `_parse_pbc_mask` 被重复实现（建议统一）
+- 重复位置：
+  - `twodgen/scrip/train_tokens.py:642`
+  - `twodgen/scrip/sample_tokens.py:594`
+  - `twodgen/data/prepare_c2db_tokens.py:426`
+  - `twodgen/evaluate/eval_samples.py:308`
+  - `twodgen/evaluate/eval_tier0_cif.py:13`
+  - `twodgen/evaluate/plot_compare.py:12`
+- 建议：上移到 `twodgen/common`（例如 `twodgen/common/cli_utils.py`），各入口统一调用。
+
+### 2) 子进程调用样板代码重复
+- 位置：`twodgen/evaluate/run_pipeline.py`, `twodgen/evaluate/self_train_loop.py`, `twodgen/evaluate/screening_pipeline.py`
+- 问题：重复拼命令、重复 `_run()`、参数转义风格不一致。
+- 建议：抽出统一 runner（处理 `sys.executable`、`shlex.split`、日志和错误包装）。
+
+## B. 文件与入口冗余
+
+### 3) `twodgen/scrip/` 与 `twodgen/scripts/` 并存
+- 现状：`scripts` 中多个文件只是转发到 `scrip`，同时 `scrip` 里又保留了 deprecated shim。
+- 影响：入口路径双轨，文档和自动化脚本容易混用。
+- 建议：确定唯一入口目录（建议 `twodgen/scripts/`），保留一个短期兼容窗口后移除另一套。
+
+### 4) 一次性实验脚本仍在主目录
+- 典型文件：
+  - `twodgen/scrip/debug_cond_trigger.sh`
+  - `twodgen/scrip/sampling_projection_ab.sh`
+  - `twodgen/scrip/eval_with_energy.sh`
+  - `twodgen/evaluate/test_relax.py`
+  - `twodgen/evaluate/eval_run_001.py`
+- 建议：迁移到 `twodgen/experiments/archive/`（或文档化后删除），避免被误当成生产入口。
+
+## C. 清理优先级建议
+1. 先统一 `_parse_pbc_mask`（低风险、收益高）。
+2. 再统一入口目录和子进程 runner（降低维护成本）。
+3. 最后归档一次性实验脚本（清理噪声，减少误用）。

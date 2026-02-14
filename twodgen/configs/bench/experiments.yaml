@@ -17,15 +17,19 @@ experiments:
     config: twodgen/configs/bench/E2_1.yaml
     protocol: quick
     paper_assets: [Appendix]
+    runner: twodgen/scripts/exp_e2_curriculum_repulsion.sh
   E3_1:
     config: twodgen/configs/bench/E3_1_soft.yaml
+    hard_config: twodgen/configs/bench/E3_1_hard.yaml
     protocol: final
     paper_assets: [Fig4, Table2]
   E4_1:
     config: twodgen/configs/bench/E4_1.yaml
     protocol: final
     paper_assets: [Fig5, Table3]
+    runner: twodgen.evaluate.screening_pipeline
   E5_1:
     config: twodgen/configs/bench/E5_1.yaml
     protocol: final
     paper_assets: [Fig6, Table3]
+    runner: twodgen.evaluate.novelty

@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
+import sys
 from pathlib import Path
 from typing import Dict, List, Literal, Tuple
 
@@ -135,7 +137,7 @@ def main() -> None:
     eval_dir = out_dir / "eval"
 
     sample_cmd = [
-        "python",
+        sys.executable,
         "-m",
         "twodgen.scrip.sample_tokens",
         "--checkpoint",
@@ -154,11 +156,11 @@ def main() -> None:
     if args.cond_npz is not None:
         sample_cmd += ["--cond-npz", str(args.cond_npz)]
     if args.sample_args:
-        sample_cmd += args.sample_args.split()
+        sample_cmd += shlex.split(args.sample_args)
     _run(sample_cmd)
 
     eval_cmd = [
-        "python",
+        sys.executable,
         "-m",
         "twodgen.evaluate.eval_samples",
         "--samples",
@@ -167,7 +169,7 @@ def main() -> None:
         str(eval_dir),
     ]
     if args.eval_args:
-        eval_cmd += args.eval_args.split()
+        eval_cmd += shlex.split(args.eval_args)
     _run(eval_cmd)
 
     success_indices = _load_success_indices(eval_dir / "per_sample.jsonl", mode=str(args.select))  # type: ignore[arg-type]

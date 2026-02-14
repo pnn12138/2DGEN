@@ -32,7 +32,7 @@ UV_CACHE_DIR="${UV_CACHE_DIR:-uv_cache}" PYTHONPATH="$(pwd)" uv run python -m tw
   --checkpoint "${CHECKPOINT}" --npz "${NPZ}" \
   --num-samples "${NUM}" --steps "${STEPS}" --seed "${SEED}" \
   --project-gram-cond --project-gram-max-cond "${COND_MAX}" --project-final \
-  --post-project --post-project-interval 0 --post-project-keys "angle,cond,inplane,volume" \
+  --post-project --post-project-interval 1 --post-project-keys "angle,cond,inplane,volume" \
   --relax --relax-steps 30 --relax-fmax 0.1 --relax-device cuda \
   --out-dir "${OUT_DIR}"
 
