@@ -1,4 +1,4 @@
-# 待做任务清单（对齐 `twodgen/plan.md`：v0.1 / 2026-02-10）
+# 待做任务清单（对齐 `twodgen/plan.md`：2026-02-15 + `twodgen/process.md`：2026-02-25）
 
 > 说明：本清单仅保留“新一轮未完成项”，已完成历史条目已移除。目标是把 E0–E5 做成可复现实验流水线与论文产物。
 
@@ -7,14 +7,15 @@
 - review
 - done
 
-## 当前进度快照（2026-02-10，已更新）
+## 当前进度快照（2026-02-25，已更新）
 - `phase0`：done
   - E0 协议链路已通过（schema/STATUS/resume/validator）。
 - `phase1`：review
-  - `E1_1` quick 结果已产出：`delta_success_geom_rate=+0.1133`（未达 `+0.15` 阈值）。
-  - `E1_2`/`E1_3` 已有脚本与配置，当前进入“待复跑 + 待验收”状态。
+  - `E1_1`：CPU 小预算回归已跑通；按协议口径（quick/final）仍未完成验收（当前 quick 口径 delta 未达 `+0.15`）。
+  - `E1_2`：脚本/配置已具备，需在“同一 baseline checkpoint”上跑中等预算定位收益来源与副作用（重点：volume projection 对 diversity 的影响）。
+  - `E1_3`：需要先修订 g_scale sweep 口径（避免在不同数值尺度 checkpoint 上直接 `--override-g-scale` 扫 0.5/1.0/1.5）。
 - `phase2`：review
-  - 训练 proxy 指标、E2 对照脚本、trigger trend 检查工具已落地，待真实训练 run 验证趋势是否下降。
+  - 工具链已落地，但 schedule 轴目前缺少“不同 schedule 对应不同 checkpoint”的训练产物；需补齐后再跑回归与验收。
 - `phase3`：review
   - soft/hard symmetry 配置与评估枚举已落地，待 final 口径阈值验收（`spacegroup_match_rate`/`spglib_fail_rate`）。
 - `phase4`：review
@@ -25,6 +26,28 @@
   - paper assets 导出与 repro manifest 已落地，待一键重建验收。
 
 ---
+
+## 下一步（按优先级：P0 → P2）
+
+### P0：先冻结“唯一 baseline checkpoint”（所有实验同一输入）
+- [ ] 训练 `baseline_ckpt_v1`（非 smoke）并冻结：固定 `npz/split/过滤条件/max_steps/seed`，产出可复现 checkpoint + `run_metadata.json`（含 `config_hash`）。
+- [ ] 写一份 `baseline_model_card.md`（训练数据、过滤条件、关键指标、失败类型占比、采样设置），作为后续 E1–E5 的单一输入说明。
+
+### P0：Phase1/Phase2 按协议口径完成验收（quick/final）
+- [ ] Phase1 / `E1_1`：用 `baseline_ckpt_v1` 跑 `protocol=quick`（seeds=0/1/2）与 `protocol=final`（seeds=0/1/2），按 gate 检查 `delta_success_geom_rate >= 0.15`。
+- [ ] Phase1 / `E1_2`：若 `E1_1` 未达标，用中等预算跑组件消融矩阵，定位主要增益项与副作用（特别关注 diversity 退化）。
+- [ ] Phase1 / `E1_3`：修订 sweep 口径后二选一落地并复跑：
+  - A) `relative_g_scale` 扫描：`g_scale = ckpt_g_scale * {0.5, 1.0, 1.5}`
+  - B) 禁止 override：改为“不同 g_scale 训练得到的不同 checkpoint”对照
+- [ ] Phase2 / `E2_1`：补齐 “linear/sigmoid/cosine 各自训练 checkpoint”，再跑 schedule×repulsion 回归，并用 `check_trigger_trend.py` 出具验收报告。
+
+### P1：把 Phase3/Phase4 从“链路存在”推进到“final 证据”
+- [ ] Phase3 / `E3_1`：soft/hard 各跑 final 口径，验收 `spacegroup_match_rate >= 0.85` 且 `spglib_fail_rate <= 0.05`。
+- [ ] Phase4：跑一轮真实 `screening_pipeline.py -> export_dft_spotcheck.py -> (外部 DFT) -> import_dft_results.py`，产出可引用的 backfill 结果与摘要报告。
+
+### P2：Phase5/Phase6 阈值体系与论文产物一键重建
+- [ ] Phase5：冻结 coverage/novelty “不塌陷”判据并在 `E1/E4` 主结论 runs 上复核（`check_mode_collapse.py` + `plot_qd.py`）。
+- [ ] Phase6：在选定的“baseline + 最优设置” runs 上运行 `export_paper_assets.py` 与 `repro_manifest.py`，完成一键重建验收。
 
 ## phase0（实验协议固化与产物规范）
 ### 0.1 todo（代码级实施规划，按落地顺序）
@@ -313,17 +336,15 @@
   - `twodgen/configs/bench/experiments.yaml` 已补齐 E2/E4/E5 runner 与 E3 hard_config 引用。
 
 ## 需要验证环节（新增）
-- E2 训练趋势验证
-  - 用真实训练 run 执行 `twodgen/evaluate/check_trigger_trend.py`，确认 3 个 train_proxy 后半程下降。
-  - 对比同一 checkpoint 的采样评估，确认 `post_project_trigger_any_rate` 降低且 `success_geom_rate` 不退化。
-- E3 对称性验证
-  - 分别运行 soft/hard 配置，对比 `spacegroup_match_rate` 与 `spglib_fail_rate`。
-  - 抽样检查 `symmetry_violation_breakdown` 5 类字段在 `tier0_metrics.json` 与 `failure_breakdown.json` 一致。
-- E4 DFT 链路验证
-  - 跑一轮 `screening_pipeline.py -> export_dft_spotcheck.py -> import_dft_results.py`，确认 `dft_manifest.csv` 与 `screening_with_dft.csv` 可回填。
-  - 检查 `dft_jobs/*/POSCAR|INCAR|KPOINTS|POTCAR.ref|job.json` 是否齐全。
-- E5 多样性/新颖性验证
-  - 运行 `novelty.py` 与 `diversity.py` 后，再执行 `check_mode_collapse.py`，确认 coverage/novelty 阈值判定符合预期。
-  - 用 `plot_qd.py` 复核 validity-diversity 曲线与输入统计一致。
-- 论文产物验证
-  - 运行 `export_paper_assets.py` 与 `repro_manifest.py`，确认表/图可一键重建，且 manifest 中 commit/config/seed/环境版本完整可追溯。
+- （P0）基线 checkpoint 冻结验证
+  - 训练 `baseline_ckpt_v1` 后，重跑一次相同 config，确认产物可复现（或在可解释波动范围内）。
+- （P0）Phase1 验收验证
+  - `E1_1` 按 quick/final 口径跑完并过 gate；若未过，用 `E1_2/E1_3` 定位并复跑最优组合。
+- （P0）Phase2 验收验证
+  - 先补齐 3 个 schedule 的训练 checkpoint，再跑 `E2_1`；用 `check_trigger_trend.py` 出具趋势报告并核对几何成功率不退化。
+- （P1）Phase3/Phase4 final 证据验证
+  - `E3_1` soft/hard final 口径过阈值；
+  - Phase4 完成至少一轮真实 DFT 回填闭环（manifest、回填表、摘要报告齐全）。
+- （P2）Phase5/Phase6 论文产物验证
+  - 在主结论 runs 上复核 novelty/diversity 阈值与 QD 曲线；
+  - 运行 `export_paper_assets.py`/`repro_manifest.py` 完成一键重建验收。

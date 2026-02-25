@@ -228,7 +228,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-dist-train-weight",
         type=float,
-        default=0.12,
+        default=0.08,
         help="Weight for collision penalty during training (0 disables).",
     )
     parser.add_argument(
@@ -289,7 +289,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--vacuum-loss-weight",
         type=float,
-        default=1.0,
+        default=0.1,
         help="Weight for 2D vacuum loss (0 disables).",
     )
     parser.add_argument(

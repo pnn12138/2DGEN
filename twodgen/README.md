@@ -52,6 +52,8 @@ uv run python -m twodgen.scrip.train_tokens \
   --max-steps 20000 \
   --batch-size 64 \
   --lr 1e-4 \
+  --min-dist-train-weight 0.08 \
+  --vacuum-loss-weight 0.1 \
   --num-workers 4 \
   --tb-logdir outputs/tb_runs/train_tokens \
   --tb-interval 200 \

@@ -140,3 +140,9 @@
 - 2026-02-10: 验证完成：`uv run pytest -q`（37 passed）；`python -m ... --help` 全量体检（`twodgen/scrip/*.py` + `twodgen/evaluate/*.py`）`40/40` 通过。
 - 2026-02-14: 重建 C2DB token cache（`data/C2DB/cache/c2db_tokens_2d_based.npz`，limit=5000）并完成端到端 smoke 复现：小跑训练生成 checkpoint（`outputs_pnn/checkpoints/...`），跑通 `runs/E0_smoke`、`runs/E1_1_smoke`、`runs/E1_2_smoke`、`runs/E1_3_smoke`、`runs/E2_1_smoke`。
 - 2026-02-14: 修复 `twodgen/scripts/exp_e2_curriculum_repulsion.sh` 的采样 repulsion 参数透传：移除不存在的 `--min-dist-iter`，并将 `--sample-args` 改为 `--sample-args=...` 形式以避免空/短参数触发 argparse 解析失败。
+- 2026-02-15: 基于训练 checkpoint `outputs/checkpoints/20260214_162331/atomdenoiser_best.pt` 完成 CPU 小预算回归并落盘汇总：
+  - `runs/E1_1_cpu_s0_ckpt_20260214_162331/_aggregate/summary.json`
+  - `runs/E1_2_cpu_s0_ckpt_20260214_162331/_aggregate/summary.json`
+  - `runs/E1_3_cpu_s0_ckpt_20260214_162331/_aggregate/summary.json`
+  - `runs/E2_1_cpu_s0_ckpt_20260214_162331/_aggregate/summary.json`
+- 2026-02-25: 对齐训练默认超参与快速开始文档：将 `twodgen/scrip/train_tokens.py` 的 `--min-dist-train-weight` 默认值改为 0.08、`--vacuum-loss-weight` 默认值改为 0.1，并在 `twodgen/README.md` 的训练命令中显式写出这两个参数，避免“以为是默认但实际不是”的不可复现风险。
